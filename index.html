@@ -490,7 +490,7 @@
                     </button>
                 </div>
                 
-                <a href="#" class="forgot-pass">Lupa Password?</a>
+                <a href="#" class="forgot-pass" onclick="handleForgotPassword(event)">Lupa Password?</a>
 
                 <div id="loginError" class="login-error">Username atau Password salah!</div>
                 
@@ -2377,7 +2377,43 @@
         // Jalankan Pengecekan Login Saat Aplikasi Dibuka
         loadCategories(); 
         checkLoginStatus(); 
+// ================== FITUR LUPA PASSWORD ==================
+        function handleForgotPassword(e) {
+            if(e) e.preventDefault(); // Mencegah layar reload ke atas
 
+            // Ambil email dari kolom input jika pengguna sudah mengetiknya
+            const inputId = document.getElementById('loginUser').value.trim();
+            
+            // Munculkan popup untuk memastikan/meminta alamat email
+            const emailToReset = prompt("Masukkan alamat email Anda untuk mereset password:", inputId);
+            
+            // Jika pengguna klik batal atau mengosongkannya
+            if (!emailToReset) return; 
+
+            // Cek jika pengguna mencoba mereset akun lokal (seperti 'hari' atau 'afifah')
+            if (!emailToReset.includes('@')) {
+                alert("Akun '" + emailToReset + "' adalah akun lokal (tanpa email). Silakan hubungi Administrator untuk mengubah password.");
+                return;
+            }
+
+            // Minta Firebase mengirimkan link reset password ke email tersebut
+            auth.sendPasswordResetEmail(emailToReset)
+                .then(() => {
+                    alert("✅ Tautan reset password telah dikirim!\n\nSilakan cek kotak masuk (inbox) atau folder spam pada email: " + emailToReset);
+                })
+                .catch((error) => {
+                    // Menangani pesan error dari Firebase agar lebih mudah dipahami
+                    let errMsg = "Gagal mengirim email reset.";
+                    if (error.code === 'auth/user-not-found') {
+                        errMsg = "Email ini tidak terdaftar di sistem kami.";
+                    } else if (error.code === 'auth/invalid-email') {
+                        errMsg = "Format alamat email tidak valid.";
+                    } else {
+                        errMsg += "\n" + error.message;
+                    }
+                    alert("❌ " + errMsg);
+                });
+        }
     </script>
 </body>
 </html>
