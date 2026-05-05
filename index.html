@@ -905,7 +905,9 @@
         </div>
 
         <!-- ================== MODALS ================== -->
-        <div id="settingsModal" class="modal-overlay">
+        <div id="settingsModal"
+            <button id="btnLinkGoogle" class="btn-submit" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--border); box-shadow:none; text-align:left; padding:0.75rem 1rem; margin-bottom:0.5rem;" onclick="linkGoogleAccount()">📧 Hubungkan Akun Google</button>
+            <button id="btnToggleBio" class="btn-submit" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--border); box-shadow:none; text-align:left; padding:0.75rem 1rem;" onclick="toggleBiometric()">🛡️ Aktifkan Face ID / Sidik Jari</button>
             <div class="modal-card" style="max-height: 85vh;">
                 <div class="modal-header" style="margin-bottom: 1rem;">
                     <h3 class="modal-title">⚙️ Pengaturan</h3>
@@ -1212,14 +1214,63 @@ function checkLoginStatus() {
         async function toggleBiometric() {
             const isEnabled = safeGetLocal('bio_enabled') === 'true';
 
-            // Jika sudah aktif, maka matikan
+            // JIKA SUDAH AKTIF -> LOGIKA UNTUK MEMATIKAN
             if(isEnabled) {
-                safeSetLocal('bio_enabled', 'false');
-                safeSetLocal('bio_user_data', '');
-                safeSetLocal('bio_credential_id', '');
-                showToast("Face ID Dimatikan ❌");
+                requireConfirm("Yakin ingin mematikan fitur login dengan Face ID / Sidik Jari?", () => {
+                    safeSetLocal('bio_enabled', 'false');
+                    safeSetLocal('bio_user_data', '');
+                    safeSetLocal('bio_credential_id', '');
+                    showToast("Face ID / Sidik Jari Dimatikan ❌");
+                    updateSettingsUI(); // Langsung perbarui teks tombol menjadi "Aktifkan"
+                });
                 return;
             }
+
+            // JIKA BELUM AKTIF -> LOGIKA UNTUK MENGAKTIFKAN
+            if (!window.PublicKeyCredential) {
+                alert("Maaf, browser atau perangkat ini tidak mendukung fitur Face ID / Sidik Jari.");
+                return;
+            }
+
+            requireConfirm("Aktifkan Face ID sungguhan? Browser akan memicu sensor biometrik perangkat Anda.", async () => {
+                try {
+                    const publicKey = {
+                        challenge: window.crypto.getRandomValues(new Uint8Array(32)),
+                        rp: { name: "Aplikasi Keuangan Haripam", id: window.location.hostname },
+                        user: {
+                            id: window.crypto.getRandomValues(new Uint8Array(16)),
+                            name: document.getElementById('displayProfileName').innerText || "User",
+                            displayName: "Akun Keuangan"
+                        },
+                        pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
+                        authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
+                        timeout: 60000
+                    };
+
+                    const credential = await navigator.credentials.create({ publicKey });
+
+                    if (credential) {
+                        const userData = {
+                            uid: currentProfileId,
+                            name: document.getElementById('displayProfileName').innerText,
+                            photo: document.getElementById('profileImg').src
+                        };
+                        
+                        const credentialIdArray = Array.from(new Uint8Array(credential.rawId));
+                        
+                        safeSetLocal('bio_credential_id', JSON.stringify(credentialIdArray));
+                        safeSetLocal('bio_enabled', 'true');
+                        safeSetLocal('bio_user_data', JSON.stringify(userData));
+                        
+                        showToast("Face ID Berhasil Diaktifkan! ✅");
+                        updateSettingsUI(); // Langsung perbarui teks tombol menjadi "Matikan (Merah)"
+                    }
+                } catch (err) {
+                    console.error("Biometrik error:", err);
+                    alert("Pendaftaran Face ID dibatalkan atau gagal.");
+                }
+            });
+        }
 
             // Cek apakah HP/Browser mendukung Face ID (WebAuthn)
             if (!window.PublicKeyCredential) {
@@ -1316,9 +1367,55 @@ function checkLoginStatus() {
         }
 
         // ================== PENGATURAN BERFUNGSI ==================
+        // Fungsi untuk memperbarui teks tombol di Pengaturan
+        function updateSettingsUI() {
+            const btnGoogle = document.getElementById('btnLinkGoogle');
+            const btnBio = document.getElementById('btnToggleBio');
+            
+            if(!btnGoogle || !btnBio) return;
+
+            // 1. CEK STATUS GMAIL
+            const user = auth.currentUser;
+            if (user) {
+                // Mengecek apakah di data Firebase, user ini menggunakan Google
+                const isGoogleLinked = user.providerData.some(provider => provider.providerId === 'google.com');
+                
+                if (isGoogleLinked) {
+                    btnGoogle.innerHTML = '✅ Terhubung dengan Google';
+                    btnGoogle.style.color = '#10B981'; // Warna Hijau
+                    btnGoogle.style.borderColor = '#A7F3D0';
+                    btnGoogle.onclick = () => showToast("Akun sudah terhubung ke Google ✅");
+                } else {
+                    btnGoogle.innerHTML = '📧 Hubungkan Akun Google';
+                    btnGoogle.style.color = 'var(--text-main)';
+                    btnGoogle.style.borderColor = 'var(--border)';
+                    btnGoogle.onclick = linkGoogleAccount;
+                }
+            } else {
+                // Jika masih pakai akun lokal (belum nyambung firebase)
+                btnGoogle.innerHTML = '📧 Hubungkan Akun Google';
+                btnGoogle.style.color = 'var(--text-main)';
+                btnGoogle.style.borderColor = 'var(--border)';
+                btnGoogle.onclick = linkGoogleAccount;
+            }
+
+            // 2. CEK STATUS BIOMETRIK (FACE ID)
+            const isBioEnabled = safeGetLocal('bio_enabled') === 'true';
+            if (isBioEnabled) {
+                btnBio.innerHTML = '🔓 Matikan Face ID / Sidik Jari';
+                btnBio.style.color = '#EF4444'; // Warna Merah
+                btnBio.style.borderColor = '#FECACA';
+            } else {
+                btnBio.innerHTML = '🛡️ Aktifkan Face ID / Sidik Jari';
+                btnBio.style.color = 'var(--text-main)';
+                btnBio.style.borderColor = 'var(--border)';
+            }
+        }
         function openSettingsModal() {
+            updateSettingsUI(); // <--- Tambahkan baris ini
             const m = document.getElementById('settingsModal');
             if(m) m.classList.add('show');
+        }
         }
 
         function closeSettingsModal() {
