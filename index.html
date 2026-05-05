@@ -1115,10 +1115,22 @@
             }
         }
 
-        function checkLoginStatus() {
-            auth.onAuthStateChanged((user) => {
+function checkLoginStatus() {
+            auth.onAuthStateChanged(async (user) => {
                 if (user) {
-                    switchToMainApp(user.uid, user.displayName || user.email.split('@')[0], user.photoURL);
+                    // Cek apakah UID Google ini punya 'jembatan' ke ID Lokal
+                    try {
+                        const mapDoc = await db.collection(DB_COLLECTION).doc("uid_mappings").get();
+                        const mapData = mapDoc.exists ? mapDoc.data() : {};
+                        
+                        // Jika ada mapping, pakai ID Lokal. Jika tidak, pakai UID Google bawaan.
+                        const actualProfileId = mapData[user.uid] || user.uid;
+                        
+                        switchToMainApp(actualProfileId, user.displayName || user.email.split('@')[0], user.photoURL);
+                    } catch (e) {
+                        // Jika gagal mengecek mapping, tetap jalankan aplikasi
+                        switchToMainApp(user.uid, user.displayName || user.email.split('@')[0], user.photoURL);
+                    }
                 } else {
                     const legacyId = safeGetLocal('legacyLoggedInUser');
                     if(legacyId && APP_USERS[legacyId]) {
@@ -1373,19 +1385,56 @@
             }
         }
 
-        function linkGoogleAccount() {
+function linkGoogleAccount() {
             const user = auth.currentUser;
-            if(!user) return alert("Fitur ini hanya tersedia untuk akun yang terdaftar via Email.");
             
-            user.linkWithPopup(googleProvider).then((result) => {
-                showToast("Akun berhasil terhubung ke Google ✅");
-            }).catch((error) => {
-                if(error.code === 'auth/credential-already-in-use') {
-                    alert("Akun Google ini sudah digunakan oleh pengguna lain.");
-                } else {
-                    alert("Gagal menghubungkan: " + error.message);
-                }
-            });
+            // SKENARIO 1: User login pakai Email Firebase
+            if(user && !user.isAnonymous) {
+                user.linkWithPopup(googleProvider).then((result) => {
+                    showToast("Akun berhasil terhubung ke Google ✅");
+                }).catch((error) => {
+                    if(error.code === 'auth/credential-already-in-use') {
+                        alert("Akun Google ini sudah digunakan oleh pengguna lain.");
+                    } else {
+                        alert("Gagal menghubungkan: " + error.message);
+                    }
+                });
+                return;
+            }
+
+            // SKENARIO 2: User sedang login pakai Akun Lokal (hari, afifah, dll)
+            const legacyId = safeGetLocal('legacyLoggedInUser');
+            if(legacyId && APP_USERS[legacyId]) {
+                requireConfirm("Yakin ingin menghubungkan data lokal ini ke akun Google Anda?", () => {
+                    auth.signInWithPopup(googleProvider).then(async (result) => {
+                        const googleUid = result.user.uid;
+                        const localProfileId = currentProfileId; // Mengambil ID lokal yang sedang dipakai
+
+                        // 1. Simpan 'jembatan' di database agar Gmail selalu membaca data lokal
+                        await db.collection(DB_COLLECTION).doc("uid_mappings").set({
+                            [googleUid]: localProfileId
+                        }, { merge: true });
+
+                        // 2. Update nama dan foto profil mengikuti profil Google
+                        const targetProfile = profiles.find(p => p.id === localProfileId);
+                        if (targetProfile) {
+                            targetProfile.name = result.user.displayName || targetProfile.name;
+                            targetProfile.photo = result.user.photoURL || targetProfile.photo;
+                            await db.collection(DB_COLLECTION).doc("profiles").set({ list: profiles });
+                        }
+
+                        // 3. Hapus status login lokal agar sepenuhnya menjadi akun Google
+                        localStorage.removeItem('legacyLoggedInUser');
+                        
+                        alert("Sukses! Data lokal berhasil ditarik ke Gmail Anda.");
+                        window.location.reload();
+                    }).catch((error) => {
+                        alert("Gagal menghubungkan ke Google: " + error.message);
+                    });
+                });
+            } else {
+                alert("Fitur ini hanya tersedia untuk akun yang sedang login.");
+            }
         }
 
         function toggleNotif() {
