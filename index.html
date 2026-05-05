@@ -550,7 +550,7 @@
                     </svg>
                 </button>
               <!-- Face ID -->
-<button type="button" class="btn-social-circle" onclick="simulasiBiometrik('Face ID')" title="Face ID">
+<button type="button" class="btn-social-circle" onclick="loginDenganBiometrikAsli()" title="Face ID">
     <svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
         <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
@@ -563,7 +563,7 @@
     </svg>
 </button>
                 <!-- Fingerprint -->
-                <button type="button" class="btn-social-circle" onclick="simulasiBiometrik('Fingerprint')" title="Sidik Jari">
+                <button type="button" class="btn-social-circle" onclick="loginDenganBiometrikAsli()" title="Sidik Jari">
                     <svg viewBox="0 0 24 24" fill="#3B82F6">
                         <path d="M17.81 4.47c-.08 0-.16-.02-.23-.06C15.66 3.42 14 3 12.01 3c-1.98 0-3.86.47-5.57 1.41-.24.13-.54.04-.68-.2-.13-.24-.04-.55.2-.68C7.82 2.52 9.86 2 12.01 2c2.13 0 3.99.47 6.03 1.52.25.13.34.43.21.67-.09.18-.26.28-.44.28zM3.5 9.72c-.1 0-.2-.03-.29-.09-.23-.16-.28-.47-.12-.7.99-1.4 2.25-2.5 3.75-3.27C9.98 4.04 14 4.03 17.15 5.65c1.5.77 2.76 1.86 3.75 3.25.16.22.11.54-.12.7-.23.16-.54.11-.7-.12-.89-1.24-2.01-2.2-3.35-2.89-2.81-1.43-6.4-1.43-9.26.04-1.33.68-2.45 1.64-3.35 2.89-.13.18-.33.28-.52.28zM22 15.36c-.22 0-.42-.14-.48-.36-.45-1.74-1.5-3.27-3.03-4.38-3.9-2.82-9.1-2.8-13 0-1.53 1.11-2.58 2.64-3.03 4.38-.07.27-.34.43-.61.36-.27-.07-.43-.34-.36-.61.52-1.99 1.72-3.73 3.46-4.99 4.37-3.16 10.18-3.14 14.53 0 1.74 1.26 2.94 3 3.46 4.99.07.27-.1.54-.36.61-.03.01-.06.01-.09.01zM11.99 11.51c-2.31 0-4.33.8-5.8 2.31-.2.2-.2.53 0 .73.2.2.53.2.73 0 1.28-1.28 3.03-1.96 5.07-1.96 2.05 0 3.79.68 5.07 1.96.2.2.53.2.73 0 .2-.2.2-.53 0-.73-1.47-1.51-3.49-2.31-5.8-2.31zM12 14c-1.77 0-3.35.53-4.57 1.48-.22.17-.26.49-.09.71.17.22.49.26.71.09 1.01-.79 2.35-1.22 3.95-1.22s2.94.43 3.95 1.22c.22.17.54.13.71-.09.17-.22.13-.54-.09-.71C15.35 14.53 13.77 14 12 14zm-1.89 3.65c-.2 0-.4-.11-.5-.31-.15-.29.43-.34.5-.34 1.1 0 2.21.28 3.12.8.24.14.32.44.18.68-.14.24-.44.32-.68.18-.73-.42-1.63-.64-2.52-.64-.03 0-.07 0-.1 0z"/>
                     </svg>
@@ -1024,7 +1024,7 @@
 
     </div>
 
-    <!-- MAIN SCRIPT (TIDAK ADA PERUBAHAN) -->
+    <!-- MAIN SCRIPT -->
     <script>
         // FUNGSI UNTUK MATA PASSWORD (TOGGLE VIEW PASSWORD)
         function togglePass(inputId, btn) {
@@ -1194,20 +1194,112 @@
             });
         }
 
-        function simulasiBiometrik(type) {
-            const bioEnabled = safeGetLocal('bio_enabled') === 'true';
-            if(!bioEnabled) {
-                alert(`Fitur ${type} belum diaktifkan. Silakan login manual lalu aktifkan di menu Pengaturan.`);
+        // ================== FITUR FACE ID SUNGGUHAN (WEBAUTHN) ==================
+
+        // 1. FUNGSI UNTUK MENGAKTIFKAN FACE ID (Dipanggil dari menu Pengaturan)
+        async function toggleBiometric() {
+            const isEnabled = safeGetLocal('bio_enabled') === 'true';
+
+            // Jika sudah aktif, maka matikan
+            if(isEnabled) {
+                safeSetLocal('bio_enabled', 'false');
+                safeSetLocal('bio_user_data', '');
+                safeSetLocal('bio_credential_id', '');
+                showToast("Face ID Dimatikan ❌");
                 return;
             }
-            const userVal = document.getElementById('loginUser').value.trim().toLowerCase();
-            if(userVal && APP_USERS[userVal]) {
-                document.getElementById('loginPass').value = APP_USERS[userVal].pass;
-                document.getElementById('formLoginView').dispatchEvent(new Event('submit'));
-            } else if (auth.currentUser) {
-                window.location.reload();
-            } else {
-                alert(`Ketik username/email terlebih dahulu untuk menggunakan ${type}.`);
+
+            // Cek apakah HP/Browser mendukung Face ID (WebAuthn)
+            if (!window.PublicKeyCredential) {
+                alert("Maaf, browser atau perangkat ini tidak mendukung fitur Face ID / Sidik Jari.");
+                return;
+            }
+
+            requireConfirm("Aktifkan Face ID sungguhan? Browser akan memicu sensor biometrik perangkat Anda.", async () => {
+                try {
+                    // Opsi untuk meminta browser memunculkan Face ID
+                    const publicKey = {
+                        challenge: window.crypto.getRandomValues(new Uint8Array(32)),
+                        rp: { name: "Aplikasi Keuangan Haripam", id: window.location.hostname },
+                        user: {
+                            id: window.crypto.getRandomValues(new Uint8Array(16)),
+                            name: document.getElementById('displayProfileName').innerText || "User",
+                            displayName: "Akun Keuangan"
+                        },
+                        pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
+                        authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
+                        timeout: 60000
+                    };
+
+                    // Memanggil perangkat keras (Ini yang memunculkan layar Face ID!)
+                    const credential = await navigator.credentials.create({ publicKey });
+
+                    if (credential) {
+                        // Jika wajah/sidik jari cocok, simpan data login ke localStorage
+                        const userData = {
+                            uid: currentProfileId,
+                            name: document.getElementById('displayProfileName').innerText,
+                            photo: document.getElementById('profileImg').src
+                        };
+                        
+                        // Simpan Kunci Unik Face ID-nya
+                        const credentialIdArray = Array.from(new Uint8Array(credential.rawId));
+                        
+                        safeSetLocal('bio_credential_id', JSON.stringify(credentialIdArray));
+                        safeSetLocal('bio_enabled', 'true');
+                        safeSetLocal('bio_user_data', JSON.stringify(userData));
+                        
+                        showToast("Face ID Berhasil Diaktifkan! ✅");
+                    }
+                } catch (err) {
+                    console.error("Biometrik error:", err);
+                    alert("Pendaftaran Face ID dibatalkan atau gagal.");
+                }
+            });
+        }
+
+        // 2. FUNGSI UNTUK LOGIN (Dipanggil saat klik tombol Face ID di halaman depan)
+        async function loginDenganBiometrikAsli() {
+            const isEnabled = safeGetLocal('bio_enabled') === 'true';
+            const savedDataStr = safeGetLocal('bio_user_data');
+            const credentialIdStr = safeGetLocal('bio_credential_id');
+
+            if(!isEnabled || !savedDataStr || !credentialIdStr) {
+                alert("Face ID belum diaktifkan. Silakan login manual via Email/Google dulu, lalu aktifkan di menu Pengaturan.");
+                return;
+            }
+
+            try {
+                // Membaca kembali Kunci Unik yang disimpan
+                const credIdArray = JSON.parse(credentialIdStr);
+
+                // Opsi untuk mencocokkan Face ID
+                const publicKey = {
+                    challenge: window.crypto.getRandomValues(new Uint8Array(32)),
+                    allowCredentials: [{
+                        id: new Uint8Array(credIdArray),
+                        type: 'public-key',
+                        transports: ['internal']
+                    }],
+                    userVerification: "required",
+                    timeout: 60000
+                };
+
+                // Meminta browser men-scan wajah user
+                const assertion = await navigator.credentials.get({ publicKey });
+
+                if (assertion) {
+                    // WAJAH DIKENALI! Lakukan proses login otomatis
+                    const userData = JSON.parse(savedDataStr);
+                    document.getElementById('loginError').style.display = 'none';
+                    
+                    // Panggil fungsi masuk ke aplikasi utama
+                    switchToMainApp(userData.uid, userData.name, userData.photo);
+                    showToast("Berhasil masuk dengan Face ID ✅");
+                }
+            } catch (err) {
+                console.error("Login biometrik gagal:", err);
+                alert("Wajah tidak dikenali atau proses dibatalkan.");
             }
         }
 
@@ -1294,19 +1386,6 @@
                     alert("Gagal menghubungkan: " + error.message);
                 }
             });
-        }
-
-        function toggleBiometric() {
-            const isEnabled = safeGetLocal('bio_enabled') === 'true';
-            if(isEnabled) {
-                safeSetLocal('bio_enabled', 'false');
-                showToast("Autentikasi Biometrik Dimatikan ❌");
-            } else {
-                requireConfirm("Aktifkan Fingerprint / Face ID untuk masuk lebih cepat di perangkat ini?", () => {
-                    safeSetLocal('bio_enabled', 'true');
-                    showToast("Autentikasi Biometrik Diaktifkan ✅");
-                });
-            }
         }
 
         function toggleNotif() {
