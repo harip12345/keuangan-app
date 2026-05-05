@@ -905,9 +905,7 @@
         </div>
 
         <!-- ================== MODALS ================== -->
-        <div id="settingsModal"
-            <button id="btnLinkGoogle" class="btn-submit" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--border); box-shadow:none; text-align:left; padding:0.75rem 1rem; margin-bottom:0.5rem;" onclick="linkGoogleAccount()">📧 Hubungkan Akun Google</button>
-            <button id="btnToggleBio" class="btn-submit" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--border); box-shadow:none; text-align:left; padding:0.75rem 1rem;" onclick="toggleBiometric()">🛡️ Aktifkan Face ID / Sidik Jari</button>
+        <div id="settingsModal" class="modal-overlay">
             <div class="modal-card" style="max-height: 85vh;">
                 <div class="modal-header" style="margin-bottom: 1rem;">
                     <h3 class="modal-title">⚙️ Pengaturan</h3>
@@ -918,8 +916,10 @@
                 <div style="background:var(--surface-color); border:1px solid var(--border); border-radius:12px; padding:1rem; margin-bottom:1.5rem;">
                     <button class="btn-submit" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--border); box-shadow:none; text-align:left; padding:0.75rem 1rem; margin-bottom:0.5rem;" onclick="updateName()">👤 Ubah Nama Profil</button>
                     <button class="btn-submit" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--border); box-shadow:none; text-align:left; padding:0.75rem 1rem; margin-bottom:0.5rem;" onclick="updatePassword()">🔑 Ubah Password</button>
-                    <button class="btn-submit" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--border); box-shadow:none; text-align:left; padding:0.75rem 1rem; margin-bottom:0.5rem;" onclick="linkGoogleAccount()">📧 Hubungkan Akun Google</button>
-                    <button class="btn-submit" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--border); box-shadow:none; text-align:left; padding:0.75rem 1rem;" onclick="toggleBiometric()">🛡️ Atur Face ID / Sidik Jari</button>
+                    <!-- Tombol Link Akun Google sudah disisipkan ID dinamis -->
+                    <button id="btnLinkGoogle" class="btn-submit" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--border); box-shadow:none; text-align:left; padding:0.75rem 1rem; margin-bottom:0.5rem;" onclick="linkGoogleAccount()">📧 Hubungkan Akun Google</button>
+                    <!-- Tombol Face ID sudah disisipkan ID dinamis -->
+                    <button id="btnToggleBio" class="btn-submit" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--border); box-shadow:none; text-align:left; padding:0.75rem 1rem;" onclick="toggleBiometric()">🛡️ Aktifkan Face ID / Sidik Jari</button>
                 </div>
 
                 <div style="font-size:0.85rem; font-weight:700; color:var(--primary); margin-bottom:0.5rem; text-transform:uppercase;">Umum & Aplikasi</div>
@@ -1117,7 +1117,7 @@
             }
         }
 
-function checkLoginStatus() {
+        function checkLoginStatus() {
             auth.onAuthStateChanged(async (user) => {
                 if (user) {
                     // Cek apakah UID Google ini punya 'jembatan' ke ID Lokal
@@ -1210,7 +1210,7 @@ function checkLoginStatus() {
 
         // ================== FITUR FACE ID SUNGGUHAN (WEBAUTHN) ==================
 
-        // 1. FUNGSI UNTUK MENGAKTIFKAN FACE ID (Dipanggil dari menu Pengaturan)
+        // 1. FUNGSI UNTUK MENGAKTIFKAN/MEMATIKAN FACE ID (Diperbarui dengan Konfirmasi)
         async function toggleBiometric() {
             const isEnabled = safeGetLocal('bio_enabled') === 'true';
 
@@ -1221,7 +1221,7 @@ function checkLoginStatus() {
                     safeSetLocal('bio_user_data', '');
                     safeSetLocal('bio_credential_id', '');
                     showToast("Face ID / Sidik Jari Dimatikan ❌");
-                    updateSettingsUI(); // Langsung perbarui teks tombol menjadi "Aktifkan"
+                    updateSettingsUI(); // Langsung perbarui teks tombol
                 });
                 return;
             }
@@ -1263,56 +1263,7 @@ function checkLoginStatus() {
                         safeSetLocal('bio_user_data', JSON.stringify(userData));
                         
                         showToast("Face ID Berhasil Diaktifkan! ✅");
-                        updateSettingsUI(); // Langsung perbarui teks tombol menjadi "Matikan (Merah)"
-                    }
-                } catch (err) {
-                    console.error("Biometrik error:", err);
-                    alert("Pendaftaran Face ID dibatalkan atau gagal.");
-                }
-            });
-        }
-
-            // Cek apakah HP/Browser mendukung Face ID (WebAuthn)
-            if (!window.PublicKeyCredential) {
-                alert("Maaf, browser atau perangkat ini tidak mendukung fitur Face ID / Sidik Jari.");
-                return;
-            }
-
-            requireConfirm("Aktifkan Face ID sungguhan? Browser akan memicu sensor biometrik perangkat Anda.", async () => {
-                try {
-                    // Opsi untuk meminta browser memunculkan Face ID
-                    const publicKey = {
-                        challenge: window.crypto.getRandomValues(new Uint8Array(32)),
-                        rp: { name: "Aplikasi Keuangan Haripam", id: window.location.hostname },
-                        user: {
-                            id: window.crypto.getRandomValues(new Uint8Array(16)),
-                            name: document.getElementById('displayProfileName').innerText || "User",
-                            displayName: "Akun Keuangan"
-                        },
-                        pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
-                        authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
-                        timeout: 60000
-                    };
-
-                    // Memanggil perangkat keras (Ini yang memunculkan layar Face ID!)
-                    const credential = await navigator.credentials.create({ publicKey });
-
-                    if (credential) {
-                        // Jika wajah/sidik jari cocok, simpan data login ke localStorage
-                        const userData = {
-                            uid: currentProfileId,
-                            name: document.getElementById('displayProfileName').innerText,
-                            photo: document.getElementById('profileImg').src
-                        };
-                        
-                        // Simpan Kunci Unik Face ID-nya
-                        const credentialIdArray = Array.from(new Uint8Array(credential.rawId));
-                        
-                        safeSetLocal('bio_credential_id', JSON.stringify(credentialIdArray));
-                        safeSetLocal('bio_enabled', 'true');
-                        safeSetLocal('bio_user_data', JSON.stringify(userData));
-                        
-                        showToast("Face ID Berhasil Diaktifkan! ✅");
+                        updateSettingsUI(); // Langsung perbarui teks tombol
                     }
                 } catch (err) {
                     console.error("Biometrik error:", err);
@@ -1366,8 +1317,9 @@ function checkLoginStatus() {
             }
         }
 
-        // ================== PENGATURAN BERFUNGSI ==================
-        // Fungsi untuk memperbarui teks tombol di Pengaturan
+        // ================== PENGATURAN BERFUNGSI (UI UPDATE) ==================
+
+        // FUNGSI BARU: Untuk mengecek dan mengubah UI tombol Google & Biometrik
         function updateSettingsUI() {
             const btnGoogle = document.getElementById('btnLinkGoogle');
             const btnBio = document.getElementById('btnToggleBio');
@@ -1411,11 +1363,12 @@ function checkLoginStatus() {
                 btnBio.style.borderColor = 'var(--border)';
             }
         }
+
+        // MODIFIKASI: Memanggil update UI saat modal dibuka
         function openSettingsModal() {
-            updateSettingsUI(); // <--- Tambahkan baris ini
+            updateSettingsUI(); // Jalankan update UI
             const m = document.getElementById('settingsModal');
             if(m) m.classList.add('show');
-        }
         }
 
         function closeSettingsModal() {
@@ -1482,13 +1435,14 @@ function checkLoginStatus() {
             }
         }
 
-function linkGoogleAccount() {
+        function linkGoogleAccount() {
             const user = auth.currentUser;
             
             // SKENARIO 1: User login pakai Email Firebase
             if(user && !user.isAnonymous) {
                 user.linkWithPopup(googleProvider).then((result) => {
                     showToast("Akun berhasil terhubung ke Google ✅");
+                    updateSettingsUI(); // Update tampilan tombol
                 }).catch((error) => {
                     if(error.code === 'auth/credential-already-in-use') {
                         alert("Akun Google ini sudah digunakan oleh pengguna lain.");
@@ -2519,7 +2473,8 @@ function linkGoogleAccount() {
 
             populateTrendYearFilter(); renderTrendChart();
         };
-// ================== FITUR LUPA PASSWORD ==================
+
+        // ================== FITUR LUPA PASSWORD ==================
         function handleForgotPassword(e) {
             if(e) e.preventDefault(); // Mencegah layar reload ke atas
 
@@ -2556,6 +2511,7 @@ function linkGoogleAccount() {
                     alert("❌ " + errMsg);
                 });
         }
+
         // Jalankan Pengecekan Login Saat Aplikasi Dibuka
         loadCategories(); 
         checkLoginStatus(); 
