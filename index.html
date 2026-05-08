@@ -686,22 +686,26 @@
             </div>
 
             <div class="summary-cards">
-                <div class="card">
-                    <div class="card-title"><span style="font-size: 1.1rem;">📉</span> Pemasukan</div>
-                    <div class="card-amount income-text" id="totalIncome">Rp 0</div>
-                </div>
-                <div class="card">
-                    <div class="card-title"><span style="font-size: 1.1rem;">📈</span> Pengeluaran</div>
-                    <div class="card-amount expense-text" id="totalExpense">Rp 0</div>
-                </div>
+            <div class="card">
+                <div class="card-title"><span style="font-size: 1.1rem;">📉</span> Pemasukan</div>
+                <div class="card-amount income-text" id="totalIncome">Rp 0</div>
             </div>
-
-            <div style="padding: 0 1.5rem; margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 2;">
-                <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-main);">🗓 Filter Periode:</span>
-                <select class="period-filter local-filter" id="periodFilterTop" onchange="applyFilter(this.value)"></select>
+            <div class="card">
+                <div class="card-title"><span style="font-size: 1.1rem;">📈</span> Pengeluaran</div>
+                <div class="card-amount expense-text" id="totalExpense">Rp 0</div>
             </div>
+        </div>
 
-            <div class="content-section" id="formSection" style="padding-top: 1rem;">
+        <div style="padding: 0 1.5rem; margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 2; flex-wrap: wrap; gap: 8px;">
+            <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-main);">🗓 Filter Periode:</span>
+            <div style="display: flex; gap: 4px; align-items: center; flex-wrap: nowrap;">
+                <input type="date" class="local-filter" id="startDateTop" onchange="applyDateFilter('startDateTop', 'endDateTop')" style="padding:0.3rem; font-size:0.75rem; width:115px;">
+                <span style="font-size:0.8rem; color:var(--text-main)">-</span>
+                <input type="date" class="local-filter" id="endDateTop" onchange="applyDateFilter('startDateTop', 'endDateTop')" style="padding:0.3rem; font-size:0.75rem; width:115px;">
+            </div>
+        </div>
+
+        <div class="content-section" id="formSection" style="padding-top: 1rem;">
                 <div class="section-title"><span>Catat Transaksi</span></div>
                 <form id="transactionForm">
                     <div class="form-group">
@@ -777,9 +781,13 @@
                 </div>
             </div>
             
-            <div style="padding: 0 1.5rem; margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 2;">
+            <div style="padding: 0 1.5rem; margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 2; flex-wrap: wrap; gap: 8px;">
                 <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-main);">🗓 Filter Periode:</span>
-                <select class="period-filter local-filter" id="periodFilterSav" onchange="applyFilter(this.value)"></select>
+                <div style="display: flex; gap: 4px; align-items: center; flex-wrap: nowrap;">
+                    <input type="date" class="local-filter" id="startDateSav" onchange="applyDateFilter('startDateSav', 'endDateSav')" style="padding:0.3rem; font-size:0.75rem; width:115px;">
+                    <span style="font-size:0.8rem; color:var(--text-main)">-</span>
+                    <input type="date" class="local-filter" id="endDateSav" onchange="applyDateFilter('startDateSav', 'endDateSav')" style="padding:0.3rem; font-size:0.75rem; width:115px;">
+                </div>
             </div>
 
             <div class="content-section" style="padding-top: 1rem;">
@@ -839,9 +847,13 @@
             </div>
             <div class="content-section" style="margin-top: -1.5rem; position: relative; z-index: 2;">
                 
-                <div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 0.75rem 1rem; border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                <div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 0.75rem 1rem; border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); flex-wrap: wrap; gap: 8px;">
                     <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-main);">🗓 Periode:</span>
-                    <select class="period-filter local-filter" id="periodFilterAna" onchange="applyFilter(this.value)"></select>
+                    <div style="display: flex; gap: 4px; align-items: center; flex-wrap: nowrap;">
+                        <input type="date" class="local-filter" id="startDateAna" onchange="applyDateFilter('startDateAna', 'endDateAna')" style="padding:0.3rem; font-size:0.75rem; width:115px;">
+                        <span style="font-size:0.8rem; color:var(--text-main)">-</span>
+                        <input type="date" class="local-filter" id="endDateAna" onchange="applyDateFilter('startDateAna', 'endDateAna')" style="padding:0.3rem; font-size:0.75rem; width:115px;">
+                    </div>
                 </div>
 
                 <h3 class="section-title">Kesehatan Keuangan</h3>
@@ -895,9 +907,13 @@
             </div>
             <div class="content-section" style="margin-top: -1.5rem; position: relative; z-index: 2;">
                 
-                <div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 0.75rem 1rem; border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                <div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 0.75rem 1rem; border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); flex-wrap: wrap; gap: 8px;">
                     <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-main);">🗓 Filter Periode:</span>
-                    <select class="period-filter local-filter" id="periodFilterLap" onchange="applyFilter(this.value)"></select>
+                    <div style="display: flex; gap: 4px; align-items: center; flex-wrap: nowrap;">
+                        <input type="date" class="local-filter" id="startDateLap" onchange="applyDateFilter('startDateLap', 'endDateLap')" style="padding:0.3rem; font-size:0.75rem; width:115px;">
+                        <span style="font-size:0.8rem; color:var(--text-main)">-</span>
+                        <input type="date" class="local-filter" id="endDateLap" onchange="applyDateFilter('startDateLap', 'endDateLap')" style="padding:0.3rem; font-size:0.75rem; width:115px;">
+                    </div>
                 </div>
 
                 <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
@@ -1762,8 +1778,21 @@
         let unsubscribeSav = null;
         let categoryBudgets = {}; 
         
-        // Dibuat null agar otomatis menyesuaikan periode gaji hari ini ketika dimuat
-        let currentPeriod = null;
+        let globalStartDate = safeGetLocal('globalStartDate');
+        let globalEndDate = safeGetLocal('globalEndDate');
+
+        // Setup periode otomatis bulan ini untuk pengguna pertama kali (jika belum ada cache lokal)
+        if (globalStartDate === null && globalEndDate === null) {
+            const today = new Date();
+            const y = today.getFullYear();
+            const m = String(today.getMonth() + 1).padStart(2, '0');
+            const lastDay = new Date(y, today.getMonth() + 1, 0).getDate();
+            globalStartDate = `${y}-${m}-01`;
+            globalEndDate = `${y}-${m}-${lastDay}`;
+        } else {
+            globalStartDate = globalStartDate || '';
+            globalEndDate = globalEndDate || '';
+        }
         
         const defaultWallets = ['Tunai', 'Muamalat', 'BSI', 'Bank Jago', 'SeaBank', 'Blu', 'e-Wallet'];
         let wallets = [];
@@ -1917,53 +1946,47 @@
             });
         }
 
-        function populatePeriodFilter() { 
-            const periodMap = new Map(); 
-            transactions.forEach(t => { const p = getPeriodData(t.date); periodMap.set(p.label, p.sortVal); }); 
-            savings.forEach(s => { const p = getPeriodData(s.date); periodMap.set(p.label, p.sortVal); }); 
-            
-            // Tambahkan otomatis periode untuk hari ini
-            const todayStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }); 
-            const currentP = getPeriodData(todayStr); 
-            periodMap.set(currentP.label, currentP.sortVal);
+        function applyDateFilter(startId, endId) { 
+            if(startId) globalStartDate = document.getElementById(startId).value;
+            if(endId) globalEndDate = document.getElementById(endId).value;
 
-            // Jika belum ada pilihan, paksa aplikasi ke bulan saat ini
-            if (!currentPeriod) currentPeriod = currentP.label;
+            safeSetLocal('globalStartDate', globalStartDate);
+            safeSetLocal('globalEndDate', globalEndDate);
             
-            const periodArray = Array.from(periodMap.keys()).sort((a, b) => periodMap.get(b) - periodMap.get(a)); 
+            syncDateInputs();
             
-            let optionsStr = `<option value="ALL">Semua Waktu (Keseluruhan)</option>`; 
-            periodArray.forEach(p => { optionsStr += `<option value="${p}">${p}</option>`; }); 
-            
-            ['periodFilterTop', 'periodFilterSav', 'periodFilterAna', 'periodFilterLap'].forEach(id => {
-                const select = document.getElementById(id);
-                if(select) {
-                    select.innerHTML = optionsStr;
-                    if (currentPeriod && (periodArray.includes(currentPeriod) || currentPeriod === 'ALL')) {
-                        select.value = currentPeriod; 
-                    } else {
-                        select.value = currentP.label; 
-                    }
-                }
-            });
-        }
-
-        function applyFilter(value) { 
-            if(value) currentPeriod = value;
-            ['periodFilterTop', 'periodFilterSav', 'periodFilterAna', 'periodFilterLap'].forEach(id => {
-                const select = document.getElementById(id);
-                if(select && select.value !== currentPeriod) select.value = currentPeriod;
-            });
-            updateUI(); updateSavingsUI(); 
+            updateUI(); 
+            updateSavingsUI(); 
             const anaView = document.getElementById('viewAnalisis');
             if(anaView && !anaView.classList.contains('hidden')) renderAnalytics(); 
             const lapView = document.getElementById('viewLaporan');
             if(lapView && !lapView.classList.contains('hidden')) renderLaporan(); 
         }
 
+        function syncDateInputs() {
+            ['Top', 'Sav', 'Ana', 'Lap'].forEach(suffix => {
+                const sEl = document.getElementById('startDate' + suffix);
+                const eEl = document.getElementById('endDate' + suffix);
+                if(sEl) sEl.value = globalStartDate;
+                if(eEl) eEl.value = globalEndDate;
+            });
+        }
+
         function getFiltered(arrayData) { 
-            if (currentPeriod === 'ALL') return arrayData; 
-            return arrayData.filter(item => getPeriodData(item.date).label === currentPeriod); 
+            if (!globalStartDate && !globalEndDate) return arrayData;
+
+            return arrayData.filter(item => {
+                const ymd = parseCustomDateToYMD(item.date);
+                if (!ymd) return true;
+                
+                let isAfterStart = true;
+                let isBeforeEnd = true;
+                
+                if (globalStartDate) isAfterStart = ymd >= globalStartDate;
+                if (globalEndDate) isBeforeEnd = ymd <= globalEndDate;
+
+                return isAfterStart && isBeforeEnd;
+            });
         }
 
         // ================== INISIALISASI APLIKASI ==================
@@ -2015,14 +2038,14 @@
             unsubscribeTrx = db.collection(DB_COLLECTION).doc(id).collection("transactions")
                 .orderBy("timestamp", "desc").onSnapshot((snapshot) => { 
                     transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
-                    populatePeriodFilter(); applyFilter(currentPeriod); 
+                    syncDateInputs(); applyDateFilter(); 
                     const loader = document.getElementById('cloudLoader'); if(loader) loader.style.display = 'none'; 
                 }); 
                 
             unsubscribeSav = db.collection(DB_COLLECTION).doc(id).collection("savings")
                 .orderBy("timestamp", "desc").onSnapshot((snapshot) => { 
                     savings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
-                    populatePeriodFilter(); applyFilter(currentPeriod); 
+                    syncDateInputs(); applyDateFilter(); 
                 }); 
         }
 
@@ -2370,8 +2393,11 @@
         // ================== LAPORAN & CSV Logic ==================
         const renderLaporan = () => { 
             const filteredTrx = getFiltered(transactions); const filteredSav = getFiltered(savings); 
-            const filterPop = document.getElementById('periodFilterLap'); const filterVal = filterPop ? filterPop.value : currentPeriod; 
-            const tekP = document.getElementById('teksPeriodeLaporan'); if(tekP) tekP.innerText = "Periode: " + (filterVal === 'ALL' ? "Keseluruhan Transaksi" : filterVal); 
+            const tekP = document.getElementById('teksPeriodeLaporan'); 
+            if(tekP) {
+                if(!globalStartDate && !globalEndDate) tekP.innerText = "Periode: Keseluruhan Transaksi";
+                else tekP.innerText = `Periode: ${globalStartDate ? formatCustomDate(globalStartDate) : 'Awal'} s.d. ${globalEndDate ? formatCustomDate(globalEndDate) : 'Akhir'}`;
+            } 
             
             const incomeGroups = {}; const expenseGroups = {}; let totalInc = 0; let totalExp = 0; 
             filteredTrx.forEach(t => { 
@@ -2394,7 +2420,11 @@
             const repIncEl = document.getElementById('reportTotalIncome'); if(repIncEl) repIncEl.innerText = formatRupiah(totalInc); 
             const repExpEl = document.getElementById('reportTotalExpense'); if(repExpEl) { let pctBeban = totalInc > 0 ? ((totalExp / totalInc) * 100).toFixed(1) : (totalExp > 0 ? 100 : 0); repExpEl.innerHTML = `${formatRupiah(totalExp)} <span style="font-size:0.8rem; font-weight:700; color:var(--expense); margin-left:4px;">(${pctBeban}%)</span>`; }
             const netProfit = totalInc - totalExp; const repNetEl = document.getElementById('reportNetProfit'); if(repNetEl) { repNetEl.innerText = formatRupiah(netProfit); }
-            const dateNeraca = document.getElementById('reportDateNeraca'); if(dateNeraca) dateNeraca.innerText = "Periode: " + (filterVal === 'ALL' ? "Keseluruhan" : filterVal); 
+            const dateNeraca = document.getElementById('reportDateNeraca'); 
+            if(dateNeraca) {
+                if(!globalStartDate && !globalEndDate) dateNeraca.innerText = "Periode: Keseluruhan";
+                else dateNeraca.innerText = `Periode: ${globalStartDate ? formatCustomDate(globalStartDate) : 'Awal'} s.d. ${globalEndDate ? formatCustomDate(globalEndDate) : 'Akhir'}`;
+            } 
             
             const savAmt = filteredSav.filter(s => s.type === 'savings' || !s.type).reduce((a, b) => a + b.amount, 0); const invAmt = filteredSav.filter(s => s.type === 'investment').reduce((a, b) => a + b.amount, 0); const tanAmt = filteredSav.filter(s => s.type === 'tangible').reduce((a, b) => a + b.amount, 0); const totalAset = savAmt + invAmt + tanAmt; 
             const pctSav = totalAset > 0 ? ((savAmt / totalAset) * 100).toFixed(1) : 0; const pctInv = totalAset > 0 ? ((invAmt / totalAset) * 100).toFixed(1) : 0; const pctTan = totalAset > 0 ? ((tanAmt / totalAset) * 100).toFixed(1) : 0;
