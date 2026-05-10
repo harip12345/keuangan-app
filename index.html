@@ -440,6 +440,66 @@
         .health-card { background: var(--card-bg); border-radius: 20px; padding: 1.25rem; box-shadow: var(--shadow-sm); border: 1px solid var(--border); margin-bottom: 1.5rem; }
         .health-score { font-size: 1.2rem; font-weight: 800; margin-bottom: 0.25rem; }
         .health-desc { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.8rem; line-height: 1.4; }
+
+        /* ===== ANALISIS DETAIL STYLES ===== */
+        .analysis-panel { background: var(--card-bg); border-radius: 20px; padding: 1.25rem; box-shadow: var(--shadow-sm); border: 1px solid var(--border); margin-bottom: 1.5rem; }
+        .analysis-panel-header { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.2rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); }
+        .analysis-panel-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+        .analysis-panel-title { font-size: 0.95rem; font-weight: 800; color: var(--text-main); }
+        .analysis-panel-subtitle { font-size: 0.72rem; color: var(--text-muted); }
+
+        /* Skor kesehatan besar */
+        .score-ring-wrapper { display: flex; align-items: center; gap: 1.2rem; margin-bottom: 1rem; }
+        .score-ring { position: relative; width: 80px; height: 80px; flex-shrink: 0; }
+        .score-ring svg { transform: rotate(-90deg); }
+        .score-ring-num { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.35rem; font-weight: 900; color: var(--text-main); }
+        .score-ring-label { position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%); font-size: 0.55rem; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
+        .score-info { flex: 1; }
+        .score-grade { font-size: 1rem; font-weight: 800; margin-bottom: 0.2rem; }
+        .score-summary { font-size: 0.78rem; color: var(--text-muted); line-height: 1.45; }
+
+        /* Bar metrik */
+        .metric-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; }
+        .metric-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
+        .metric-value { font-size: 0.75rem; font-weight: 700; color: var(--text-main); }
+        .metric-bar-bg { width: 100%; height: 5px; background: var(--surface-color); border-radius: 4px; margin-bottom: 1rem; overflow: hidden; border: 1px solid var(--border); }
+        .metric-bar-fill { height: 100%; border-radius: 4px; transition: width 0.7s cubic-bezier(0.4,0,0.2,1); }
+
+        /* Kartu per kategori pengeluaran */
+        .cat-analysis-list { display: flex; flex-direction: column; gap: 0.8rem; }
+        .cat-analysis-item { background: var(--surface-color); border-radius: 14px; padding: 0.85rem 1rem; border: 1px solid var(--border); }
+        .cat-analysis-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+        .cat-analysis-name { font-size: 0.83rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 0.4rem; }
+        .cat-analysis-pct { font-size: 0.75rem; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 6px; }
+        .cat-analysis-amount { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.45rem; }
+        .cat-analysis-bar-bg { width: 100%; height: 5px; background: var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 0.5rem; }
+        .cat-analysis-bar-fill { height: 100%; border-radius: 4px; transition: width 0.7s ease; }
+        .cat-analysis-insight { font-size: 0.73rem; color: var(--text-muted); line-height: 1.4; padding-top: 0.4rem; border-top: 1px dashed var(--border); }
+
+        /* Saran list */
+        .saran-list { display: flex; flex-direction: column; gap: 0.65rem; }
+        .saran-item { display: flex; gap: 0.7rem; align-items: flex-start; background: var(--surface-color); border-radius: 12px; padding: 0.75rem; border: 1px solid var(--border); }
+        .saran-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 0.05rem; }
+        .saran-text { font-size: 0.78rem; color: var(--text-main); line-height: 1.45; }
+        .saran-text strong { color: var(--text-main); }
+        .saran-item.danger { background: var(--warning-bg); border-color: #FECACA; }
+        .saran-item.danger .saran-text { color: var(--warning-text); }
+        .saran-item.success { background: #ECFDF5; border-color: #A7F3D0; }
+        .saran-item.success .saran-text { color: #065F46; }
+        body.dark-mode .saran-item.success { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.3); }
+        body.dark-mode .saran-item.success .saran-text { color: #34D399; }
+        .saran-item.warning { background: #FFFBEB; border-color: #FCD34D; }
+        .saran-item.warning .saran-text { color: #92400E; }
+        body.dark-mode .saran-item.warning { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.3); }
+        body.dark-mode .saran-item.warning .saran-text { color: #FCD34D; }
+        .saran-item.info { background: var(--primary-light); border-color: rgba(79,70,229,0.2); }
+        .saran-item.info .saran-text { color: var(--primary); }
+
+        /* Summary angka 2-kolom */
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; margin-bottom: 1rem; }
+        .summary-tile { background: var(--surface-color); border-radius: 14px; padding: 0.85rem; border: 1px solid var(--border); text-align: center; }
+        .summary-tile-label { font-size: 0.68rem; color: var(--text-muted); font-weight: 600; margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.4px; }
+        .summary-tile-val { font-size: 0.95rem; font-weight: 800; }
         
         .report-paper {
             background: #FFFFFF; padding: 2.5rem 2rem; border-radius: 20px; border: 1px solid var(--border);
@@ -858,6 +918,57 @@
 
                 <h3 class="section-title">Kesehatan Keuangan</h3>
                 <div class="health-card" id="recommendationBox"></div>
+
+                <!-- ===== PANEL ANALISIS DETAIL ===== -->
+                <h3 class="section-title">Analisis Mendalam</h3>
+
+                <!-- Skor Keuangan -->
+                <div class="analysis-panel" id="scorePanel">
+                    <div class="analysis-panel-header">
+                        <div class="analysis-panel-icon" style="background:linear-gradient(135deg,#4F46E5,#818CF8);">📊</div>
+                        <div>
+                            <div class="analysis-panel-title">Skor Kesehatan Keuangan</div>
+                            <div class="analysis-panel-subtitle">Berdasarkan data periode yang dipilih</div>
+                        </div>
+                    </div>
+                    <div id="scoreContent"><div style="text-align:center;padding:1rem;color:var(--text-muted);font-size:0.82rem;"><i>Belum ada data untuk dihitung.</i></div></div>
+                </div>
+
+                <!-- Ringkasan Arus Kas -->
+                <div class="analysis-panel" id="cashflowPanel">
+                    <div class="analysis-panel-header">
+                        <div class="analysis-panel-icon" style="background:linear-gradient(135deg,#10B981,#34D399);">💰</div>
+                        <div>
+                            <div class="analysis-panel-title">Ringkasan Arus Kas</div>
+                            <div class="analysis-panel-subtitle">Pemasukan vs Pengeluaran periode ini</div>
+                        </div>
+                    </div>
+                    <div id="cashflowContent"><div style="text-align:center;padding:1rem;color:var(--text-muted);font-size:0.82rem;"><i>Belum ada data.</i></div></div>
+                </div>
+
+                <!-- Analisis Per Kategori Pengeluaran -->
+                <div class="analysis-panel" id="catAnalysisPanel">
+                    <div class="analysis-panel-header">
+                        <div class="analysis-panel-icon" style="background:linear-gradient(135deg,#EF4444,#F87171);">🔍</div>
+                        <div>
+                            <div class="analysis-panel-title">Analisis Kategori Pengeluaran</div>
+                            <div class="analysis-panel-subtitle">Rincian & evaluasi tiap kategori</div>
+                        </div>
+                    </div>
+                    <div class="cat-analysis-list" id="catAnalysisContent"><div style="text-align:center;padding:1rem;color:var(--text-muted);font-size:0.82rem;"><i>Belum ada data pengeluaran.</i></div></div>
+                </div>
+
+                <!-- Saran & Rekomendasi Aksi -->
+                <div class="analysis-panel" id="saranPanel">
+                    <div class="analysis-panel-header">
+                        <div class="analysis-panel-icon" style="background:linear-gradient(135deg,#F59E0B,#FCD34D);">🎯</div>
+                        <div>
+                            <div class="analysis-panel-title">Saran & Rekomendasi Aksi</div>
+                            <div class="analysis-panel-subtitle">Langkah konkret untuk memperbaiki keuangan</div>
+                        </div>
+                    </div>
+                    <div class="saran-list" id="saranContent"><div style="text-align:center;padding:1rem;color:var(--text-muted);font-size:0.82rem;"><i>Belum ada rekomendasi.</i></div></div>
+                </div>
 
                 <h3 class="section-title">Kontrol Anggaran & Target</h3>
                 <div class="budget-container">
@@ -2510,6 +2621,239 @@
             });
         };
 
+        // ================== FUNGSI ANALISIS DETAIL ==================
+        function generateDetailedAnalysis({ income, expense, expenseGroups, incomeGroups, totalSav, totalInv, totalTan, savedThisPeriod }) {
+            const net = income - expense;
+            const savingsRate = income > 0 ? ((net > 0 ? net : 0) / income) * 100 : 0;
+            const expenseRatio = income > 0 ? (expense / income) * 100 : 0;
+            const totalAssets = totalSav + totalInv + totalTan;
+
+            // ── HITUNG SKOR ──
+            let score = 0;
+            let scoreFaktors = [];
+            if (income > 0) {
+                score += 20; scoreFaktors.push({ label: 'Ada pemasukan', pts: 20 });
+            }
+            if (expense <= income && income > 0) {
+                score += 20; scoreFaktors.push({ label: 'Tidak defisit', pts: 20 });
+            } else if (income === 0) {
+                scoreFaktors.push({ label: 'Tidak defisit', pts: 0 });
+            }
+            if (expenseRatio <= 50 && income > 0) { score += 20; scoreFaktors.push({ label: 'Pengeluaran ≤50%', pts: 20 }); }
+            else if (expenseRatio <= 70 && income > 0) { score += 10; scoreFaktors.push({ label: 'Pengeluaran ≤70%', pts: 10 }); }
+            else { scoreFaktors.push({ label: 'Pengeluaran terlalu tinggi', pts: 0 }); }
+            if (totalSav > 0) { score += 15; scoreFaktors.push({ label: 'Punya tabungan', pts: 15 }); }
+            else { scoreFaktors.push({ label: 'Belum punya tabungan', pts: 0 }); }
+            if (totalInv > 0) { score += 15; scoreFaktors.push({ label: 'Ada investasi', pts: 15 }); }
+            else { scoreFaktors.push({ label: 'Belum berinvestasi', pts: 0 }); }
+            if (savingsRate >= 20) { score += 10; scoreFaktors.push({ label: 'Saving rate ≥20%', pts: 10 }); }
+            else if (savingsRate >= 10) { score += 5; scoreFaktors.push({ label: 'Saving rate ≥10%', pts: 5 }); }
+            else { scoreFaktors.push({ label: 'Saving rate rendah', pts: 0 }); }
+
+            score = Math.min(100, Math.max(0, score));
+            let grade, gradeColor, gradeSummary;
+            if (score >= 85) { grade = '🏆 Excellent'; gradeColor = '#10B981'; gradeSummary = 'Kondisi keuangan Anda sangat sehat! Pertahankan kebiasaan baik ini dan pertimbangkan diversifikasi aset lebih lanjut.'; }
+            else if (score >= 70) { grade = '👍 Baik'; gradeColor = '#3B82F6'; gradeSummary = 'Keuangan Anda dalam kondisi baik. Masih ada ruang untuk peningkatan, terutama di sisi tabungan dan investasi.'; }
+            else if (score >= 50) { grade = '⚠️ Perlu Perhatian'; gradeColor = '#F59E0B'; gradeSummary = 'Ada beberapa aspek keuangan yang perlu diperbaiki. Fokus pada pengendalian pengeluaran dan mulai menyisihkan untuk tabungan.'; }
+            else { grade = '🚨 Kritis'; gradeColor = '#EF4444'; gradeSummary = 'Kondisi keuangan membutuhkan perhatian serius. Segera evaluasi pengeluaran dan cari cara meningkatkan pemasukan.'; }
+
+            // ── RENDER SKOR ──
+            const scoreEl = document.getElementById('scoreContent');
+            if (scoreEl && income + expense + totalAssets === 0) {
+                scoreEl.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--text-muted);font-size:0.82rem;"><i>Belum ada data untuk dihitung.</i></div>';
+            } else if (scoreEl) {
+                const circ = 2 * Math.PI * 30;
+                const dash = (score / 100) * circ;
+                scoreEl.innerHTML = `
+                    <div class="score-ring-wrapper">
+                        <div class="score-ring">
+                            <svg width="80" height="80" viewBox="0 0 80 80">
+                                <circle cx="40" cy="40" r="30" fill="none" stroke="var(--border)" stroke-width="7"/>
+                                <circle cx="40" cy="40" r="30" fill="none" stroke="${gradeColor}" stroke-width="7"
+                                    stroke-dasharray="${dash} ${circ}" stroke-linecap="round"
+                                    style="transition: stroke-dasharray 1s ease;"/>
+                            </svg>
+                            <div class="score-ring-num" style="color:${gradeColor}">${score}</div>
+                            <div class="score-ring-label">/ 100</div>
+                        </div>
+                        <div class="score-info">
+                            <div class="score-grade" style="color:${gradeColor}">${grade}</div>
+                            <div class="score-summary">${gradeSummary}</div>
+                        </div>
+                    </div>
+                    <div style="margin-top:0.75rem;">
+                        ${scoreFaktors.map(f => `
+                        <div class="metric-row">
+                            <span class="metric-label">${f.label}</span>
+                            <span class="metric-value" style="color:${f.pts>0?'#10B981':'#EF4444'}">+${f.pts} poin</span>
+                        </div>`).join('')}
+                    </div>`;
+            }
+
+            // ── RENDER ARUS KAS ──
+            const cashEl = document.getElementById('cashflowContent');
+            if (cashEl) {
+                const expPct = income > 0 ? Math.min(100, (expense/income)*100) : (expense > 0 ? 100 : 0);
+                const savPct = income > 0 ? Math.min(100, savingsRate) : 0;
+                const catCount = Object.keys(expenseGroups).length;
+                cashEl.innerHTML = `
+                    <div class="summary-grid">
+                        <div class="summary-tile">
+                            <div class="summary-tile-label">Total Pemasukan</div>
+                            <div class="summary-tile-val" style="color:var(--income)">${formatRupiah(income)}</div>
+                        </div>
+                        <div class="summary-tile">
+                            <div class="summary-tile-label">Total Pengeluaran</div>
+                            <div class="summary-tile-val" style="color:var(--expense)">${formatRupiah(expense)}</div>
+                        </div>
+                        <div class="summary-tile">
+                            <div class="summary-tile-label">Saldo Bersih</div>
+                            <div class="summary-tile-val" style="color:${net>=0?'var(--income)':'var(--expense)'}">${net>=0?'+':''}${formatRupiah(net)}</div>
+                        </div>
+                        <div class="summary-tile">
+                            <div class="summary-tile-label">Saving Rate</div>
+                            <div class="summary-tile-val" style="color:${savingsRate>=20?'var(--income)':savingsRate>=10?'#F59E0B':'var(--expense)'}">${savingsRate.toFixed(1)}%</div>
+                        </div>
+                    </div>
+                    <div class="metric-row" style="margin-top:0.5rem;"><span class="metric-label">Rasio Pengeluaran</span><span class="metric-value" style="color:${expPct<=50?'#10B981':expPct<=70?'#F59E0B':'#EF4444'}">${expPct.toFixed(1)}%</span></div>
+                    <div class="metric-bar-bg"><div class="metric-bar-fill" style="width:${expPct}%;background:${expPct<=50?'#10B981':expPct<=70?'#F59E0B':'#EF4444'};"></div></div>
+                    <div class="metric-row"><span class="metric-label">Saving Rate Target (20%)</span><span class="metric-value" style="color:${savPct>=20?'#10B981':'#F59E0B'}">${savPct.toFixed(1)}%</span></div>
+                    <div class="metric-bar-bg"><div class="metric-bar-fill" style="width:${savPct}%;background:${savPct>=20?'#10B981':'#F59E0B'};"></div></div>
+                    <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.25rem;">Jumlah kategori sumber pemasukan: <strong style="color:var(--text-main);">${Object.keys(incomeGroups).length}</strong> &nbsp;|&nbsp; Kategori pengeluaran: <strong style="color:var(--text-main);">${catCount}</strong></div>`;
+            }
+
+            // ── RENDER ANALISIS KATEGORI PENGELUARAN ──
+            const catEl = document.getElementById('catAnalysisContent');
+            if (catEl) {
+                const catEntries = Object.entries(expenseGroups).sort((a, b) => b[1] - a[1]);
+                if (catEntries.length === 0) {
+                    catEl.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--text-muted);font-size:0.82rem;"><i>Belum ada data pengeluaran pada periode ini.</i></div>';
+                } else {
+                    const catColors = ['#EF4444','#F59E0B','#8B5CF6','#3B82F6','#10B981','#EC4899','#14B8A6','#6366F1','#F43F5E','#A855F7','#FB923C','#2DD4BF'];
+                    const topCat = catEntries[0][0];
+                    catEl.innerHTML = catEntries.map(([cat, amt], i) => {
+                        const pct = expense > 0 ? (amt / expense * 100) : 0;
+                        const pctInc = income > 0 ? (amt / income * 100) : 0;
+                        const color = catColors[i % catColors.length];
+                        let statusClass = 'info', statusText = 'Normal';
+                        if (pct >= 40) { statusClass = 'danger'; statusText = 'Dominan'; }
+                        else if (pct >= 25) { statusClass = 'warning'; statusText = 'Tinggi'; }
+                        else if (pct <= 10) { statusClass = 'success'; statusText = 'Terkendali'; }
+
+                        // Insight spesifik per kategori
+                        const catLower = cat.toLowerCase();
+                        let insight = '';
+                        if (catLower.includes('makan') || catLower.includes('food') || catLower.includes('kuliner')) {
+                            if (pctInc > 30) insight = '🍽️ Pengeluaran makan cukup besar (>' + pctInc.toFixed(0) + '% pemasukan). Coba meal prep atau masak sendiri untuk hemat.';
+                            else insight = '🍱 Pengeluaran makan masih wajar. Pertahankan!';
+                        } else if (catLower.includes('transport') || catLower.includes('bensin') || catLower.includes('ojek') || catLower.includes('mobil') || catLower.includes('motor')) {
+                            if (pctInc > 15) insight = '🚗 Biaya transportasi cukup tinggi. Pertimbangkan kendaraan umum atau carpooling untuk efisiensi.';
+                            else insight = '🛵 Biaya transportasi masih terkendali.';
+                        } else if (catLower.includes('hiburan') || catLower.includes('entertainment') || catLower.includes('nonton') || catLower.includes('game')) {
+                            if (pctInc > 10) insight = '🎮 Pengeluaran hiburan perlu dikontrol. Idealnya maksimal 10% dari pemasukan.';
+                            else insight = '🎉 Alokasi hiburan masih dalam batas wajar.';
+                        } else if (catLower.includes('belanja') || catLower.includes('fashion') || catLower.includes('pakaian') || catLower.includes('shopping')) {
+                            if (pctInc > 15) insight = '👗 Belanja konsumtif cukup besar. Bedakan antara kebutuhan dan keinginan sebelum membeli.';
+                            else insight = '🛍️ Pengeluaran belanja masih wajar.';
+                        } else if (catLower.includes('kesehatan') || catLower.includes('obat') || catLower.includes('dokter') || catLower.includes('medis')) {
+                            insight = '🏥 Biaya kesehatan adalah prioritas. Pertimbangkan BPJS atau asuransi kesehatan jika belum ada.';
+                        } else if (catLower.includes('pendidikan') || catLower.includes('kursus') || catLower.includes('buku') || catLower.includes('sekolah')) {
+                            insight = '📚 Investasi pendidikan adalah investasi terbaik. Pengeluaran ini sangat positif jangka panjang!';
+                        } else if (catLower.includes('tagihan') || catLower.includes('listrik') || catLower.includes('air') || catLower.includes('internet') || catLower.includes('pulsa')) {
+                            if (pctInc > 20) insight = '💡 Tagihan utilitas cukup besar. Cek penggunaan listrik & internet, ada yang bisa dikurangi?';
+                            else insight = '📱 Tagihan utilitas masih dalam batas normal.';
+                        } else if (catLower.includes('hutang') || catLower.includes('cicilan') || catLower.includes('kredit') || catLower.includes('pinjam')) {
+                            if (pctInc > 30) insight = '⚠️ Cicilan/hutang sangat besar (>' + pctInc.toFixed(0) + '% pemasukan). Prioritaskan pelunasan dan hindari hutang baru!';
+                            else if (pctInc > 15) insight = '📋 Cicilan cukup besar. Usahakan total cicilan tidak melebihi 30% pemasukan.';
+                            else insight = '✅ Porsi cicilan masih aman (di bawah 15% pemasukan).';
+                        } else if (catLower.includes('donasi') || catLower.includes('sedekah') || catLower.includes('amal') || catLower.includes('infak')) {
+                            insight = '❤️ Luar biasa! Berbagi adalah kebiasaan finansial yang mulia dan memberikan dampak positif.';
+                        } else if (catLower.includes('investasi') || catLower.includes('saham') || catLower.includes('reksa') || catLower.includes('emas')) {
+                            insight = '📈 Pengeluaran investasi adalah langkah cerdas untuk masa depan finansial Anda!';
+                        } else {
+                            if (pct >= 30) insight = `💡 Kategori ini menyumbang ${pct.toFixed(1)}% dari total pengeluaran. Evaluasi apakah bisa dikurangi.`;
+                            else if (pct <= 10) insight = `✅ Porsi kategori ini sangat kecil dan terkendali.`;
+                            else insight = `📌 Porsi kategori ini wajar (${pct.toFixed(1)}% dari total pengeluaran).`;
+                        }
+
+                        const pctBadgeBg = statusClass === 'danger' ? '#FEE2E2' : statusClass === 'warning' ? '#FEF3C7' : statusClass === 'success' ? '#DCFCE7' : '#EEF2FF';
+                        const pctBadgeColor = statusClass === 'danger' ? '#B91C1C' : statusClass === 'warning' ? '#92400E' : statusClass === 'success' ? '#166534' : '#4338CA';
+
+                        return `<div class="cat-analysis-item">
+                            <div class="cat-analysis-top">
+                                <div class="cat-analysis-name">
+                                    <span style="width:10px;height:10px;background:${color};border-radius:3px;display:inline-block;flex-shrink:0;"></span>
+                                    ${cat}${cat === topCat ? ' <span style="font-size:0.63rem;background:#FEF3C7;color:#92400E;padding:0.1rem 0.35rem;border-radius:4px;font-weight:700;">Terbesar</span>' : ''}
+                                </div>
+                                <span class="cat-analysis-pct" style="background:${pctBadgeBg};color:${pctBadgeColor};">${pct.toFixed(1)}% &bull; ${statusText}</span>
+                            </div>
+                            <div class="cat-analysis-amount">${formatRupiah(amt)} dari total pengeluaran &nbsp;|&nbsp; ${pctInc.toFixed(1)}% dari pemasukan</div>
+                            <div class="cat-analysis-bar-bg"><div class="cat-analysis-bar-fill" style="width:${pct}%;background:${color};"></div></div>
+                            <div class="cat-analysis-insight">${insight}</div>
+                        </div>`;
+                    }).join('');
+                }
+            }
+
+            // ── RENDER SARAN & REKOMENDASI ──
+            const saranEl = document.getElementById('saranContent');
+            if (saranEl) {
+                const saranItems = [];
+                if (income === 0 && expense === 0) {
+                    saranEl.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--text-muted);font-size:0.82rem;"><i>Tambahkan transaksi untuk mendapatkan rekomendasi.</i></div>';
+                    return;
+                }
+                // Saran berdasarkan kondisi
+                if (expense > income && income > 0) {
+                    saranItems.push({ type: 'danger', icon: '🚨', text: '<strong>Defisit Keuangan!</strong> Pengeluaran Anda melebihi pemasukan sebesar ' + formatRupiah(expense - income) + '. Segera identifikasi pos pengeluaran terbesar dan pangkas pengeluaran tidak mendesak.' });
+                } else if (income > 0 && net > 0) {
+                    saranItems.push({ type: 'success', icon: '✅', text: '<strong>Surplus ' + formatRupiah(net) + '!</strong> Anda berhasil menghasilkan lebih dari yang dikeluarkan. Alokasikan surplus ini untuk tabungan atau investasi.' });
+                }
+                if (savingsRate < 10 && income > 0) {
+                    saranItems.push({ type: 'warning', icon: '⚠️', text: '<strong>Saving rate terlalu rendah (' + savingsRate.toFixed(1) + '%).</strong> Idealnya sisihkan minimal 10-20% dari pemasukan. Coba terapkan metode "bayar diri sendiri dulu" — transfer ke tabungan segera setelah gaji masuk.' });
+                } else if (savingsRate >= 20) {
+                    saranItems.push({ type: 'success', icon: '🎯', text: '<strong>Saving rate Anda ' + savingsRate.toFixed(1) + '% — sangat baik!</strong> Pertahankan kebiasaan menabung ini dan pertimbangkan untuk meningkatkan alokasi ke investasi.' });
+                }
+                if (totalInv === 0 && income > 0) {
+                    saranItems.push({ type: 'info', icon: '📈', text: '<strong>Belum ada investasi.</strong> Pertimbangkan mulai berinvestasi di reksa dana, emas, atau saham untuk melindungi nilai uang dari inflasi. Mulai dari Rp 10.000–100.000/bulan sudah cukup.' });
+                } else if (totalInv > 0) {
+                    saranItems.push({ type: 'success', icon: '💼', text: '<strong>Portofolio investasi Rp' + formatRupiah(totalInv) + '.</strong> Bagus! Pastikan investasi Anda terdiversifikasi dan sesuai dengan profil risiko serta tujuan keuangan Anda.' });
+                }
+                // Saran per kategori pengeluaran
+                const catEntries2 = Object.entries(expenseGroups).sort((a, b) => b[1] - a[1]);
+                if (catEntries2.length > 0) {
+                    const top = catEntries2[0];
+                    const topPct = expense > 0 ? (top[1]/expense*100) : 0;
+                    if (topPct > 35) {
+                        saranItems.push({ type: 'warning', icon: '🔎', text: `<strong>Kategori "${top[0]}" mendominasi ${topPct.toFixed(0)}% pengeluaran.</strong> Evaluasi apakah ini pengeluaran yang bisa dioptimalkan. Pertimbangkan cara alternatif yang lebih hemat.` });
+                    }
+                    // Cek kategori hiburan
+                    const hiburanEntry = catEntries2.find(([c]) => /hiburan|entertainment|nonton|game|streaming/i.test(c));
+                    if (hiburanEntry && income > 0 && (hiburanEntry[1]/income*100) > 10) {
+                        saranItems.push({ type: 'warning', icon: '🎮', text: `<strong>Pengeluaran hiburan (${formatRupiah(hiburanEntry[1])}) cukup tinggi.</strong> Tetapkan anggaran hiburan bulanan dan patuhi batasnya. Manfaatkan layanan gratis atau berbagi langganan streaming.` });
+                    }
+                    // Cek cicilan
+                    const cicilanEntry = catEntries2.find(([c]) => /cicilan|hutang|kredit|pinjam/i.test(c));
+                    if (cicilanEntry && income > 0 && (cicilanEntry[1]/income*100) > 30) {
+                        saranItems.push({ type: 'danger', icon: '💳', text: `<strong>Beban cicilan/hutang sangat besar (${(cicilanEntry[1]/income*100).toFixed(0)}% pemasukan).</strong> Prioritaskan pelunasan hutang berbunga tinggi terlebih dahulu. Hindari mengambil hutang baru sampai kondisi membaik.` });
+                    }
+                }
+                if (totalSav === 0 && income > 0) {
+                    saranItems.push({ type: 'info', icon: '🏦', text: '<strong>Bangun dana darurat terlebih dahulu.</strong> Idealnya simpan 3–6 kali pengeluaran bulanan di rekening tabungan yang mudah diakses sebelum mulai investasi.' });
+                }
+                if (Object.keys(incomeGroups).length === 1 && income > 0) {
+                    saranItems.push({ type: 'info', icon: '💡', text: '<strong>Hanya 1 sumber pemasukan terdeteksi.</strong> Pertimbangkan passive income atau side hustle untuk memperkuat ketahanan finansial Anda.' });
+                }
+                if (score >= 85) {
+                    saranItems.push({ type: 'success', icon: '🏆', text: '<strong>Keuangan Anda sangat sehat!</strong> Langkah selanjutnya: pertimbangkan perencanaan pensiun, asuransi jiwa, atau investasi properti untuk jangka panjang.' });
+                }
+                if (saranItems.length === 0) {
+                    saranItems.push({ type: 'info', icon: '👍', text: 'Keuangan Anda tampak stabil. Terus pantau dan catat setiap transaksi untuk analisis yang lebih akurat.' });
+                }
+                saranEl.innerHTML = saranItems.map(s => `<div class="saran-item ${s.type}"><div class="saran-icon">${s.icon}</div><div class="saran-text">${s.text}</div></div>`).join('');
+            }
+        }
+
         const renderAnalytics = () => { 
             const isDark = document.body.classList.contains('dark-mode'); const textColor = isDark ? '#F9FAFB' : '#111827';
             const filteredTrx = getFiltered(transactions); const filteredSav = getFiltered(savings); 
@@ -2562,6 +2906,9 @@
                     }
                 }
             }
+
+            // ===== ANALISIS DETAIL =====
+            generateDetailedAnalysis({ income, expense, expenseGroups, incomeGroups, totalSav, totalInv, totalTan, savedThisPeriod });
 
             const colors = ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#14B8A6', '#6366F1', '#F43F5E', '#A855F7', '#D946EF', '#F472B6', '#FB923C', '#FCD34D', '#A3E635', '#4ADE80', '#2DD4BF', '#38BDF8', '#818CF8', '#C084FC']; 
             const tooltipCb = { label: function(ctx) { let lbl = ctx.label || ''; if (lbl === 'Belum Ada') return lbl; let val = ctx.raw || 0; let total = ctx.chart.data.datasets[ctx.datasetIndex].data.reduce((a, b) => a + b, 0); let pct = total > 0 ? ((val / total) * 100).toFixed(1) + '%' : '0%'; return lbl + ': ' + formatRupiah(val) + ' (' + pct + ')'; } }; 
