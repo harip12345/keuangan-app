@@ -557,6 +557,113 @@
         .transaction-item { animation: slideInRight 0.3s ease-out both; }
         @keyframes fabEnter { 0% { transform: scale(0) rotate(-90deg); opacity: 0; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
         .fab-btn { animation: fabEnter 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both; }
+
+        /* ============== GOALS PAGE ============== */
+        .goals-header-bg {
+            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #6D28D9 100%);
+        }
+        .goal-summary-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; margin-bottom: 1.25rem;
+        }
+        .goal-summary-tile {
+            background: var(--card-bg); border-radius: 16px; padding: 0.9rem 1rem;
+            border: 1px solid var(--border); box-shadow: var(--shadow-sm); text-align: center;
+        }
+        .goal-summary-tile-label {
+            font-size: 0.68rem; font-weight: 600; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 0.3rem;
+        }
+        .goal-summary-tile-val { font-size: 0.95rem; font-weight: 900; }
+        .goal-form-card {
+            background: var(--card-bg); border-radius: 20px; padding: 1.25rem;
+            border: 1px solid var(--border); box-shadow: var(--shadow-sm); margin-bottom: 1.5rem;
+        }
+        .goal-form-title {
+            font-size: 0.9rem; font-weight: 800; color: var(--text-main);
+            margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem;
+        }
+        .goal-emoji-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 0.75rem;
+        }
+        .goal-emoji-btn {
+            aspect-ratio: 1; border-radius: 10px; border: 2px solid var(--border);
+            background: var(--surface-color); font-size: 1.2rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: 0.15s;
+        }
+        .goal-emoji-btn.selected {
+            border-color: var(--primary); background: var(--primary-light);
+            transform: scale(1.1);
+        }
+        .goal-card {
+            background: var(--card-bg); border-radius: 20px; padding: 1.1rem 1.15rem;
+            border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+            margin-bottom: 0.9rem; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+            position: relative; overflow: hidden;
+        }
+        .goal-card:active { transform: scale(0.985); box-shadow: var(--shadow-sm); }
+        .goal-card-stripe {
+            position: absolute; top: 0; left: 0; width: 4px; height: 100%; border-radius: 20px 0 0 20px;
+        }
+        .goal-card-top {
+            display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.8rem;
+        }
+        .goal-card-left { display: flex; gap: 0.75rem; align-items: flex-start; }
+        .goal-icon-wrap {
+            width: 44px; height: 44px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0;
+        }
+        .goal-name { font-size: 0.92rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.15rem; }
+        .goal-meta { font-size: 0.72rem; color: var(--text-muted); display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
+        .goal-pct-badge {
+            font-size: 1.1rem; font-weight: 900; flex-shrink: 0; margin-top: 2px;
+        }
+        .goal-progress-bar-bg {
+            width: 100%; height: 8px; background: var(--surface-color);
+            border-radius: 8px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 0.5rem;
+        }
+        .goal-progress-bar-fill {
+            height: 100%; border-radius: 8px;
+            transition: width 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .goal-progress-meta {
+            display: flex; justify-content: space-between; font-size: 0.73rem; color: var(--text-muted);
+            margin-bottom: 0.7rem;
+        }
+        .goal-progress-meta strong { color: var(--text-main); }
+        .goal-simulasi-box {
+            background: var(--surface-color); border-radius: 12px; padding: 0.75rem 0.9rem;
+            border: 1px solid var(--border); font-size: 0.74rem; color: var(--text-muted); line-height: 1.55;
+        }
+        .goal-simulasi-box strong { color: var(--text-main); }
+        .goal-simulasi-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.25rem 0; border-bottom: 1px dashed var(--border);
+        }
+        .goal-simulasi-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .goal-simulasi-label { font-size: 0.7rem; color: var(--text-muted); }
+        .goal-simulasi-val { font-size: 0.78rem; font-weight: 700; color: var(--text-main); }
+        .goal-tag {
+            font-size: 0.63rem; font-weight: 700; padding: 0.12rem 0.45rem;
+            border-radius: 5px; display: inline-flex; align-items: center; gap: 2px;
+        }
+        .goal-done-banner {
+            background: linear-gradient(135deg, #4F46E5, #7C3AED); color: white;
+            border-radius: 12px; padding: 0.6rem 0.85rem; font-size: 0.78rem;
+            font-weight: 700; text-align: center; margin-top: 0.5rem;
+        }
+        /* Action sheet for goal */
+        .goal-action-info {
+            background: var(--surface-color); border-radius: 14px; padding: 1rem;
+            margin-bottom: 1rem; border: 1px solid var(--border);
+        }
+        .goal-action-info-name {
+            font-size: 1rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.3rem;
+        }
+        .goal-action-info-row {
+            display: flex; justify-content: space-between; font-size: 0.78rem;
+            color: var(--text-muted); margin-bottom: 0.2rem;
+        }
+        .goal-action-info-row strong { color: var(--text-main); }
     </style>
 </head>
 <body>
@@ -1092,6 +1199,10 @@
                 <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg> 
                 Aset
             </button>
+            <button class="nav-item" onclick="switchView('goals')" id="navGoals">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.88-11.71L10 14.17l-1.88-1.88a.996.996 0 1 0-1.41 1.41l2.59 2.59c.39.39 1.02.39 1.41 0L17.3 9.7a.996.996 0 0 0 0-1.41c-.39-.39-1.03-.39-1.42 0z"/></svg>
+                Goals
+            </button>
             <button class="nav-item" onclick="switchView('analisis')" id="navAnalisis">
                 <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg> 
                 Analisis
@@ -1100,6 +1211,125 @@
                 <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg> 
                 Laporan
             </button>
+        </div>
+
+        <!-- =================== HALAMAN GOALS =================== -->
+        <div id="viewGoals" class="main-view hidden">
+            <div class="header goals-header-bg">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                    <div class="header-title">Goals & Perencanaan</div>
+                </div>
+                <div class="balance-amount" id="goalsTotalSaved">Rp 0</div>
+                <div style="font-size:0.8rem; opacity:0.8; margin-top:0.2rem;">Dana terkumpul dari seluruh target</div>
+            </div>
+
+            <div class="content-section" style="margin-top:-1.5rem; position:relative; z-index:2;">
+
+                <!-- Summary tiles -->
+                <div class="goal-summary-grid" id="goalsSummaryGrid" style="display:none;">
+                    <div class="goal-summary-tile">
+                        <div class="goal-summary-tile-label">Total Target</div>
+                        <div class="goal-summary-tile-val" id="gsTotal" style="color:var(--primary);">Rp 0</div>
+                    </div>
+                    <div class="goal-summary-tile">
+                        <div class="goal-summary-tile-label">Terkumpul</div>
+                        <div class="goal-summary-tile-val" id="gsTerkumpul" style="color:var(--income);">Rp 0</div>
+                    </div>
+                    <div class="goal-summary-tile">
+                        <div class="goal-summary-tile-label">Target Aktif</div>
+                        <div class="goal-summary-tile-val" id="gsAktif">0</div>
+                    </div>
+                    <div class="goal-summary-tile">
+                        <div class="goal-summary-tile-label">Sudah Tercapai</div>
+                        <div class="goal-summary-tile-val" id="gsTercapai" style="color:var(--income);">0 🏆</div>
+                    </div>
+                </div>
+
+                <!-- Form tambah/edit goal -->
+                <div class="goal-form-card" id="goalFormCard">
+                    <div class="goal-form-title" id="goalFormTitle">
+                        <span>➕</span> Tambah Target Baru
+                    </div>
+
+                    <!-- Pilih emoji -->
+                    <div class="form-group">
+                        <label class="form-label">Pilih Ikon</label>
+                        <div class="goal-emoji-grid" id="goalEmojiGrid">
+                            <!-- rendered by JS -->
+                        </div>
+                        <input type="hidden" id="goalEmoji" value="🎯">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Nama Target</label>
+                        <input type="text" id="goalName" class="form-control" placeholder="Cth: DP Rumah, Dana Nikah, Liburan Jepang…">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Nominal Target (Rp)</label>
+                        <input type="text" inputmode="numeric" id="goalTarget" class="form-control" placeholder="Cth: 50.000.000" oninput="formatInputRupiah(event)">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Dana Sudah Terkumpul (Rp)</label>
+                        <input type="text" inputmode="numeric" id="goalSaved" class="form-control" placeholder="0 jika mulai dari nol" oninput="formatInputRupiah(event)">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Deadline Target</label>
+                        <input type="date" id="goalDeadline" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Prioritas</label>
+                        <select id="goalPriority" class="form-control">
+                            <option value="tinggi">🔴 Tinggi — harus segera</option>
+                            <option value="sedang" selected>🟡 Sedang — dalam rencana</option>
+                            <option value="rendah">🟢 Rendah — jangka panjang</option>
+                        </select>
+                    </div>
+
+                    <button class="btn-submit" id="btnSaveGoal" onclick="saveGoal()"
+                        style="background:linear-gradient(135deg,#4F46E5,#7C3AED);">
+                        Simpan Target
+                    </button>
+                    <button class="btn-submit hidden" id="btnCancelGoalEdit" onclick="cancelGoalEdit()"
+                        style="background:var(--surface-color);color:var(--text-main);border:1px solid var(--border);box-shadow:none;margin-top:0.6rem;">
+                        Batal Edit
+                    </button>
+                </div>
+
+                <!-- Daftar goals -->
+                <h3 class="section-title">Daftar Target</h3>
+                <div id="goalsList">
+                    <div style="text-align:center;padding:2rem 1rem;color:var(--text-muted);">
+                        <div style="font-size:2.5rem;margin-bottom:0.75rem;">🎯</div>
+                        <div style="font-size:0.85rem;font-weight:600;">Belum ada target keuangan.</div>
+                        <div style="font-size:0.78rem;margin-top:0.3rem;">Buat target pertama Anda di atas!</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Modal Action Goal -->
+        <div id="goalActionModal" class="modal-overlay">
+            <div class="modal-card" style="padding-bottom:calc(1.5rem + env(safe-area-inset-bottom));">
+                <div class="modal-header" style="margin-bottom:1rem;">
+                    <h3 class="modal-title" id="goalActionTitle">Opsi Target</h3>
+                    <button class="btn-close" onclick="closeGoalActionModal()">&times;</button>
+                </div>
+                <div class="goal-action-info" id="goalActionInfo"></div>
+                <button class="btn-submit" style="background:var(--income);margin-bottom:0.65rem;" onclick="promptUpdateGoalSaved()">
+                    💰 Update Dana Terkumpul
+                </button>
+                <button class="btn-submit update-btn" style="margin-bottom:0.65rem;" onclick="triggerEditGoal()">
+                    ✏️ Edit Target
+                </button>
+                <button class="btn-submit" style="background:var(--expense);" onclick="triggerDeleteGoal()">
+                    🗑 Hapus Target
+                </button>
+            </div>
         </div>
 
         <!-- ================== MODALS ================== -->
@@ -1887,6 +2117,8 @@
         let editingAssetId = null; 
         let unsubscribeTrx = null; 
         let unsubscribeSav = null;
+        let unsubscribeGoals = null;
+        let goals = [];
         let categoryBudgets = {}; 
         
         let globalStartDate = safeGetLocal('globalStartDate');
@@ -2157,7 +2389,16 @@
                 .orderBy("timestamp", "desc").onSnapshot((snapshot) => { 
                     savings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
                     syncDateInputs(); applyDateFilter(); 
-                }); 
+                });
+
+            // Goals real-time listener
+            if(unsubscribeGoals) unsubscribeGoals();
+            unsubscribeGoals = db.collection(DB_COLLECTION).doc(id).collection("goals")
+                .orderBy("timestamp", "desc").onSnapshot((snapshot) => {
+                    goals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    const gView = document.getElementById('viewGoals');
+                    if(gView && !gView.classList.contains('hidden')) renderGoals();
+                });
         }
 
         function renderWalletOptions() {
@@ -2355,14 +2596,16 @@
             }); 
         };
 
-        const views = { 'transaksi': document.getElementById('viewTransaksi'), 'tabungan': document.getElementById('viewTabungan'), 'analisis': document.getElementById('viewAnalisis'), 'laporan': document.getElementById('viewLaporan') };
-        const navItems = { 'transaksi': document.getElementById('navTransaksi'), 'tabungan': document.getElementById('navTabungan'), 'analisis': document.getElementById('navAnalisis'), 'laporan': document.getElementById('navLaporan') };
+        const views = { 'transaksi': document.getElementById('viewTransaksi'), 'tabungan': document.getElementById('viewTabungan'), 'analisis': document.getElementById('viewAnalisis'), 'laporan': document.getElementById('viewLaporan'), 'goals': document.getElementById('viewGoals') };
+        const navItems = { 'transaksi': document.getElementById('navTransaksi'), 'tabungan': document.getElementById('navTabungan'), 'analisis': document.getElementById('navAnalisis'), 'laporan': document.getElementById('navLaporan'), 'goals': document.getElementById('navGoals') };
 
         const switchView = (viewName) => { 
             if(!navItems[viewName] || !views[viewName]) return;
             Object.values(navItems).forEach(btn => { if(btn) btn.classList.remove('active'); }); Object.values(views).forEach(v => { if(v) v.classList.add('hidden'); }); 
             views[viewName].classList.remove('hidden'); navItems[viewName].classList.add('active'); 
-            if(viewName === 'analisis') renderAnalytics(); if(viewName === 'laporan') renderLaporan(); 
+            if(viewName === 'analisis') renderAnalytics();
+            if(viewName === 'laporan') renderLaporan();
+            if(viewName === 'goals') renderGoals();
             const fab = document.getElementById('fabAddBtn'); 
             if(fab) fab.style.display = viewName === 'transaksi' ? 'none' : 'flex'; 
         };
@@ -2963,6 +3206,324 @@
                     alert("❌ " + errMsg);
                 });
         }
+
+        // =====================================================
+        // ============= GOALS & PERENCANAAN MODULE =============
+        // =====================================================
+
+        let editingGoalId = null;
+        let selectedGoalId = null;
+
+        const GOAL_EMOJIS = ['🎯','🏠','💍','✈️','🎓','🚗','📱','💻','🏖️','👶','🌏','🏋️','💰','🏦','💎','🎁','🎸','📸','🐶','🌱'];
+        const PRIORITY_CONFIG = {
+            'tinggi': { label:'🔴 Tinggi', color:'#EF4444', bg:'#FEE2E2', darkBg:'rgba(239,68,68,0.15)' },
+            'sedang': { label:'🟡 Sedang', color:'#F59E0B', bg:'#FEF3C7', darkBg:'rgba(245,158,11,0.15)' },
+            'rendah': { label:'🟢 Rendah', color:'#10B981', bg:'#ECFDF5', darkBg:'rgba(16,185,129,0.15)' }
+        };
+
+        // Render emoji picker
+        function initGoalEmojiPicker() {
+            const grid = document.getElementById('goalEmojiGrid');
+            if(!grid) return;
+            grid.innerHTML = GOAL_EMOJIS.map(e => 
+                `<button type="button" class="goal-emoji-btn${e === (document.getElementById('goalEmoji')?.value||'🎯') ? ' selected' : ''}" 
+                 onclick="selectGoalEmoji('${e}')">${e}</button>`
+            ).join('');
+        }
+
+        function selectGoalEmoji(emoji) {
+            document.getElementById('goalEmoji').value = emoji;
+            document.querySelectorAll('.goal-emoji-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.textContent === emoji);
+            });
+        }
+
+        // Render semua goal cards
+        function renderGoals() {
+            initGoalEmojiPicker();
+            const listEl = document.getElementById('goalsList');
+            if(!listEl) return;
+
+            const today = new Date(); today.setHours(0,0,0,0);
+            const totalTarget = goals.reduce((a,g) => a+(g.target||0), 0);
+            const totalSaved  = goals.reduce((a,g) => a+(g.saved||0), 0);
+            const doneCount   = goals.filter(g => (g.saved||0) >= (g.target||1)).length;
+            const activeCount = goals.filter(g => (g.saved||0) < (g.target||1)).length;
+
+            // Header amount
+            const hdr = document.getElementById('goalsTotalSaved');
+            if(hdr) hdr.innerText = formatRupiah(totalSaved);
+
+            // Summary grid
+            const sg = document.getElementById('goalsSummaryGrid');
+            if(sg) {
+                sg.style.display = goals.length ? 'grid' : 'none';
+                const el = (id,v) => { const e=document.getElementById(id); if(e) e.innerText=v; };
+                el('gsTotal', formatRupiah(totalTarget));
+                el('gsTerkumpul', formatRupiah(totalSaved));
+                el('gsAktif', activeCount);
+                el('gsTercapai', doneCount + ' 🏆');
+            }
+
+            if(goals.length === 0) {
+                listEl.innerHTML = `<div style="text-align:center;padding:2rem 1rem;color:var(--text-muted);">
+                    <div style="font-size:2.5rem;margin-bottom:0.75rem;">🎯</div>
+                    <div style="font-size:0.85rem;font-weight:600;">Belum ada target keuangan.</div>
+                    <div style="font-size:0.78rem;margin-top:0.3rem;">Buat target pertama Anda di atas!</div>
+                </div>`;
+                return;
+            }
+
+            const priorityOrder = { 'tinggi':0, 'sedang':1, 'rendah':2 };
+            const sorted = [...goals].sort((a,b) => {
+                const done_a = (a.saved||0) >= a.target;
+                const done_b = (b.saved||0) >= b.target;
+                if(done_a !== done_b) return done_a ? 1 : -1; // done goals go to bottom
+                return (priorityOrder[a.priority]||1) - (priorityOrder[b.priority]||1);
+            });
+
+            listEl.innerHTML = sorted.map(g => {
+                const saved    = g.saved || 0;
+                const target   = g.target || 1;
+                const pct      = Math.min(100, (saved / target) * 100);
+                const isDone   = saved >= target;
+                const cfg      = PRIORITY_CONFIG[g.priority] || PRIORITY_CONFIG['sedang'];
+
+                // Progress bar color
+                const barColor = isDone ? '#10B981' : pct >= 75 ? '#3B82F6' : pct >= 40 ? '#F59E0B' : cfg.color;
+
+                // Simulasi
+                let simHTML = '';
+                if(!isDone) {
+                    const remaining = target - saved;
+                    let simRows = [];
+
+                    if(g.deadline) {
+                        const ddl  = new Date(g.deadline); ddl.setHours(0,0,0,0);
+                        const diffDays = Math.ceil((ddl - today) / 86400000);
+                        const diffMonths = Math.max(1, Math.ceil(diffDays / 30));
+                        const perBulan = Math.ceil(remaining / diffMonths);
+                        const perMinggu = Math.ceil(remaining / Math.max(1, diffDays / 7));
+                        const isLate    = diffDays < 0;
+
+                        simRows.push({ label: isLate ? '⚠️ Deadline sudah lewat' : `⏰ Sisa waktu`, val: isLate ? `${Math.abs(diffDays)} hari lalu` : `${diffDays} hari (${diffMonths} bln)` });
+                        simRows.push({ label: '💵 Perlu tabung/bulan',  val: formatRupiah(perBulan) });
+                        simRows.push({ label: '📅 Perlu tabung/minggu', val: formatRupiah(perMinggu) });
+
+                        if(!isLate) {
+                            const projDate = new Date(ddl);
+                            simRows.push({ label: '🏁 Proyeksi tercapai', val: projDate.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) });
+                        }
+                    } else {
+                        simRows.push({ label: '💸 Sisa yang diperlukan', val: formatRupiah(remaining) });
+                        simRows.push({ label: '💡 Tip', val: 'Tambahkan deadline untuk simulasi bulanan' });
+                    }
+
+                    const simRowsHTML = simRows.map(r =>
+                        `<div class="goal-simulasi-row">
+                            <span class="goal-simulasi-label">${r.label}</span>
+                            <span class="goal-simulasi-val">${r.val}</span>
+                        </div>`
+                    ).join('');
+                    simHTML = `<div class="goal-simulasi-box">${simRowsHTML}</div>`;
+                }
+
+                // Deadline badge
+                let deadlineBadge = '';
+                if(g.deadline && !isDone) {
+                    const ddl   = new Date(g.deadline); ddl.setHours(0,0,0,0);
+                    const diff  = Math.ceil((ddl - today) / 86400000);
+                    const dStr  = ddl.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
+                    const dColor = diff < 0 ? '#EF4444' : diff <= 30 ? '#F59E0B' : '#6B7280';
+                    deadlineBadge = `<span class="goal-tag" style="background:${diff<0?'#FEE2E2':diff<=30?'#FEF3C7':'var(--surface-color)'};color:${dColor};border:1px solid ${diff<0?'#FECACA':diff<=30?'#FDE68A':'var(--border)'};">
+                        📅 ${dStr}${diff < 0 ? ' ⚠️' : diff <= 30 ? ' ⏰' : ''}
+                    </span>`;
+                }
+
+                const doneBanner = isDone
+                    ? `<div class="goal-done-banner">🎉 Target Tercapai! Selamat, kerja keras Anda berhasil!</div>`
+                    : '';
+
+                return `<div class="goal-card" onclick="openGoalActionModal('${g.id}')">
+                    <div class="goal-card-stripe" style="background:${barColor};"></div>
+                    <div style="padding-left:0.25rem;">
+                        <div class="goal-card-top">
+                            <div class="goal-card-left">
+                                <div class="goal-icon-wrap" style="background:${cfg.bg};">${g.emoji||'🎯'}</div>
+                                <div>
+                                    <div class="goal-name">${g.name}</div>
+                                    <div class="goal-meta">
+                                        <span class="goal-tag" style="background:${cfg.bg};color:${cfg.color};border:1px solid ${cfg.bg};">${cfg.label}</span>
+                                        ${deadlineBadge}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="goal-pct-badge" style="color:${barColor};">${pct.toFixed(0)}%</div>
+                        </div>
+
+                        <div class="goal-progress-bar-bg">
+                            <div class="goal-progress-bar-fill" style="width:${pct}%;background:${barColor};"></div>
+                        </div>
+                        <div class="goal-progress-meta">
+                            <span><strong>${formatRupiah(saved)}</strong> terkumpul</span>
+                            <span>Target: <strong>${formatRupiah(target)}</strong></span>
+                        </div>
+
+                        ${simHTML}
+                        ${doneBanner}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // Simpan goal ke Firestore
+        async function saveGoal() {
+            const name     = document.getElementById('goalName')?.value.trim();
+            const emoji    = document.getElementById('goalEmoji')?.value || '🎯';
+            const targetRaw= document.getElementById('goalTarget')?.value.replace(/\./g,'') || '0';
+            const savedRaw = document.getElementById('goalSaved')?.value.replace(/\./g,'') || '0';
+            const deadline = document.getElementById('goalDeadline')?.value || '';
+            const priority = document.getElementById('goalPriority')?.value || 'sedang';
+
+            if(!name) return showToast('⚠️ Nama target wajib diisi!');
+            const target = parseInt(targetRaw)||0;
+            const saved  = parseInt(savedRaw)||0;
+            if(target <= 0) return showToast('⚠️ Nominal target harus lebih dari 0!');
+            if(saved > target) return showToast('⚠️ Dana terkumpul tidak boleh melebihi target!');
+
+            const data = { name, emoji, target, saved, deadline, priority };
+            const btn = document.getElementById('btnSaveGoal');
+            if(btn) btn.disabled = true;
+
+            try {
+                if(editingGoalId) {
+                    await db.collection(DB_COLLECTION).doc(currentProfileId).collection('goals').doc(editingGoalId).update(data);
+                    showToast('Target diperbarui ✅');
+                    cancelGoalEdit();
+                } else {
+                    data.timestamp = firebase.firestore.FieldValue.serverTimestamp();
+                    await db.collection(DB_COLLECTION).doc(currentProfileId).collection('goals').add(data);
+                    showToast('Target tersimpan 🎯');
+                    if(typeof confetti === 'function') confetti({ particleCount:70, spread:55, origin:{y:0.7} });
+                    resetGoalForm();
+                }
+            } catch(e) {
+                showToast('❌ Gagal menyimpan: ' + e.message);
+            }
+            if(btn) btn.disabled = false;
+        }
+
+        function resetGoalForm() {
+            document.getElementById('goalName').value    = '';
+            document.getElementById('goalTarget').value  = '';
+            document.getElementById('goalSaved').value   = '';
+            document.getElementById('goalDeadline').value= '';
+            document.getElementById('goalPriority').value= 'sedang';
+            document.getElementById('goalEmoji').value   = '🎯';
+            initGoalEmojiPicker();
+        }
+
+        function cancelGoalEdit() {
+            editingGoalId = null;
+            document.getElementById('goalFormTitle').innerHTML = '<span>➕</span> Tambah Target Baru';
+            document.getElementById('btnSaveGoal').innerText   = 'Simpan Target';
+            document.getElementById('btnCancelGoalEdit').classList.add('hidden');
+            resetGoalForm();
+            const gView = document.getElementById('viewGoals');
+            if(gView) gView.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Action modal
+        function openGoalActionModal(id) {
+            selectedGoalId = id;
+            const g = goals.find(x => x.id === id); if(!g) return;
+            const saved   = g.saved || 0;
+            const target  = g.target || 1;
+            const pct     = Math.min(100, (saved/target)*100);
+            const isDone  = saved >= target;
+            const cfg     = PRIORITY_CONFIG[g.priority] || PRIORITY_CONFIG['sedang'];
+
+            document.getElementById('goalActionTitle').innerText = `${g.emoji||'🎯'} ${g.name}`;
+            document.getElementById('goalActionInfo').innerHTML = `
+                <div class="goal-action-info-name">${g.name}</div>
+                <div class="goal-action-info-row">
+                    <span>Terkumpul</span><strong>${formatRupiah(saved)}</strong>
+                </div>
+                <div class="goal-action-info-row">
+                    <span>Target</span><strong>${formatRupiah(target)}</strong>
+                </div>
+                <div class="goal-action-info-row">
+                    <span>Progress</span>
+                    <strong style="color:${isDone?'#10B981':'var(--primary)'};">${pct.toFixed(1)}% ${isDone?'✅ Tercapai':''}</strong>
+                </div>
+                <div class="goal-action-info-row">
+                    <span>Prioritas</span><strong style="color:${cfg.color};">${cfg.label}</strong>
+                </div>
+                ${g.deadline ? `<div class="goal-action-info-row"><span>Deadline</span><strong>${new Date(g.deadline).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}</strong></div>` : ''}
+            `;
+            const m = document.getElementById('goalActionModal');
+            if(m) m.classList.add('show');
+        }
+
+        function closeGoalActionModal() {
+            const m = document.getElementById('goalActionModal');
+            if(m) m.classList.remove('show');
+            selectedGoalId = null;
+        }
+
+        // Update dana terkumpul via prompt
+        async function promptUpdateGoalSaved() {
+            const g = goals.find(x => x.id === selectedGoalId); if(!g) return;
+            closeGoalActionModal();
+            const input = prompt(
+                `Update dana terkumpul untuk:\n"${g.name}"\n\nSaat ini: ${formatRupiah(g.saved||0)}\nTarget: ${formatRupiah(g.target)}\n\nMasukkan nominal baru (angka saja):`,
+                g.saved || 0
+            );
+            if(input === null) return;
+            const newSaved = parseInt(input.replace(/[^0-9]/g,''))||0;
+            if(newSaved > g.target) return showToast('⚠️ Tidak boleh melebihi target!');
+
+            await db.collection(DB_COLLECTION).doc(currentProfileId).collection('goals').doc(selectedGoalId).update({ saved: newSaved });
+            showToast('Progress diperbarui ✅');
+            if(newSaved >= g.target && typeof confetti === 'function') {
+                setTimeout(() => {
+                    confetti({ particleCount: 180, spread: 90, origin: { y: 0.5 } });
+                    showToast('🎉 TARGET TERCAPAI! Selamat!');
+                }, 300);
+            }
+        }
+
+        // Edit goal — prefill form
+        function triggerEditGoal() {
+            const g = goals.find(x => x.id === selectedGoalId); if(!g) return;
+            editingGoalId = g.id;
+
+            document.getElementById('goalName').value     = g.name || '';
+            document.getElementById('goalEmoji').value    = g.emoji || '🎯';
+            document.getElementById('goalTarget').value   = formatRupiahStr(g.target || 0);
+            document.getElementById('goalSaved').value    = formatRupiahStr(g.saved || 0);
+            document.getElementById('goalDeadline').value = g.deadline || '';
+            document.getElementById('goalPriority').value = g.priority || 'sedang';
+
+            document.getElementById('goalFormTitle').innerHTML = '<span>✏️</span> Edit Target';
+            document.getElementById('btnSaveGoal').innerText   = 'Update Target';
+            document.getElementById('btnCancelGoalEdit').classList.remove('hidden');
+            initGoalEmojiPicker();
+            closeGoalActionModal();
+            const gView = document.getElementById('viewGoals');
+            if(gView) gView.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Delete goal
+        function triggerDeleteGoal() {
+            requireConfirm('Hapus target ini secara permanen?', async () => {
+                await db.collection(DB_COLLECTION).doc(currentProfileId).collection('goals').doc(selectedGoalId).delete();
+                closeGoalActionModal();
+                showToast('Target dihapus 🗑️');
+            });
+        }
+
+        // =====================================================
 
         // Jalankan Pengecekan Login Saat Aplikasi Dibuka
         loadCategories(); 
