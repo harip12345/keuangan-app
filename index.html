@@ -3076,7 +3076,11 @@
             const cashEl = document.getElementById('cashflowContent');
             if (cashEl) {
                 const expPct = income > 0 ? Math.min(100, (expense/income)*100) : (expense > 0 ? 100 : 0);
-                const savPct = income > 0 ? Math.min(100, savingsRate) : 0;
+                const allSavForCash = getFiltered(savings);
+                const assetDeduction = allSavForCash.filter(s => s.sourceWallet && s.sourceWallet !== 'None').reduce((acc, s) => acc + s.amount, 0);
+                const realBalance = income - expense - assetDeduction;
+                const realSavingRate = income > 0 ? ((totalSav + totalGoalDep) / income) * 100 : 0;
+                const savPct = Math.min(100, realSavingRate);
                 const catCount = Object.keys(expenseGroups).length;
                 cashEl.innerHTML = `
                     <div class="summary-grid">
@@ -3090,15 +3094,19 @@
                         </div>
                         <div class="summary-tile">
                             <div class="summary-tile-label">Saldo Bersih</div>
-                            <div class="summary-tile-val" style="color:${net>=0?'var(--income)':'var(--expense)'}">${net>=0?'+':''}${formatRupiah(net)}</div>
+                            <div class="summary-tile-val" style="color:${realBalance>=0?'var(--income)':'var(--expense)'}">${realBalance>=0?'+':''}${formatRupiah(realBalance)}</div>
                         </div>
                         <div class="summary-tile">
                             <div class="summary-tile-label">Saving Rate</div>
-                            <div class="summary-tile-val" style="color:${savingsRate>=20?'var(--income)':savingsRate>=10?'#F59E0B':'var(--expense)'}">${savingsRate.toFixed(1)}%</div>
+                            <div class="summary-tile-val" style="color:${realSavingRate>=20?'var(--income)':realSavingRate>=10?'#F59E0B':'var(--expense)'}">${realSavingRate.toFixed(1)}%</div>
                         </div>
                         <div class="summary-tile">
                             <div class="summary-tile-label">💰 Tabungan Pribadi</div>
                             <div class="summary-tile-val" style="color:var(--savings);">${formatRupiah(totalSav)}</div>
+                        </div>
+                        <div class="summary-tile">
+                            <div class="summary-tile-label">📈 Investasi</div>
+                            <div class="summary-tile-val" style="color:var(--investment);">${formatRupiah(totalInv)}</div>
                         </div>
                         <div class="summary-tile">
                             <div class="summary-tile-label">🎯 Tabungan Goals</div>
