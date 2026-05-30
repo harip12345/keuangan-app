@@ -2887,13 +2887,13 @@
             
             const incRows = document.getElementById('reportIncomeRows');
             if(incRows) {
-                if(Object.keys(incomeGroups).length > 0) { incRows.innerHTML = Object.entries(incomeGroups).map(([cat, val]) => { const pct = totalInc > 0 ? ((val / totalInc) * 100).toFixed(1) : 0; return `<tr><td style="padding-left:1.5rem">• ${cat}</td><td class="text-right">${formatRupiah(val)} <span style="font-size:0.7rem; color:var(--text-muted); font-weight:600; margin-left:4px;">(${pct}%)</span></td></tr>`; }).join(''); } 
+                if(Object.keys(incomeGroups).length > 0) { incRows.innerHTML = Object.entries(incomeGroups).sort((a,b) => b[1]-a[1]).map(([cat, val]) => { const pct = totalInc > 0 ? ((val / totalInc) * 100).toFixed(1) : 0; return `<tr><td style="padding-left:1.5rem">• ${cat}</td><td class="text-right">${formatRupiah(val)} <span style="font-size:0.7rem; color:var(--text-muted); font-weight:600; margin-left:4px;">(${pct}%)</span></td></tr>`; }).join(''); } 
                 else { incRows.innerHTML = `<tr><td style="padding-left:1.5rem; color:#9CA3AF;" colspan="2"><i>Belum ada pendapatan</i></td></tr>`; }
             }
             
             const expRows = document.getElementById('reportExpenseRows');
             if(expRows) {
-                if(Object.keys(expenseGroups).length > 0) { expRows.innerHTML = Object.entries(expenseGroups).map(([cat, val]) => { const pct = totalExp > 0 ? ((val / totalExp) * 100).toFixed(1) : 0; return `<tr><td style="padding-left:1.5rem">• Beban ${cat}</td><td class="text-right">${formatRupiah(val)} <span style="font-size:0.7rem; color:var(--text-muted); font-weight:600; margin-left:4px;">(${pct}%)</span></td></tr>`; }).join(''); } 
+                if(Object.keys(expenseGroups).length > 0) { expRows.innerHTML = Object.entries(expenseGroups).sort((a,b) => b[1]-a[1]).map(([cat, val]) => { const pct = totalExp > 0 ? ((val / totalExp) * 100).toFixed(1) : 0; return `<tr><td style="padding-left:1.5rem">• Beban ${cat}</td><td class="text-right">${formatRupiah(val)} <span style="font-size:0.7rem; color:var(--text-muted); font-weight:600; margin-left:4px;">(${pct}%)</span></td></tr>`; }).join(''); } 
                 else { expRows.innerHTML = `<tr><td style="padding-left:1.5rem; color:#9CA3AF;" colspan="2"><i>Belum ada beban</i></td></tr>`; }
             }
             
@@ -3196,6 +3196,12 @@
             // ── RENDER SARAN & REKOMENDASI ──
             const saranEl = document.getElementById('saranContent');
             if (saranEl) {
+                // Hitung angka konsisten dengan Ringkasan Arus Kas
+                const allSavForSaran = getFiltered(savings);
+                const assetDedSaran = allSavForSaran.filter(s => s.sourceWallet && s.sourceWallet !== 'None').reduce((acc, s) => acc + s.amount, 0);
+                const realBalSaran = income - expense - assetDedSaran;
+                const realSRSaran  = income > 0 ? ((totalSav + totalGoalDep) / income) * 100 : 0;
+
                 const saranItems = [];
                 if (income === 0 && expense === 0) {
                     saranEl.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--text-muted);font-size:0.82rem;"><i>Tambahkan transaksi untuk mendapatkan rekomendasi.</i></div>';
@@ -3204,13 +3210,13 @@
                 // Saran berdasarkan kondisi
                 if (expense > income && income > 0) {
                     saranItems.push({ type: 'danger', icon: '🚨', text: '<strong>Defisit Keuangan!</strong> Pengeluaran Anda melebihi pemasukan sebesar ' + formatRupiah(expense - income) + '. Segera identifikasi pos pengeluaran terbesar dan pangkas pengeluaran tidak mendesak.' });
-                } else if (income > 0 && net > 0) {
-                    saranItems.push({ type: 'success', icon: '✅', text: '<strong>Surplus ' + formatRupiah(net) + '!</strong> Anda berhasil menghasilkan lebih dari yang dikeluarkan. Alokasikan surplus ini untuk tabungan atau investasi.' });
+                } else if (income > 0 && realBalSaran > 0) {
+                    saranItems.push({ type: 'success', icon: '✅', text: '<strong>Surplus ' + formatRupiah(realBalSaran) + '!</strong> Anda berhasil menghasilkan lebih dari yang dikeluarkan. Alokasikan surplus ini untuk tabungan atau investasi.' });
                 }
-                if (savingsRate < 10 && income > 0) {
-                    saranItems.push({ type: 'warning', icon: '⚠️', text: '<strong>Saving rate terlalu rendah (' + savingsRate.toFixed(1) + '%).</strong> Idealnya sisihkan minimal 10-20% dari pemasukan. Coba terapkan metode "bayar diri sendiri dulu" — transfer ke tabungan segera setelah gaji masuk.' });
-                } else if (savingsRate >= 20) {
-                    saranItems.push({ type: 'success', icon: '🎯', text: '<strong>Saving rate Anda ' + savingsRate.toFixed(1) + '% — sangat baik!</strong> Pertahankan kebiasaan menabung ini dan pertimbangkan untuk meningkatkan alokasi ke investasi.' });
+                if (realSRSaran < 10 && income > 0) {
+                    saranItems.push({ type: 'warning', icon: '⚠️', text: '<strong>Saving rate terlalu rendah (' + realSRSaran.toFixed(1) + '%).</strong> Idealnya sisihkan minimal 10-20% dari pemasukan. Coba terapkan metode "bayar diri sendiri dulu" — transfer ke tabungan segera setelah gaji masuk.' });
+                } else if (realSRSaran >= 20) {
+                    saranItems.push({ type: 'success', icon: '🎯', text: '<strong>Saving rate Anda ' + realSRSaran.toFixed(1) + '% — sangat baik!</strong> Pertahankan kebiasaan menabung ini dan pertimbangkan untuk meningkatkan alokasi ke investasi.' });
                 }
                 if (totalInv === 0 && income > 0) {
                     saranItems.push({ type: 'info', icon: '📈', text: '<strong>Belum ada investasi.</strong> Pertimbangkan mulai berinvestasi di reksa dana, emas, atau saham untuk melindungi nilai uang dari inflasi. Mulai dari Rp 10.000–100.000/bulan sudah cukup.' });
