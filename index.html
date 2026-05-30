@@ -651,6 +651,21 @@
             border-radius: 12px; padding: 0.6rem 0.85rem; font-size: 0.78rem;
             font-weight: 700; text-align: center; margin-top: 0.5rem;
         }
+        /* Deposit history rows */
+        .deposit-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.4rem 0; border-bottom: 1px dashed var(--border);
+        }
+        .deposit-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .deposit-row-info { display: flex; flex-direction: column; gap: 0.1rem; flex: 1; }
+        .deposit-row-date { font-size: 0.7rem; color: var(--text-muted); }
+        .deposit-row-wallet { font-size: 0.65rem; }
+        .deposit-row-amount { font-size: 0.78rem; font-weight: 800; color: var(--income); margin: 0 0.5rem; white-space: nowrap; }
+        .deposit-row-actions { display: flex; gap: 0.3rem; flex-shrink: 0; }
+        .deposit-btn { background: var(--surface-color); border: 1px solid var(--border); border-radius: 7px; padding: 0.2rem 0.45rem; font-size: 0.68rem; cursor: pointer; color: var(--text-muted); transition: 0.15s; line-height: 1; }
+        .deposit-btn:active { transform: scale(0.93); }
+        .deposit-btn.del { border-color: #FECACA; color: #EF4444; background: #FEF2F2; }
+        body.dark-mode .deposit-btn.del { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3); }
         /* Action sheet for goal */
         .goal-action-info {
             background: var(--surface-color); border-radius: 14px; padding: 1rem;
@@ -935,7 +950,7 @@
             </div>
             <div class="summary-cards">
                 <div class="card" style="min-width: 45%;">
-                    <div class="card-title"><span style="font-size: 1.1rem;">💰</span> Tabungan</div>
+                    <div class="card-title"><span style="font-size: 1.1rem;">💰</span> Tabungan Pribadi</div>
                     <div class="card-amount" style="color:var(--savings);" id="totalSavingsOnly">Rp 0</div>
                 </div>
                 <div class="card" style="min-width: 45%;">
@@ -1173,7 +1188,8 @@
                     </div>
                     <table class="report-table">
                         <tr><td colspan="2" style="font-size: 0.95rem;"><strong>ASET (HARTA)</strong></td></tr>
-                        <tr><td style="padding-left:1.5rem">• Kas & Tabungan</td><td class="text-right" id="repTabungan">Rp 0</td></tr>
+                        <tr><td style="padding-left:1.5rem">• Kas & Tabungan Pribadi</td><td class="text-right" id="repTabungan">Rp 0</td></tr>
+                        <tr><td style="padding-left:1.5rem">• Tabungan Bersama (Goals)</td><td class="text-right" id="repTabunganGoal">Rp 0</td></tr>
                         <tr><td style="padding-left:1.5rem">• Investasi</td><td class="text-right" id="repInvestasi">Rp 0</td></tr>
                         <tr><td style="padding-left:1.5rem">• Aset Fisik</td><td class="text-right" id="repBerwujud">Rp 0</td></tr>
                         <tr class="report-row-main"><td>TOTAL ASET</td><td class="text-right" id="repTotalAset">Rp 0</td></tr>
@@ -1320,8 +1336,8 @@
                     <button class="btn-close" onclick="closeGoalActionModal()">&times;</button>
                 </div>
                 <div class="goal-action-info" id="goalActionInfo"></div>
-                <button class="btn-submit" style="background:var(--income);margin-bottom:0.65rem;" onclick="promptUpdateGoalSaved()">
-                    💰 Update Dana Terkumpul
+                <button class="btn-submit" style="background:var(--income);margin-bottom:0.65rem;" onclick="openGoalDepositModal()">
+                    💰 Setor Dana ke Target
                 </button>
                 <button class="btn-submit update-btn" style="margin-bottom:0.65rem;" onclick="triggerEditGoal()">
                     ✏️ Edit Target
@@ -1329,6 +1345,109 @@
                 <button class="btn-submit" style="background:var(--expense);" onclick="triggerDeleteGoal()">
                     🗑 Hapus Target
                 </button>
+            </div>
+        </div>
+
+        <!-- Modal Setor Dana ke Goal -->
+        <div id="goalDepositModal" class="modal-overlay">
+            <div class="modal-card" style="
+                padding: 0;
+                max-height: 92vh;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            ">
+                <!-- Header tetap di atas -->
+                <div style="padding: 1.25rem 1.5rem 0.75rem; border-bottom: 1px solid var(--border); flex-shrink: 0;">
+                    <div class="modal-header" style="margin-bottom:0;">
+                        <h3 class="modal-title">💰 Setor Dana ke Target</h3>
+                        <button class="btn-close" onclick="closeGoalDepositModal()">&times;</button>
+                    </div>
+                </div>
+
+                <!-- Body scrollable -->
+                <div style="flex: 1; overflow-y: auto; padding: 1.25rem 1.5rem; -webkit-overflow-scrolling: touch;">
+
+                    <!-- Info goal yang dipilih -->
+                    <div id="goalDepositInfo" style="
+                        background:var(--surface-color); border-radius:14px; padding:0.9rem 1rem;
+                        border:1px solid var(--border); margin-bottom:1.25rem;
+                    "></div>
+
+                    <!-- Nominal setoran -->
+                    <div class="form-group">
+                        <label class="form-label">Nominal Setoran (Rp)</label>
+                        <input type="text" inputmode="numeric" id="goalDepositAmount" class="form-control"
+                            placeholder="Cth: 500.000" oninput="formatInputRupiah(event); previewGoalDeposit();">
+                    </div>
+
+                    <!-- Sumber dana / wallet -->
+                    <div class="form-group">
+                        <label class="form-label">Potong dari Saldo</label>
+                        <select id="goalDepositWallet" class="form-control" onchange="previewGoalDeposit()">
+                            <option value="None">— Tidak memotong saldo manapun —</option>
+                        </select>
+                        <div style="font-size:0.7rem;color:var(--text-muted);margin-top:0.4rem;line-height:1.4;">
+                            Jika dipilih, nominal akan memotong saldo rekening/dompet tersebut dan dicatat sebagai <strong>tabungan goal</strong>, bukan pengeluaran.
+                        </div>
+                    </div>
+
+                    <!-- Tanggal -->
+                    <div class="form-group">
+                        <label class="form-label">Tanggal Setoran</label>
+                        <input type="date" id="goalDepositDate" class="form-control">
+                    </div>
+
+                    <!-- Preview saldo setelah -->
+                    <div id="goalDepositPreview" style="display:none;
+                        background:var(--primary-light); border:1px solid rgba(79,70,229,0.2);
+                        border-radius:12px; padding:0.8rem 1rem; margin-bottom:1rem;
+                        font-size:0.78rem; line-height:1.6; color:var(--primary);
+                    "></div>
+
+                    <!-- Tombol ada di dalam scroll area, tidak akan tertutup -->
+                    <button class="btn-submit" id="btnConfirmDeposit"
+                        style="background:linear-gradient(135deg,#4F46E5,#7C3AED); margin-top:0.25rem; margin-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));"
+                        onclick="confirmGoalDeposit()">
+                        Konfirmasi Setoran
+                    </button>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Edit Setoran -->
+        <div id="depositEditModal" class="modal-overlay">
+            <div class="modal-card" style="padding:0; max-height:92vh; display:flex; flex-direction:column; overflow:hidden;">
+                <div style="padding:1.25rem 1.5rem 0.75rem; border-bottom:1px solid var(--border); flex-shrink:0;">
+                    <div class="modal-header" style="margin-bottom:0;">
+                        <h3 class="modal-title">✏️ Edit Setoran</h3>
+                        <button class="btn-close" onclick="closeDepositEditModal()">&times;</button>
+                    </div>
+                </div>
+                <div style="flex:1; overflow-y:auto; padding:1.25rem 1.5rem; -webkit-overflow-scrolling:touch;">
+                    <div id="depositEditInfo" style="background:var(--surface-color);border-radius:12px;padding:0.75rem 1rem;border:1px solid var(--border);margin-bottom:1.25rem;font-size:0.8rem;color:var(--text-muted);"></div>
+                    <div class="form-group">
+                        <label class="form-label">Nominal Setoran (Rp)</label>
+                        <input type="text" inputmode="numeric" id="depositEditAmount" class="form-control"
+                            placeholder="Masukkan nominal" oninput="formatInputRupiah(event)">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Sumber Dana</label>
+                        <select id="depositEditWallet" class="form-control">
+                            <option value="None">— Tidak memotong saldo —</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tanggal Setoran</label>
+                        <input type="date" id="depositEditDate" class="form-control">
+                    </div>
+                    <button class="btn-submit update-btn" id="btnSaveDepositEdit"
+                        style="margin-bottom:calc(0.5rem + env(safe-area-inset-bottom,0px));"
+                        onclick="saveDepositEdit()">
+                        Simpan Perubahan
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -2575,13 +2694,17 @@
         };
 
         const updateSavingsUI = () => { 
-            const filteredSav = getFiltered(savings); 
+            const allSav = getFiltered(savings);
+            const filteredSav = allSav.filter(s => s.type !== 'goal_deposit'); 
+            const goalDepositSav = allSav.filter(s => s.type === 'goal_deposit');
             const savAmt = filteredSav.filter(s => s.type === 'savings' || !s.type).reduce((a, b) => a + b.amount, 0); const invAmt = filteredSav.filter(s => s.type === 'investment').reduce((a, b) => a + b.amount, 0); const tanAmt = filteredSav.filter(s => s.type === 'tangible').reduce((a, b) => a + b.amount, 0); 
+            const goalDepositAmt = goalDepositSav.reduce((a, b) => a + b.amount, 0);
             
             const assEl = document.getElementById('totalAsset'); if(assEl) assEl.innerText = formatRupiah(savAmt + invAmt + tanAmt); 
             const savOEl = document.getElementById('totalSavingsOnly'); if(savOEl) savOEl.innerText = formatRupiah(savAmt); 
             const invOEl = document.getElementById('totalInvestOnly'); if(invOEl) invOEl.innerText = formatRupiah(invAmt); 
             const tanOEl = document.getElementById('totalTangibleOnly'); if(tanOEl) tanOEl.innerText = formatRupiah(tanAmt); 
+            const gdEl = document.getElementById('totalGoalDepositOnly'); if(gdEl) gdEl.innerText = formatRupiah(0);
             
             const listEl = document.getElementById('savingsList'); if(!listEl) return; listEl.innerHTML = ''; 
             if(filteredSav.length === 0) listEl.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding: 1rem 0;">Belum ada aset</p>'; 
@@ -2746,7 +2869,10 @@
 
         // ================== LAPORAN & CSV Logic ==================
         const renderLaporan = () => { 
-            const filteredTrx = getFiltered(transactions); const filteredSav = getFiltered(savings); 
+            const filteredTrx = getFiltered(transactions); 
+            const allSavLap = getFiltered(savings);
+            const filteredSav = allSavLap.filter(s => s.type !== 'goal_deposit'); 
+            const goalDepositSavLap = allSavLap.filter(s => s.type === 'goal_deposit');
             const tekP = document.getElementById('teksPeriodeLaporan'); 
             if(tekP) {
                 if(!globalStartDate && !globalEndDate) tekP.innerText = "Periode: Keseluruhan Transaksi";
@@ -2780,12 +2906,24 @@
                 else dateNeraca.innerText = `Periode: ${globalStartDate ? formatCustomDate(globalStartDate) : 'Awal'} s.d. ${globalEndDate ? formatCustomDate(globalEndDate) : 'Akhir'}`;
             } 
             
-            const savAmt = filteredSav.filter(s => s.type === 'savings' || !s.type).reduce((a, b) => a + b.amount, 0); const invAmt = filteredSav.filter(s => s.type === 'investment').reduce((a, b) => a + b.amount, 0); const tanAmt = filteredSav.filter(s => s.type === 'tangible').reduce((a, b) => a + b.amount, 0); const totalAset = savAmt + invAmt + tanAmt; 
-            const pctSav = totalAset > 0 ? ((savAmt / totalAset) * 100).toFixed(1) : 0; const pctInv = totalAset > 0 ? ((invAmt / totalAset) * 100).toFixed(1) : 0; const pctTan = totalAset > 0 ? ((tanAmt / totalAset) * 100).toFixed(1) : 0;
+            const savAmt = filteredSav.filter(s => s.type === 'savings' || !s.type).reduce((a, b) => a + b.amount, 0); const invAmt = filteredSav.filter(s => s.type === 'investment').reduce((a, b) => a + b.amount, 0); const tanAmt = filteredSav.filter(s => s.type === 'tangible').reduce((a, b) => a + b.amount, 0);
+            const goalDepositAmtLap = goalDepositSavLap.reduce((a, b) => a + b.amount, 0);
+            // Per goal breakdown untuk label lebih deskriptif
+            const goalDepositByName = {};
+            goalDepositSavLap.forEach(s => { const lbl = s.goalName || 'Goals'; goalDepositByName[lbl] = (goalDepositByName[lbl]||0) + s.amount; });
+            const totalAset = savAmt + invAmt + tanAmt + goalDepositAmtLap; 
+            const pctSav = totalAset > 0 ? ((savAmt / totalAset) * 100).toFixed(1) : 0; const pctInv = totalAset > 0 ? ((invAmt / totalAset) * 100).toFixed(1) : 0; const pctTan = totalAset > 0 ? ((tanAmt / totalAset) * 100).toFixed(1) : 0; const pctGoal = totalAset > 0 ? ((goalDepositAmtLap / totalAset) * 100).toFixed(1) : 0;
 
             const repTEl = document.getElementById('repTabungan'); if(repTEl) repTEl.innerHTML = `${formatRupiah(savAmt)} <span style="font-size:0.7rem; color:var(--text-muted); font-weight:600; margin-left:4px;">(${pctSav}%)</span>`; 
             const repIEl = document.getElementById('repInvestasi'); if(repIEl) repIEl.innerHTML = `${formatRupiah(invAmt)} <span style="font-size:0.7rem; color:var(--text-muted); font-weight:600; margin-left:4px;">(${pctInv}%)</span>`; 
             const repBEl = document.getElementById('repBerwujud'); if(repBEl) repBEl.innerHTML = `${formatRupiah(tanAmt)} <span style="font-size:0.7rem; color:var(--text-muted); font-weight:600; margin-left:4px;">(${pctTan}%)</span>`; 
+            // Tabungan Bersama Goals — tampilkan per nama goal jika ada
+            const repGEl = document.getElementById('repTabunganGoal');
+            if(repGEl) {
+                const goalNames = Object.entries(goalDepositByName);
+                const tooltip = goalNames.length > 0 ? goalNames.map(([n,v]) => `${n}: ${formatRupiah(v)}`).join(' · ') : '';
+                repGEl.innerHTML = `${formatRupiah(goalDepositAmtLap)} <span style="font-size:0.7rem; color:var(--text-muted); font-weight:600; margin-left:4px;">(${pctGoal}%)</span>${tooltip ? `<br><span style="font-size:0.65rem;color:var(--text-muted);">${tooltip}</span>` : ''}`;
+            }
             const repTAEl = document.getElementById('repTotalAset'); if(repTAEl) repTAEl.innerText = formatRupiah(totalAset); 
             const repEKEl = document.getElementById('repEkuitas'); if(repEKEl) repEKEl.innerText = formatRupiah(totalAset); 
             const repTPEl = document.getElementById('repTotalPasiva'); if(repTPEl) repTPEl.innerText = formatRupiah(totalAset); 
@@ -2865,11 +3003,12 @@
         };
 
         // ================== FUNGSI ANALISIS DETAIL ==================
-        function generateDetailedAnalysis({ income, expense, expenseGroups, incomeGroups, totalSav, totalInv, totalTan, savedThisPeriod }) {
+        function generateDetailedAnalysis({ income, expense, expenseGroups, incomeGroups, totalSav, totalInv, totalTan, totalGoalDeposit, savedThisPeriod }) {
             const net = income - expense;
             const savingsRate = income > 0 ? ((net > 0 ? net : 0) / income) * 100 : 0;
             const expenseRatio = income > 0 ? (expense / income) * 100 : 0;
-            const totalAssets = totalSav + totalInv + totalTan;
+            const totalGoalDep = totalGoalDeposit || 0;
+            const totalAssets = totalSav + totalInv + totalTan + totalGoalDep;
 
             // ── HITUNG SKOR ──
             let score = 0;
@@ -2885,7 +3024,7 @@
             if (expenseRatio <= 50 && income > 0) { score += 20; scoreFaktors.push({ label: 'Pengeluaran ≤50%', pts: 20 }); }
             else if (expenseRatio <= 70 && income > 0) { score += 10; scoreFaktors.push({ label: 'Pengeluaran ≤70%', pts: 10 }); }
             else { scoreFaktors.push({ label: 'Pengeluaran terlalu tinggi', pts: 0 }); }
-            if (totalSav > 0) { score += 15; scoreFaktors.push({ label: 'Punya tabungan', pts: 15 }); }
+            if (totalSav > 0 || totalGoalDep > 0) { score += 15; scoreFaktors.push({ label: 'Punya tabungan', pts: 15 }); }
             else { scoreFaktors.push({ label: 'Belum punya tabungan', pts: 0 }); }
             if (totalInv > 0) { score += 15; scoreFaktors.push({ label: 'Ada investasi', pts: 15 }); }
             else { scoreFaktors.push({ label: 'Belum berinvestasi', pts: 0 }); }
@@ -2956,6 +3095,14 @@
                         <div class="summary-tile">
                             <div class="summary-tile-label">Saving Rate</div>
                             <div class="summary-tile-val" style="color:${savingsRate>=20?'var(--income)':savingsRate>=10?'#F59E0B':'var(--expense)'}">${savingsRate.toFixed(1)}%</div>
+                        </div>
+                        <div class="summary-tile">
+                            <div class="summary-tile-label">💰 Tabungan Pribadi</div>
+                            <div class="summary-tile-val" style="color:var(--savings);">${formatRupiah(totalSav)}</div>
+                        </div>
+                        <div class="summary-tile">
+                            <div class="summary-tile-label">🎯 Tabungan Goals</div>
+                            <div class="summary-tile-val" style="color:#7C3AED;">${formatRupiah(totalGoalDep)}</div>
                         </div>
                     </div>
                     <div class="metric-row" style="margin-top:0.5rem;"><span class="metric-label">Rasio Pengeluaran</span><span class="metric-value" style="color:${expPct<=50?'#10B981':expPct<=70?'#F59E0B':'#EF4444'}">${expPct.toFixed(1)}%</span></div>
@@ -3099,10 +3246,14 @@
 
         const renderAnalytics = () => { 
             const isDark = document.body.classList.contains('dark-mode'); const textColor = isDark ? '#F9FAFB' : '#111827';
-            const filteredTrx = getFiltered(transactions); const filteredSav = getFiltered(savings); 
+            const filteredTrx = getFiltered(transactions); 
+            const allSavAna = getFiltered(savings);
+            const filteredSav = allSavAna.filter(s => s.type !== 'goal_deposit'); 
+            const goalDepositAna = allSavAna.filter(s => s.type === 'goal_deposit');
             
             const income = filteredTrx.filter(t => t.type === 'income').reduce((acc, t) => acc + t.amount, 0); const expense = filteredTrx.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.amount, 0); const savedThisPeriod = filteredSav.filter(s => s.type === 'savings' || s.type === 'investment').reduce((acc, s) => acc + s.amount, 0);
             const totalSav = filteredSav.filter(s => s.type === 'savings' || !s.type).reduce((a, b) => a + b.amount, 0); const totalInv = filteredSav.filter(s => s.type === 'investment').reduce((a, b) => a + b.amount, 0); const totalTan = filteredSav.filter(s => s.type === 'tangible').reduce((a, b) => a + b.amount, 0); 
+            const totalGoalDeposit = goalDepositAna.reduce((a, b) => a + b.amount, 0);
             
             const dynamicGroups = getDynamicCategoryGroups(); 
             const expenseGroups = {}; filteredTrx.filter(t => t.type === 'expense').forEach(t => { expenseGroups[t.category] = (expenseGroups[t.category] || 0) + t.amount; }); 
@@ -3151,7 +3302,7 @@
             }
 
             // ===== ANALISIS DETAIL =====
-            generateDetailedAnalysis({ income, expense, expenseGroups, incomeGroups, totalSav, totalInv, totalTan, savedThisPeriod });
+            generateDetailedAnalysis({ income, expense, expenseGroups, incomeGroups, totalSav, totalInv, totalTan, totalGoalDeposit, savedThisPeriod });
 
             const colors = ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#14B8A6', '#6366F1', '#F43F5E', '#A855F7', '#D946EF', '#F472B6', '#FB923C', '#FCD34D', '#A3E635', '#4ADE80', '#2DD4BF', '#38BDF8', '#818CF8', '#C084FC']; 
             const tooltipCb = { label: function(ctx) { let lbl = ctx.label || ''; if (lbl === 'Belum Ada') return lbl; let val = ctx.raw || 0; let total = ctx.chart.data.datasets[ctx.datasetIndex].data.reduce((a, b) => a + b, 0); let pct = total > 0 ? ((val / total) * 100).toFixed(1) + '%' : '0%'; return lbl + ': ' + formatRupiah(val) + ' (' + pct + ')'; } }; 
@@ -3213,6 +3364,7 @@
 
         let editingGoalId = null;
         let selectedGoalId = null;
+        let currentDepositGoalId = null;  // dedicated var untuk deposit, tidak terpengaruh closeGoalActionModal
 
         const GOAL_EMOJIS = ['🎯','🏠','💍','✈️','🎓','🚗','📱','💻','🏖️','👶','🌏','🏋️','💰','🏦','💎','🎁','🎸','📸','🐶','🌱'];
         const PRIORITY_CONFIG = {
@@ -3371,6 +3523,32 @@
 
                         ${simHTML}
                         ${doneBanner}
+
+                        <!-- Riwayat setoran dari tab Aset -->
+                        ${(()=>{
+                            const deposits = savings.filter(s => s.goalId === g.id)
+                                .sort((a,b) => (b.timestamp?.seconds||0) - (a.timestamp?.seconds||0));
+                            if(!deposits.length) return '';
+                            const rows = deposits.map(d =>
+                                `<div class="deposit-row">
+                                    <div class="deposit-row-info">
+                                        <span class="deposit-row-date">${d.date||'—'}</span>
+                                        ${d.sourceWallet && d.sourceWallet!=='None'
+                                            ? `<span class="deposit-row-wallet"><span class="wallet-badge">${d.sourceWallet}</span></span>`
+                                            : `<span class="deposit-row-wallet" style="color:var(--text-muted);font-size:0.65rem;">Tanpa potongan saldo</span>`}
+                                    </div>
+                                    <span class="deposit-row-amount">+${formatRupiah(d.depositAmount||d.amount)}</span>
+                                    <div class="deposit-row-actions">
+                                        <button class="deposit-btn" onclick="event.stopPropagation(); openDepositEdit('${d.id}','${g.id}')">✏️</button>
+                                        <button class="deposit-btn del" onclick="event.stopPropagation(); deleteDeposit('${d.id}','${g.id}')">🗑</button>
+                                    </div>
+                                </div>`
+                            ).join('');
+                            return `<div style="margin-top:0.65rem;background:var(--surface-color);border-radius:10px;padding:0.6rem 0.75rem;border:1px solid var(--border);">
+                                <div style="font-size:0.68rem;font-weight:700;color:var(--text-muted);margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.4px;">📋 Riwayat Setoran (${deposits.length})</div>
+                                ${rows}
+                            </div>`;
+                        })()}
                     </div>
                 </div>`;
             }).join('');
@@ -3468,35 +3646,179 @@
         function closeGoalActionModal() {
             const m = document.getElementById('goalActionModal');
             if(m) m.classList.remove('show');
+            // JANGAN null-kan selectedGoalId di sini — openGoalDepositModal masih butuhnya
+        }
+
+        function _resetSelectedGoalId() {
             selectedGoalId = null;
         }
 
-        // Update dana terkumpul via prompt
-        async function promptUpdateGoalSaved() {
+        // Buka modal setor dana ke goal
+        function openGoalDepositModal() {
             const g = goals.find(x => x.id === selectedGoalId); if(!g) return;
+            currentDepositGoalId = g.id;  // simpan sebelum closeGoalActionModal mengganggu
             closeGoalActionModal();
-            const input = prompt(
-                `Update dana terkumpul untuk:\n"${g.name}"\n\nSaat ini: ${formatRupiah(g.saved||0)}\nTarget: ${formatRupiah(g.target)}\n\nMasukkan nominal baru (angka saja):`,
-                g.saved || 0
-            );
-            if(input === null) return;
-            const newSaved = parseInt(input.replace(/[^0-9]/g,''))||0;
-            if(newSaved > g.target) return showToast('⚠️ Tidak boleh melebihi target!');
 
-            await db.collection(DB_COLLECTION).doc(currentProfileId).collection('goals').doc(selectedGoalId).update({ saved: newSaved });
-            showToast('Progress diperbarui ✅');
-            if(newSaved >= g.target && typeof confetti === 'function') {
-                setTimeout(() => {
-                    confetti({ particleCount: 180, spread: 90, origin: { y: 0.5 } });
-                    showToast('🎉 TARGET TERCAPAI! Selamat!');
-                }, 300);
+            // Hitung saldo wallet terbaru sebelum modal dibuka
+            calculateWalletBalances();
+
+            // Isi info goal
+            const saved  = g.saved || 0;
+            const target = g.target || 1;
+            const pct    = Math.min(100, (saved / target) * 100);
+            const remaining = Math.max(0, target - saved);
+            document.getElementById('goalDepositInfo').innerHTML = `
+                <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.6rem;">
+                    <span style="font-size:1.5rem;">${g.emoji||'🎯'}</span>
+                    <div>
+                        <div style="font-size:0.88rem;font-weight:800;color:var(--text-main);">${g.name}</div>
+                        <div style="font-size:0.72rem;color:var(--text-muted);">Progress: ${pct.toFixed(1)}%</div>
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+                    <div style="background:var(--card-bg);border-radius:10px;padding:0.6rem;border:1px solid var(--border);text-align:center;">
+                        <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:0.2rem;">TERKUMPUL</div>
+                        <div style="font-size:0.82rem;font-weight:800;color:var(--income);">${formatRupiah(saved)}</div>
+                    </div>
+                    <div style="background:var(--card-bg);border-radius:10px;padding:0.6rem;border:1px solid var(--border);text-align:center;">
+                        <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:0.2rem;">KURANG</div>
+                        <div style="font-size:0.82rem;font-weight:800;color:var(--expense);">${formatRupiah(remaining)}</div>
+                    </div>
+                </div>
+            `;
+
+            // Set tanggal hari ini
+            document.getElementById('goalDepositDate').value = getTodayYMD();
+
+            // Isi dropdown wallet — tanpa tampilkan saldo (saldo sudah dihitung di calculateWalletBalances)
+            const walletSel = document.getElementById('goalDepositWallet');
+            walletSel.innerHTML = '<option value="None">— Tidak memotong saldo manapun —</option>';
+            wallets.forEach(w => {
+                const opt = document.createElement('option');
+                opt.value = w;
+                opt.textContent = w;
+                walletSel.appendChild(opt);
+            });
+
+            // Reset field
+            document.getElementById('goalDepositAmount').value = '';
+            document.getElementById('goalDepositPreview').style.display = 'none';
+
+            const m = document.getElementById('goalDepositModal');
+            if(m) m.classList.add('show');
+        }
+
+        function closeGoalDepositModal() {
+            const m = document.getElementById('goalDepositModal');
+            if(m) m.classList.remove('show');
+            _resetSelectedGoalId();  // baru di-null setelah deposit modal tutup
+        }
+
+        // Preview live saat user mengetik nominal
+        function previewGoalDeposit() {
+            const g = goals.find(x => x.id === currentDepositGoalId); if(!g) return;
+            const raw    = (document.getElementById('goalDepositAmount')?.value || '').replace(/\./g,'');
+            const amount = parseInt(raw) || 0;
+            const wallet = document.getElementById('goalDepositWallet')?.value;
+            const preview = document.getElementById('goalDepositPreview');
+            if(!preview) return;
+
+            if(amount <= 0) { preview.style.display = 'none'; return; }
+
+            const newSaved = (g.saved || 0) + amount;
+            const newPct   = Math.min(100, (newSaved / (g.target || 1)) * 100);
+
+            let html = `
+                <div style="font-weight:700;margin-bottom:0.5rem;">📋 Preview Setoran</div>
+                <div style="display:flex;justify-content:space-between;padding:0.2rem 0;border-bottom:1px solid rgba(79,70,229,0.15);">
+                    <span>Nominal disetor</span>
+                    <strong>${formatRupiah(amount)}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:0.2rem 0;border-bottom:1px solid rgba(79,70,229,0.15);">
+                    <span>Dana terkumpul setelah</span>
+                    <strong style="color:var(--income);">${formatRupiah(newSaved)}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:0.2rem 0;">
+                    <span>Progress baru</span>
+                    <strong>${newPct.toFixed(1)}%${newPct >= 100 ? ' 🎉' : ''}</strong>
+                </div>`;
+
+            if(wallet !== 'None') {
+                html += `<div style="margin-top:0.5rem;padding:0.4rem 0.6rem;background:rgba(79,70,229,0.08);border-radius:8px;font-size:0.72rem;">
+                    💳 Saldo <strong>${wallet}</strong> akan dipotong sebesar <strong>${formatRupiah(amount)}</strong>
+                </div>`;
+            } else {
+                html += `<div style="margin-top:0.5rem;font-size:0.72rem;opacity:0.75;">ℹ️ Saldo transaksi tidak dipotong</div>`;
             }
+
+            preview.innerHTML = html;
+            preview.style.display = 'block';
+        }
+
+        // Konfirmasi dan simpan setoran
+        async function confirmGoalDeposit() {
+            const g = goals.find(x => x.id === currentDepositGoalId);
+            if(!g) { showToast('❌ Data goal tidak ditemukan.'); return; }
+
+            const raw    = (document.getElementById('goalDepositAmount')?.value || '').replace(/\./g,'');
+            const amount = parseInt(raw) || 0;
+            if(amount <= 0) return showToast('⚠️ Masukkan nominal setoran!');
+
+            const wallet  = document.getElementById('goalDepositWallet')?.value || 'None';
+            const dateVal = document.getElementById('goalDepositDate')?.value || getTodayYMD();
+            const newSaved = (g.saved || 0) + amount;
+
+            const btn = document.getElementById('btnConfirmDeposit');
+            if(btn) { btn.disabled = true; btn.innerText = 'Menyimpan...'; }
+
+            try {
+                // 1. Update progress goal
+                await db.collection(DB_COLLECTION).doc(currentProfileId)
+                    .collection('goals').doc(g.id)
+                    .update({ saved: newSaved });
+
+                // 2. Jika wallet dipilih → catat ke collection savings
+                //    amount = nominal setoran → memotong saldo wallet sebesar ini
+                //    (mekanisme identik dengan tab Aset / sourceWallet)
+                if(wallet !== 'None') {
+                    await db.collection(DB_COLLECTION).doc(currentProfileId)
+                        .collection('savings').add({
+                            type         : 'goal_deposit',   // tidak muncul di tab Aset
+                            name         : `Tabungan Goal: ${g.name}`,
+                            amount       : amount,
+                            sourceWallet : wallet,
+                            date         : formatCustomDate(dateVal),
+                            goalId       : g.id,
+                            goalName     : g.name,
+                            depositAmount: amount,
+                            timestamp    : firebase.firestore.FieldValue.serverTimestamp(),
+                        });
+                }
+
+                currentDepositGoalId = null;
+                closeGoalDepositModal();
+                showToast('✅ Setoran berhasil dicatat!');
+
+                // Celebrasi jika goal tercapai
+                if(newSaved >= g.target && typeof confetti === 'function') {
+                    setTimeout(() => {
+                        confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 } });
+                        showToast('🎉 TARGET TERCAPAI! Selamat!');
+                    }, 400);
+                }
+            } catch(err) {
+                showToast('❌ Gagal menyimpan: ' + err.message);
+            }
+
+            if(btn) { btn.disabled = false; btn.innerText = 'Konfirmasi Setoran'; }
         }
 
         // Edit goal — prefill form
         function triggerEditGoal() {
-            const g = goals.find(x => x.id === selectedGoalId); if(!g) return;
+            const id = selectedGoalId;  // simpan dulu sebelum modal close
+            const g = goals.find(x => x.id === id); if(!g) return;
             editingGoalId = g.id;
+            _resetSelectedGoalId();
 
             document.getElementById('goalName').value     = g.name || '';
             document.getElementById('goalEmoji').value    = g.emoji || '🎯';
@@ -3516,14 +3838,137 @@
 
         // Delete goal
         function triggerDeleteGoal() {
+            const id = selectedGoalId;  // simpan dulu sebelum modal close
             requireConfirm('Hapus target ini secara permanen?', async () => {
-                await db.collection(DB_COLLECTION).doc(currentProfileId).collection('goals').doc(selectedGoalId).delete();
+                await db.collection(DB_COLLECTION).doc(currentProfileId).collection('goals').doc(id).delete();
                 closeGoalActionModal();
+                _resetSelectedGoalId();
                 showToast('Target dihapus 🗑️');
             });
         }
 
         // =====================================================
+
+        // ===== EDIT & HAPUS RIWAYAT SETORAN =====
+
+        let editingDepositId   = null;  // savings doc id yang sedang diedit
+        let editingDepositGoalId = null; // goal id terkait
+
+        function openDepositEdit(depositId, goalId) {
+            const deposit = savings.find(s => s.id === depositId);
+            const goal    = goals.find(g => g.id === goalId);
+            if(!deposit || !goal) return showToast('❌ Data tidak ditemukan.');
+
+            editingDepositId     = depositId;
+            editingDepositGoalId = goalId;
+
+            // Info header
+            document.getElementById('depositEditInfo').innerHTML =
+                `<span style="font-size:1.1rem;">${goal.emoji||'🎯'}</span>
+                 <strong style="color:var(--text-main);"> ${goal.name}</strong>
+                 <span style="margin-left:0.4rem;font-size:0.72rem;">· Setoran ${deposit.date||''}</span>`;
+
+            // Pre-fill fields
+            const rawAmt = deposit.depositAmount || deposit.amount || 0;
+            document.getElementById('depositEditAmount').value = rawAmt.toLocaleString('id-ID');
+            document.getElementById('depositEditDate').value   = parseCustomDateToYMD(deposit.date) || getTodayYMD();
+
+            // Wallet dropdown
+            const sel = document.getElementById('depositEditWallet');
+            sel.innerHTML = '<option value="None">— Tidak memotong saldo —</option>';
+            wallets.forEach(w => {
+                const opt = document.createElement('option');
+                opt.value = w; opt.textContent = w;
+                if(w === deposit.sourceWallet) opt.selected = true;
+                sel.appendChild(opt);
+            });
+
+            document.getElementById('depositEditModal').classList.add('show');
+        }
+
+        function closeDepositEditModal() {
+            document.getElementById('depositEditModal').classList.remove('show');
+            editingDepositId     = null;
+            editingDepositGoalId = null;
+        }
+
+        async function saveDepositEdit() {
+            if(!editingDepositId || !editingDepositGoalId) return;
+
+            const newAmtRaw = (document.getElementById('depositEditAmount')?.value || '').replace(/\./g,'');
+            const newAmount = parseInt(newAmtRaw) || 0;
+            if(newAmount <= 0) return showToast('⚠️ Nominal harus lebih dari 0!');
+
+            const newWallet = document.getElementById('depositEditWallet')?.value || 'None';
+            const newDateYMD = document.getElementById('depositEditDate')?.value || getTodayYMD();
+
+            const oldDeposit = savings.find(s => s.id === editingDepositId);
+            if(!oldDeposit) return showToast('❌ Data setoran tidak ditemukan.');
+
+            const oldAmount = oldDeposit.depositAmount || oldDeposit.amount || 0;
+            const goal      = goals.find(g => g.id === editingDepositGoalId);
+            if(!goal) return showToast('❌ Data goal tidak ditemukan.');
+
+            // Hitung ulang saved: kurangi old, tambah new
+            const newSaved = Math.max(0, (goal.saved || 0) - oldAmount + newAmount);
+
+            const btn = document.getElementById('btnSaveDepositEdit');
+            if(btn) { btn.disabled = true; btn.innerText = 'Menyimpan...'; }
+
+            try {
+                // Update savings doc
+                await db.collection(DB_COLLECTION).doc(currentProfileId)
+                    .collection('savings').doc(editingDepositId)
+                    .update({
+                        amount       : newAmount,
+                        depositAmount: newAmount,
+                        sourceWallet : newWallet,
+                        date         : formatCustomDate(newDateYMD),
+                    });
+
+                // Update goal saved
+                await db.collection(DB_COLLECTION).doc(currentProfileId)
+                    .collection('goals').doc(editingDepositGoalId)
+                    .update({ saved: newSaved });
+
+                closeDepositEditModal();
+                showToast('✅ Setoran diperbarui!');
+            } catch(err) {
+                showToast('❌ Gagal: ' + err.message);
+            }
+
+            if(btn) { btn.disabled = false; btn.innerText = 'Simpan Perubahan'; }
+        }
+
+        function deleteDeposit(depositId, goalId) {
+            const deposit = savings.find(s => s.id === depositId);
+            const goal    = goals.find(g => g.id === goalId);
+            if(!deposit || !goal) return showToast('❌ Data tidak ditemukan.');
+
+            const amount = deposit.depositAmount || deposit.amount || 0;
+
+            requireConfirm(
+                `Hapus setoran ${formatRupiah(amount)} (${deposit.date||''}) dari goal "${goal.name}"?\n\nDana terkumpul akan dikurangi sebesar ${formatRupiah(amount)}.`,
+                async () => {
+                    try {
+                        // Kurangi saved di goal
+                        const newSaved = Math.max(0, (goal.saved || 0) - amount);
+                        await db.collection(DB_COLLECTION).doc(currentProfileId)
+                            .collection('goals').doc(goalId)
+                            .update({ saved: newSaved });
+
+                        // Hapus savings doc
+                        await db.collection(DB_COLLECTION).doc(currentProfileId)
+                            .collection('savings').doc(depositId)
+                            .delete();
+
+                        showToast('🗑 Setoran dihapus.');
+                    } catch(err) {
+                        showToast('❌ Gagal: ' + err.message);
+                    }
+                }
+            );
+        }
 
         // Jalankan Pengecekan Login Saat Aplikasi Dibuka
         loadCategories(); 
