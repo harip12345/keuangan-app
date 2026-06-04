@@ -2412,8 +2412,6 @@
             }
         }
 
-        let _riwayatSource = null; // 'trx' | 'aset' | null — dari mana edit/hapus dipicu
-
         function openItemActionModal(id, type) { 
             selectedItemId = id; selectedItemType = type; 
             const modal = document.getElementById('itemActionModal');
@@ -2426,16 +2424,13 @@
         }
         
         function triggerEditItem() { 
-            if(!selectedItemId) return;
-            // Tandai dari mana edit ini dipicu
-            _riwayatSource = selectedItemType === 'trx' ? 'trx' : 'aset';
+            if(!selectedItemId) return; 
             if(selectedItemType === 'trx') editTransaction(selectedItemId); else editAsset(selectedItemId); 
             closeItemActionModal(); 
         }
         
         function triggerDeleteItem() { 
             if(!selectedItemId) return; 
-            const src = selectedItemType === 'trx' ? 'trx' : 'aset'; // simpan sebelum closeItemActionModal
             const collectionName = selectedItemType === 'trx' ? "transactions" : "savings"; 
             const dataArray = selectedItemType === 'trx' ? transactions : savings;
             const itemToBackup = dataArray.find(item => item.id === selectedItemId);
@@ -2446,12 +2441,7 @@
                 delete lastDeletedBackup.id; 
             }
             db.collection(DB_COLLECTION).doc(currentProfileId).collection(collectionName).doc(selectedItemId).delete()
-            .then(() => { 
-                closeItemActionModal(); 
-                showToastUndo("Data terhapus 🗑️");
-                // Kembali ke modal riwayat setelah hapus
-                setTimeout(() => openRiwayatModal(src === 'trx' ? 'transaksi' : 'aset'), 350);
-            })
+            .then(() => { closeItemActionModal(); showToastUndo("Data terhapus 🗑️"); })
             .catch(() => showToast("Gagal menghapus"));
         }
 
@@ -2753,10 +2743,7 @@
             const noteEl = document.getElementById('note'); if(noteEl) noteEl.value = ''; typeSelect.value = 'expense'; 
             const dateEl = document.getElementById('trxDate'); if(dateEl) dateEl.value = getTodayYMD();
             const walletSel = document.getElementById('walletSelect'); if(walletSel && wallets.length > 0) walletSel.value = wallets[0];
-            handleTypeChange();
-            // Kembali ke riwayat jika edit dipicu dari sana
-            if(_riwayatSource === 'trx') { _riwayatSource = null; openRiwayatModal('transaksi'); }
-            else _riwayatSource = null;
+            handleTypeChange(); 
         };
 
         const editAsset = (id) => { 
@@ -2775,10 +2762,7 @@
             btnSubmitAsset.innerText = "Simpan Data Aset"; btnSubmitAsset.classList.remove('update-btn'); btnCancelAssetEdit.classList.add('hidden'); 
             const dateEl = document.getElementById('savingsDate'); if(dateEl) dateEl.value = getTodayYMD();
             const sourceWEl = document.getElementById('assetSourceWallet'); if(sourceWEl) sourceWEl.value = 'None';
-            const nameEl = document.getElementById('savingsName'); if(nameEl) nameEl.value = ''; savingsAmountInput.value = ''; savingsTypeSelect.value = 'savings';
-            // Kembali ke riwayat jika edit dipicu dari sana
-            if(_riwayatSource === 'aset') { _riwayatSource = null; openRiwayatModal('aset'); }
-            else _riwayatSource = null;
+            const nameEl = document.getElementById('savingsName'); if(nameEl) nameEl.value = ''; savingsAmountInput.value = ''; savingsTypeSelect.value = 'savings'; 
         };
 
         const updateUI = () => { 
@@ -3960,4 +3944,290 @@
             document.getElementById('goalDeadline').value = g.deadline || '';
             document.getElementById('goalPriority').value = g.priority || 'sedang';
 
-   
+            document.getElementById('goalFormTitle').innerHTML = '<span>✏️</span> Edit Target';
+            document.getElementById('btnSaveGoal').innerText   = 'Update Target';
+            document.getElementById('btnCancelGoalEdit').classList.remove('hidden');
+            initGoalEmojiPicker();
+            closeGoalActionModal();
+            const gView = document.getElementById('viewGoals');
+            if(gView) gView.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Delete goal
+        function triggerDeleteGoal() {
+            const id = selectedGoalId;  // simpan dulu sebelum modal close
+            requireConfirm('Hapus target ini secara permanen?', async () => {
+                await db.collection(DB_COLLECTION).doc(currentProfileId).collection('goals').doc(id).delete();
+                closeGoalActionModal();
+                _resetSelectedGoalId();
+                showToast('Target dihapus 🗑️');
+            });
+        }
+
+        // =====================================================
+
+        // ===== EDIT & HAPUS RIWAYAT SETORAN =====
+
+        let editingDepositId   = null;  // savings doc id yang sedang diedit
+        let editingDepositGoalId = null; // goal id terkait
+
+        function openDepositEdit(depositId, goalId) {
+            const deposit = savings.find(s => s.id === depositId);
+            const goal    = goals.find(g => g.id === goalId);
+            if(!deposit || !goal) return showToast('❌ Data tidak ditemukan.');
+
+            editingDepositId     = depositId;
+            editingDepositGoalId = goalId;
+
+            // Info header
+            document.getElementById('depositEditInfo').innerHTML =
+                `<span style="font-size:1.1rem;">${goal.emoji||'🎯'}</span>
+                 <strong style="color:var(--text-main);"> ${goal.name}</strong>
+                 <span style="margin-left:0.4rem;font-size:0.72rem;">· Setoran ${deposit.date||''}</span>`;
+
+            // Pre-fill fields
+            const rawAmt = deposit.depositAmount || deposit.amount || 0;
+            document.getElementById('depositEditAmount').value = rawAmt.toLocaleString('id-ID');
+            document.getElementById('depositEditDate').value   = parseCustomDateToYMD(deposit.date) || getTodayYMD();
+
+            // Wallet dropdown
+            const sel = document.getElementById('depositEditWallet');
+            sel.innerHTML = '<option value="None">— Tidak memotong saldo —</option>';
+            wallets.forEach(w => {
+                const opt = document.createElement('option');
+                opt.value = w; opt.textContent = w;
+                if(w === deposit.sourceWallet) opt.selected = true;
+                sel.appendChild(opt);
+            });
+
+            document.getElementById('depositEditModal').classList.add('show');
+        }
+
+        function closeDepositEditModal() {
+            document.getElementById('depositEditModal').classList.remove('show');
+            editingDepositId     = null;
+            editingDepositGoalId = null;
+        }
+
+        async function saveDepositEdit() {
+            if(!editingDepositId || !editingDepositGoalId) return;
+
+            const newAmtRaw = (document.getElementById('depositEditAmount')?.value || '').replace(/\./g,'');
+            const newAmount = parseInt(newAmtRaw) || 0;
+            if(newAmount <= 0) return showToast('⚠️ Nominal harus lebih dari 0!');
+
+            const newWallet = document.getElementById('depositEditWallet')?.value || 'None';
+            const newDateYMD = document.getElementById('depositEditDate')?.value || getTodayYMD();
+
+            const oldDeposit = savings.find(s => s.id === editingDepositId);
+            if(!oldDeposit) return showToast('❌ Data setoran tidak ditemukan.');
+
+            const oldAmount = oldDeposit.depositAmount || oldDeposit.amount || 0;
+            const goal      = goals.find(g => g.id === editingDepositGoalId);
+            if(!goal) return showToast('❌ Data goal tidak ditemukan.');
+
+            // Hitung ulang saved: kurangi old, tambah new
+            const newSaved = Math.max(0, (goal.saved || 0) - oldAmount + newAmount);
+
+            const btn = document.getElementById('btnSaveDepositEdit');
+            if(btn) { btn.disabled = true; btn.innerText = 'Menyimpan...'; }
+
+            try {
+                // Update savings doc
+                await db.collection(DB_COLLECTION).doc(currentProfileId)
+                    .collection('savings').doc(editingDepositId)
+                    .update({
+                        amount       : newAmount,
+                        depositAmount: newAmount,
+                        sourceWallet : newWallet,
+                        date         : formatCustomDate(newDateYMD),
+                    });
+
+                // Update goal saved
+                await db.collection(DB_COLLECTION).doc(currentProfileId)
+                    .collection('goals').doc(editingDepositGoalId)
+                    .update({ saved: newSaved });
+
+                closeDepositEditModal();
+                showToast('✅ Setoran diperbarui!');
+            } catch(err) {
+                showToast('❌ Gagal: ' + err.message);
+            }
+
+            if(btn) { btn.disabled = false; btn.innerText = 'Simpan Perubahan'; }
+        }
+
+        function deleteDeposit(depositId, goalId) {
+            const deposit = savings.find(s => s.id === depositId);
+            const goal    = goals.find(g => g.id === goalId);
+            if(!deposit || !goal) return showToast('❌ Data tidak ditemukan.');
+
+            const amount = deposit.depositAmount || deposit.amount || 0;
+
+            requireConfirm(
+                `Hapus setoran ${formatRupiah(amount)} (${deposit.date||''}) dari goal "${goal.name}"?\n\nDana terkumpul akan dikurangi sebesar ${formatRupiah(amount)}.`,
+                async () => {
+                    try {
+                        // Kurangi saved di goal
+                        const newSaved = Math.max(0, (goal.saved || 0) - amount);
+                        await db.collection(DB_COLLECTION).doc(currentProfileId)
+                            .collection('goals').doc(goalId)
+                            .update({ saved: newSaved });
+
+                        // Hapus savings doc
+                        await db.collection(DB_COLLECTION).doc(currentProfileId)
+                            .collection('savings').doc(depositId)
+                            .delete();
+
+                        showToast('🗑 Setoran dihapus.');
+                    } catch(err) {
+                        showToast('❌ Gagal: ' + err.message);
+                    }
+                }
+            );
+        }
+
+        // =====================================================
+        // ============= MODAL RIWAYAT =============
+        // =====================================================
+
+        function openRiwayatModal(type) {
+            if(type === 'transaksi') {
+                // Isi dropdown kategori dari data transaksi yang ada
+                const cats = [...new Set(transactions.map(t => t.category).filter(Boolean))].sort();
+                const sel = document.getElementById('riwayatTrxKategori');
+                if(sel) {
+                    sel.innerHTML = '<option value="">Semua Kategori</option>' +
+                        cats.map(c => `<option value="${c}">${c}</option>`).join('');
+                }
+                // Reset filter
+                const typeEl = document.getElementById('riwayatTrxType');
+                const searchEl = document.getElementById('riwayatTrxSearch');
+                if(typeEl) typeEl.value = '';
+                if(searchEl) searchEl.value = '';
+                renderRiwayatTrx();
+                document.getElementById('riwayatTrxOverlay').classList.add('show');
+            } else {
+                // Reset filter
+                const typeEl = document.getElementById('riwayatAsetType');
+                const searchEl = document.getElementById('riwayatAsetSearch');
+                if(typeEl) typeEl.value = '';
+                if(searchEl) searchEl.value = '';
+                renderRiwayatAset();
+                document.getElementById('riwayatAsetOverlay').classList.add('show');
+            }
+        }
+
+        function closeRiwayatModal(type) {
+            const id = type === 'trx' ? 'riwayatTrxOverlay' : 'riwayatAsetOverlay';
+            document.getElementById(id)?.classList.remove('show');
+        }
+
+        function renderRiwayatTrx() {
+            const typeFilter  = document.getElementById('riwayatTrxType')?.value || '';
+            const catFilter   = document.getElementById('riwayatTrxKategori')?.value || '';
+            const searchQuery = (document.getElementById('riwayatTrxSearch')?.value || '').toLowerCase().trim();
+
+            let filtered = [...transactions];
+            if(typeFilter)  filtered = filtered.filter(t => t.type === typeFilter);
+            if(catFilter)   filtered = filtered.filter(t => t.category === catFilter);
+            if(searchQuery) filtered = filtered.filter(t =>
+                (t.note||'').toLowerCase().includes(searchQuery) ||
+                (t.category||'').toLowerCase().includes(searchQuery) ||
+                (t.wallet||'').toLowerCase().includes(searchQuery)
+            );
+
+            const countEl = document.getElementById('riwayatTrxCount');
+            if(countEl) countEl.innerText = `Menampilkan ${filtered.length} dari ${transactions.length} transaksi`;
+
+            const listEl = document.getElementById('riwayatTrxList');
+            if(!listEl) return;
+
+            if(filtered.length === 0) {
+                listEl.innerHTML = '<li style="text-align:center;padding:2rem;color:var(--text-muted);font-size:0.82rem;list-style:none;">Tidak ada transaksi ditemukan.</li>';
+                return;
+            }
+
+            listEl.innerHTML = filtered.map(t => {
+                const isTransfer = t.type === 'transfer';
+                const sign  = t.type === 'income' ? '+' : t.type === 'expense' ? '-' : '⇄';
+                const color = t.type === 'income' ? 'income-text' : t.type === 'expense' ? 'expense-text' : 'transfer-text';
+                const wallet = isTransfer ? `${t.wallet||'Tunai'} ➔ ${t.walletTo||'?'}` : (t.wallet||'Tunai');
+                return `<li class="transaction-item" onclick="openItemActionModal('${t.id}','trx'); closeRiwayatModal('trx');">
+                    <div class="transaction-info">
+                        <h4>${t.category||'-'}</h4>
+                        <p>${displayDateDDMMYYYY(t.date)} <span class="wallet-badge">${wallet}</span>${t.note ? `<br><i>${t.note}</i>` : ''}</p>
+                    </div>
+                    <div class="transaction-amount ${color}">${sign} ${formatRupiah(t.amount)}</div>
+                </li>`;
+            }).join('');
+        }
+
+        function renderRiwayatAset() {
+            const typeFilter  = document.getElementById('riwayatAsetType')?.value || '';
+            const searchQuery = (document.getElementById('riwayatAsetSearch')?.value || '').toLowerCase().trim();
+
+            // Hanya tampilkan aset milik sendiri (bukan goal_deposit)
+            let filtered = savings.filter(s => s.type !== 'goal_deposit');
+            if(typeFilter)  filtered = filtered.filter(s => s.type === typeFilter || (!s.type && typeFilter === 'savings'));
+            if(searchQuery) filtered = filtered.filter(s =>
+                (s.name||'').toLowerCase().includes(searchQuery) ||
+                (s.sourceWallet||'').toLowerCase().includes(searchQuery)
+            );
+
+            const typeLabel = { savings:'Kas & Tabungan', investment:'Investasi', tangible:'Aset Fisik' };
+
+            const countEl = document.getElementById('riwayatAsetCount');
+            const totalFiltered = savings.filter(s => s.type !== 'goal_deposit').length;
+            if(countEl) countEl.innerText = `Menampilkan ${filtered.length} dari ${totalFiltered} data aset`;
+
+            const listEl = document.getElementById('riwayatAsetList');
+            if(!listEl) return;
+
+            if(filtered.length === 0) {
+                listEl.innerHTML = '<li style="text-align:center;padding:2rem;color:var(--text-muted);font-size:0.82rem;list-style:none;">Tidak ada data aset ditemukan.</li>';
+                return;
+            }
+
+            listEl.innerHTML = filtered.map(s => {
+                const lbl = typeLabel[s.type] || 'Tabungan';
+                const icon = s.type === 'investment' ? '📈' : s.type === 'tangible' ? '🏠' : '💰';
+                const walletInfo = s.sourceWallet && s.sourceWallet !== 'None'
+                    ? `<span class="wallet-badge">${s.sourceWallet}</span>` : '';
+                return `<li class="transaction-item" onclick="openItemActionModal('${s.id}','asset'); closeRiwayatModal('aset');">
+                    <div class="transaction-info">
+                        <h4>${icon} ${s.name||'-'}</h4>
+                        <p>${s.date||'-'} ${walletInfo} <span style="font-size:0.7rem;color:var(--text-muted);">${lbl}</span></p>
+                    </div>
+                    <div class="transaction-amount savings-text">+ ${formatRupiah(s.amount)}</div>
+                </li>`;
+            }).join('');
+        }
+
+        // Patch updateUI & updateSavingsUI — setelah data berubah, re-render modal riwayat jika sedang terbuka
+        const _origApplyDateFilter = applyDateFilter;
+        applyDateFilter = function(...args) {
+            _origApplyDateFilter(...args);
+            if(document.getElementById('riwayatTrxOverlay')?.classList.contains('show')) renderRiwayatTrx();
+            if(document.getElementById('riwayatAsetOverlay')?.classList.contains('show')) renderRiwayatAset();
+        };
+
+        // Jalankan Pengecekan Login Saat Aplikasi Dibuka
+        loadCategories();
+        checkLoginStatus(); 
+        // ================== LOGIKA SPLASH SCREEN ==================
+        document.addEventListener("DOMContentLoaded", function() {
+            setTimeout(() => {
+                const splash = document.getElementById('splashScreen');
+                if(splash) {
+                    splash.style.opacity = '0';
+                    splash.style.visibility = 'hidden';
+                    setTimeout(() => {
+                        splash.remove();
+                    }, 600);
+                }
+            }, 2500); 
+        });
+    </script>
+</body>
+</html>
