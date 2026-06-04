@@ -679,6 +679,60 @@
             color: var(--text-muted); margin-bottom: 0.2rem;
         }
         .goal-action-info-row strong { color: var(--text-main); }
+        /* ===== MODAL RIWAYAT ===== */
+        .riwayat-modal-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(4px); z-index: 600;
+            opacity: 0; visibility: hidden; transition: 0.25s ease;
+        }
+        .riwayat-modal-overlay.show { opacity: 1; visibility: visible; }
+        .riwayat-modal {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: var(--card-bg); border-radius: 24px 24px 0 0;
+            max-height: 92vh; display: flex; flex-direction: column;
+            transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+            overflow: hidden;
+        }
+        .riwayat-modal-overlay.show .riwayat-modal { transform: translateY(0); }
+        .riwayat-modal-handle {
+            width: 36px; height: 4px; background: var(--border);
+            border-radius: 2px; margin: 0.75rem auto 0;
+        }
+        .riwayat-modal-header {
+            padding: 0.75rem 1.25rem 0.85rem;
+            border-bottom: 1px solid var(--border); flex-shrink: 0;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .riwayat-modal-title { font-size: 1rem; font-weight: 800; color: var(--text-main); }
+        .riwayat-modal-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .riwayat-filter-bar {
+            padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border);
+            display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; flex-shrink: 0;
+        }
+        .riwayat-filter-select {
+            flex: 1; min-width: 130px; background: var(--surface-color);
+            border: 1px solid var(--border); border-radius: 10px;
+            padding: 0.5rem 0.75rem; font-size: 0.8rem; color: var(--text-main); outline: none;
+        }
+        .riwayat-filter-select:focus { border-color: var(--primary); }
+        .riwayat-search {
+            flex: 1; min-width: 130px; background: var(--surface-color);
+            border: 1px solid var(--border); border-radius: 10px;
+            padding: 0.5rem 0.75rem; font-size: 0.8rem; color: var(--text-main); outline: none;
+        }
+        .riwayat-search:focus { border-color: var(--primary); }
+        .riwayat-count {
+            font-size: 0.72rem; color: var(--text-muted); padding: 0.5rem 1.25rem 0;
+            flex-shrink: 0;
+        }
+        .btn-riwayat {
+            background: var(--primary-light); color: var(--primary);
+            border: 1px solid rgba(79,70,229,0.25); border-radius: 10px;
+            padding: 0.35rem 0.75rem; font-size: 0.75rem; font-weight: 700;
+            cursor: pointer; display: flex; align-items: center; gap: 0.3rem;
+            white-space: nowrap; transition: 0.15s;
+        }
+        .btn-riwayat:active { transform: scale(0.96); background: rgba(79,70,229,0.15); }
     </style>
 </head>
 <body>
@@ -888,7 +942,12 @@
         </div>
 
         <div class="content-section" id="formSection" style="padding-top: 1rem;">
-                <div class="section-title"><span>Catat Transaksi</span></div>
+                <div class="section-title">
+                    <span>Catat Transaksi</span>
+                    <button class="btn-riwayat" onclick="openRiwayatModal('transaksi')">
+                        📋 Riwayat
+                    </button>
+                </div>
                 <form id="transactionForm">
                     <div class="form-group">
                         <label class="form-label">Tanggal Transaksi</label>
@@ -930,17 +989,6 @@
                     <button type="button" class="btn-submit hidden" id="btnCancelEdit" onclick="cancelEdit()" style="background: var(--surface-color); color: var(--text-main); margin-top: 0.5rem; box-shadow:none; border: 1px solid var(--border);">Batal Edit</button>
                 </form>
             </div>
-
-            <div class="history-toggle" onclick="toggleHistory('transactionHistoryContent', this)">
-                <span>Riwayat Transaksi</span>
-                <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
-            </div>
-            <div id="transactionHistoryContent" class="history-content">
-                <div class="click-hint">💡 Klik data untuk Edit/Hapus</div>
-                <div class="scrollable-list-container">
-                    <ul class="transaction-list" id="transactionList"></ul>
-                </div>
-            </div>
         </div>
 
         <div id="viewTabungan" class="main-view hidden">
@@ -973,7 +1021,12 @@
             </div>
 
             <div class="content-section" style="padding-top: 1rem;">
-                <h3 class="section-title">Catat Data Aset / Tabungan</h3>
+                <h3 class="section-title">
+                    <span>Catat Data Aset / Tabungan</span>
+                    <button class="btn-riwayat" onclick="openRiwayatModal('aset')">
+                        📋 Riwayat
+                    </button>
+                </h3>
                 <form id="savingsForm">
                     <div class="form-group">
                         <label class="form-label">Tanggal Aset/Tabungan</label>
@@ -1007,17 +1060,6 @@
                     <button type="submit" class="btn-submit savings-btn" id="btnSubmitAsset">Simpan Data Aset</button>
                     <button type="button" class="btn-submit hidden" id="btnCancelAssetEdit" onclick="cancelAssetEdit()" style="background: var(--surface-color); color: var(--text-main); margin-top: 0.5rem; box-shadow:none; border: 1px solid var(--border);">Batal Edit</button>
                 </form>
-            </div>
-
-            <div class="history-toggle" onclick="toggleHistory('savingsHistoryContent', this)">
-                <span>Riwayat Aset</span>
-                <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
-            </div>
-            <div id="savingsHistoryContent" class="history-content">
-                <div class="click-hint">💡 Klik data untuk Edit/Hapus</div>
-                <div class="scrollable-list-container">
-                    <ul class="transaction-list" id="savingsList"></ul>
-                </div>
             </div>
         </div>
 
@@ -1447,6 +1489,67 @@
                         onclick="saveDepositEdit()">
                         Simpan Perubahan
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- List tersembunyi untuk kompatibilitas updateUI yang masih menulis ke transactionList/savingsList -->
+        <div style="display:none;">
+            <ul id="transactionList"></ul>
+            <ul id="savingsList"></ul>
+        </div>
+
+        <!-- ===== MODAL RIWAYAT TRANSAKSI ===== -->
+        <div id="riwayatTrxOverlay" class="riwayat-modal-overlay" onclick="closeRiwayatModal('trx')">
+            <div class="riwayat-modal" onclick="event.stopPropagation()">
+                <div class="riwayat-modal-handle"></div>
+                <div class="riwayat-modal-header">
+                    <div class="riwayat-modal-title">📋 Riwayat Transaksi</div>
+                    <button class="btn-close" onclick="closeRiwayatModal('trx')">&times;</button>
+                </div>
+                <!-- Filter bar -->
+                <div class="riwayat-filter-bar">
+                    <select class="riwayat-filter-select" id="riwayatTrxType" onchange="renderRiwayatTrx()">
+                        <option value="">Semua Jenis</option>
+                        <option value="income">Pemasukan</option>
+                        <option value="expense">Pengeluaran</option>
+                        <option value="transfer">Transfer</option>
+                    </select>
+                    <select class="riwayat-filter-select" id="riwayatTrxKategori" onchange="renderRiwayatTrx()">
+                        <option value="">Semua Kategori</option>
+                    </select>
+                    <input class="riwayat-search" id="riwayatTrxSearch" placeholder="🔍 Cari keterangan…" oninput="renderRiwayatTrx()">
+                </div>
+                <div class="riwayat-count" id="riwayatTrxCount"></div>
+                <div class="riwayat-modal-body" style="padding: 0 0 1rem;">
+                    <div class="click-hint" style="padding: 0.5rem 1.25rem;">💡 Klik data untuk Edit/Hapus</div>
+                    <ul class="transaction-list" id="riwayatTrxList" style="padding: 0 1rem;"></ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== MODAL RIWAYAT ASET ===== -->
+        <div id="riwayatAsetOverlay" class="riwayat-modal-overlay" onclick="closeRiwayatModal('aset')">
+            <div class="riwayat-modal" onclick="event.stopPropagation()">
+                <div class="riwayat-modal-handle"></div>
+                <div class="riwayat-modal-header">
+                    <div class="riwayat-modal-title">📋 Riwayat Aset / Tabungan</div>
+                    <button class="btn-close" onclick="closeRiwayatModal('aset')">&times;</button>
+                </div>
+                <!-- Filter bar -->
+                <div class="riwayat-filter-bar">
+                    <select class="riwayat-filter-select" id="riwayatAsetType" onchange="renderRiwayatAset()">
+                        <option value="">Semua Jenis</option>
+                        <option value="savings">Kas & Tabungan</option>
+                        <option value="investment">Investasi</option>
+                        <option value="tangible">Aset Fisik</option>
+                    </select>
+                    <input class="riwayat-search" id="riwayatAsetSearch" placeholder="🔍 Cari nama aset…" oninput="renderRiwayatAset()">
+                </div>
+                <div class="riwayat-count" id="riwayatAsetCount"></div>
+                <div class="riwayat-modal-body" style="padding: 0 0 1rem;">
+                    <div class="click-hint" style="padding: 0.5rem 1.25rem;">💡 Klik data untuk Edit/Hapus</div>
+                    <ul class="transaction-list" id="riwayatAsetList" style="padding: 0 1rem;"></ul>
                 </div>
             </div>
         </div>
@@ -2309,6 +2412,8 @@
             }
         }
 
+        let _riwayatSource = null; // 'trx' | 'aset' | null — dari mana edit/hapus dipicu
+
         function openItemActionModal(id, type) { 
             selectedItemId = id; selectedItemType = type; 
             const modal = document.getElementById('itemActionModal');
@@ -2321,13 +2426,16 @@
         }
         
         function triggerEditItem() { 
-            if(!selectedItemId) return; 
+            if(!selectedItemId) return;
+            // Tandai dari mana edit ini dipicu
+            _riwayatSource = selectedItemType === 'trx' ? 'trx' : 'aset';
             if(selectedItemType === 'trx') editTransaction(selectedItemId); else editAsset(selectedItemId); 
             closeItemActionModal(); 
         }
         
         function triggerDeleteItem() { 
             if(!selectedItemId) return; 
+            const src = selectedItemType === 'trx' ? 'trx' : 'aset'; // simpan sebelum closeItemActionModal
             const collectionName = selectedItemType === 'trx' ? "transactions" : "savings"; 
             const dataArray = selectedItemType === 'trx' ? transactions : savings;
             const itemToBackup = dataArray.find(item => item.id === selectedItemId);
@@ -2338,7 +2446,12 @@
                 delete lastDeletedBackup.id; 
             }
             db.collection(DB_COLLECTION).doc(currentProfileId).collection(collectionName).doc(selectedItemId).delete()
-            .then(() => { closeItemActionModal(); showToastUndo("Data terhapus 🗑️"); })
+            .then(() => { 
+                closeItemActionModal(); 
+                showToastUndo("Data terhapus 🗑️");
+                // Kembali ke modal riwayat setelah hapus
+                setTimeout(() => openRiwayatModal(src === 'trx' ? 'transaksi' : 'aset'), 350);
+            })
             .catch(() => showToast("Gagal menghapus"));
         }
 
@@ -2640,7 +2753,10 @@
             const noteEl = document.getElementById('note'); if(noteEl) noteEl.value = ''; typeSelect.value = 'expense'; 
             const dateEl = document.getElementById('trxDate'); if(dateEl) dateEl.value = getTodayYMD();
             const walletSel = document.getElementById('walletSelect'); if(walletSel && wallets.length > 0) walletSel.value = wallets[0];
-            handleTypeChange(); 
+            handleTypeChange();
+            // Kembali ke riwayat jika edit dipicu dari sana
+            if(_riwayatSource === 'trx') { _riwayatSource = null; openRiwayatModal('transaksi'); }
+            else _riwayatSource = null;
         };
 
         const editAsset = (id) => { 
@@ -2659,7 +2775,10 @@
             btnSubmitAsset.innerText = "Simpan Data Aset"; btnSubmitAsset.classList.remove('update-btn'); btnCancelAssetEdit.classList.add('hidden'); 
             const dateEl = document.getElementById('savingsDate'); if(dateEl) dateEl.value = getTodayYMD();
             const sourceWEl = document.getElementById('assetSourceWallet'); if(sourceWEl) sourceWEl.value = 'None';
-            const nameEl = document.getElementById('savingsName'); if(nameEl) nameEl.value = ''; savingsAmountInput.value = ''; savingsTypeSelect.value = 'savings'; 
+            const nameEl = document.getElementById('savingsName'); if(nameEl) nameEl.value = ''; savingsAmountInput.value = ''; savingsTypeSelect.value = 'savings';
+            // Kembali ke riwayat jika edit dipicu dari sana
+            if(_riwayatSource === 'aset') { _riwayatSource = null; openRiwayatModal('aset'); }
+            else _riwayatSource = null;
         };
 
         const updateUI = () => { 
@@ -3841,165 +3960,4 @@
             document.getElementById('goalDeadline').value = g.deadline || '';
             document.getElementById('goalPriority').value = g.priority || 'sedang';
 
-            document.getElementById('goalFormTitle').innerHTML = '<span>✏️</span> Edit Target';
-            document.getElementById('btnSaveGoal').innerText   = 'Update Target';
-            document.getElementById('btnCancelGoalEdit').classList.remove('hidden');
-            initGoalEmojiPicker();
-            closeGoalActionModal();
-            const gView = document.getElementById('viewGoals');
-            if(gView) gView.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // Delete goal
-        function triggerDeleteGoal() {
-            const id = selectedGoalId;  // simpan dulu sebelum modal close
-            requireConfirm('Hapus target ini secara permanen?', async () => {
-                await db.collection(DB_COLLECTION).doc(currentProfileId).collection('goals').doc(id).delete();
-                closeGoalActionModal();
-                _resetSelectedGoalId();
-                showToast('Target dihapus 🗑️');
-            });
-        }
-
-        // =====================================================
-
-        // ===== EDIT & HAPUS RIWAYAT SETORAN =====
-
-        let editingDepositId   = null;  // savings doc id yang sedang diedit
-        let editingDepositGoalId = null; // goal id terkait
-
-        function openDepositEdit(depositId, goalId) {
-            const deposit = savings.find(s => s.id === depositId);
-            const goal    = goals.find(g => g.id === goalId);
-            if(!deposit || !goal) return showToast('❌ Data tidak ditemukan.');
-
-            editingDepositId     = depositId;
-            editingDepositGoalId = goalId;
-
-            // Info header
-            document.getElementById('depositEditInfo').innerHTML =
-                `<span style="font-size:1.1rem;">${goal.emoji||'🎯'}</span>
-                 <strong style="color:var(--text-main);"> ${goal.name}</strong>
-                 <span style="margin-left:0.4rem;font-size:0.72rem;">· Setoran ${deposit.date||''}</span>`;
-
-            // Pre-fill fields
-            const rawAmt = deposit.depositAmount || deposit.amount || 0;
-            document.getElementById('depositEditAmount').value = rawAmt.toLocaleString('id-ID');
-            document.getElementById('depositEditDate').value   = parseCustomDateToYMD(deposit.date) || getTodayYMD();
-
-            // Wallet dropdown
-            const sel = document.getElementById('depositEditWallet');
-            sel.innerHTML = '<option value="None">— Tidak memotong saldo —</option>';
-            wallets.forEach(w => {
-                const opt = document.createElement('option');
-                opt.value = w; opt.textContent = w;
-                if(w === deposit.sourceWallet) opt.selected = true;
-                sel.appendChild(opt);
-            });
-
-            document.getElementById('depositEditModal').classList.add('show');
-        }
-
-        function closeDepositEditModal() {
-            document.getElementById('depositEditModal').classList.remove('show');
-            editingDepositId     = null;
-            editingDepositGoalId = null;
-        }
-
-        async function saveDepositEdit() {
-            if(!editingDepositId || !editingDepositGoalId) return;
-
-            const newAmtRaw = (document.getElementById('depositEditAmount')?.value || '').replace(/\./g,'');
-            const newAmount = parseInt(newAmtRaw) || 0;
-            if(newAmount <= 0) return showToast('⚠️ Nominal harus lebih dari 0!');
-
-            const newWallet = document.getElementById('depositEditWallet')?.value || 'None';
-            const newDateYMD = document.getElementById('depositEditDate')?.value || getTodayYMD();
-
-            const oldDeposit = savings.find(s => s.id === editingDepositId);
-            if(!oldDeposit) return showToast('❌ Data setoran tidak ditemukan.');
-
-            const oldAmount = oldDeposit.depositAmount || oldDeposit.amount || 0;
-            const goal      = goals.find(g => g.id === editingDepositGoalId);
-            if(!goal) return showToast('❌ Data goal tidak ditemukan.');
-
-            // Hitung ulang saved: kurangi old, tambah new
-            const newSaved = Math.max(0, (goal.saved || 0) - oldAmount + newAmount);
-
-            const btn = document.getElementById('btnSaveDepositEdit');
-            if(btn) { btn.disabled = true; btn.innerText = 'Menyimpan...'; }
-
-            try {
-                // Update savings doc
-                await db.collection(DB_COLLECTION).doc(currentProfileId)
-                    .collection('savings').doc(editingDepositId)
-                    .update({
-                        amount       : newAmount,
-                        depositAmount: newAmount,
-                        sourceWallet : newWallet,
-                        date         : formatCustomDate(newDateYMD),
-                    });
-
-                // Update goal saved
-                await db.collection(DB_COLLECTION).doc(currentProfileId)
-                    .collection('goals').doc(editingDepositGoalId)
-                    .update({ saved: newSaved });
-
-                closeDepositEditModal();
-                showToast('✅ Setoran diperbarui!');
-            } catch(err) {
-                showToast('❌ Gagal: ' + err.message);
-            }
-
-            if(btn) { btn.disabled = false; btn.innerText = 'Simpan Perubahan'; }
-        }
-
-        function deleteDeposit(depositId, goalId) {
-            const deposit = savings.find(s => s.id === depositId);
-            const goal    = goals.find(g => g.id === goalId);
-            if(!deposit || !goal) return showToast('❌ Data tidak ditemukan.');
-
-            const amount = deposit.depositAmount || deposit.amount || 0;
-
-            requireConfirm(
-                `Hapus setoran ${formatRupiah(amount)} (${deposit.date||''}) dari goal "${goal.name}"?\n\nDana terkumpul akan dikurangi sebesar ${formatRupiah(amount)}.`,
-                async () => {
-                    try {
-                        // Kurangi saved di goal
-                        const newSaved = Math.max(0, (goal.saved || 0) - amount);
-                        await db.collection(DB_COLLECTION).doc(currentProfileId)
-                            .collection('goals').doc(goalId)
-                            .update({ saved: newSaved });
-
-                        // Hapus savings doc
-                        await db.collection(DB_COLLECTION).doc(currentProfileId)
-                            .collection('savings').doc(depositId)
-                            .delete();
-
-                        showToast('🗑 Setoran dihapus.');
-                    } catch(err) {
-                        showToast('❌ Gagal: ' + err.message);
-                    }
-                }
-            );
-        }
-
-        // Jalankan Pengecekan Login Saat Aplikasi Dibuka
-        loadCategories(); 
-        checkLoginStatus(); 
-        // ================== LOGIKA SPLASH SCREEN ==================
-        document.addEventListener("DOMContentLoaded", function() {
-            setTimeout(() => {
-                const splash = document.getElementById('splashScreen');
-                if(splash) {
-                    splash.style.opacity = '0';
-                    splash.style.visibility = 'hidden';
-                    setTimeout(() => {
-                        splash.remove();
-                    }, 600);
-                }
-            }, 2500); 
-        });
-    </script>
-</body>
-</html>
+   
