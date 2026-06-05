@@ -1061,6 +1061,15 @@
                         <input type="text" id="note" class="form-control" placeholder="Beli makan siang, dll (Opsional)">
                     </div>
 
+                    <!-- ====== TOMBOL SCAN NOTA ====== -->
+                    <input type="file" id="inputScanNota" accept="image/*,application/pdf" style="display:none">
+                    <button type="button" id="btnScanNota" onclick="document.getElementById('inputScanNota').click()"
+                        style="width:100%; padding:0.85rem; margin-bottom:0.75rem; background:linear-gradient(135deg,#6366F1,#8B5CF6); color:white; border:none; border-radius:14px; font-size:0.95rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 15px rgba(99,102,241,0.4); letter-spacing:0.01em;">
+                        <span style="font-size:1.15rem;">📷</span> Scan / Upload Nota Otomatis
+                    </button>
+                    <div id="scanNotaStatus" style="display:none; margin:-0.25rem 0 0.75rem; padding:0.75rem 1rem; border-radius:12px; font-size:0.83rem; text-align:center; font-weight:500; line-height:1.4;"></div>
+                    <!-- ============================== -->
+
                     <button type="submit" class="btn-submit" id="btnSubmitTrx">Simpan Transaksi</button>
                     <button type="button" class="btn-submit hidden" id="btnCancelEdit" onclick="cancelEdit()" style="background: var(--surface-color); color: var(--text-main); margin-top: 0.5rem; box-shadow:none; border: 1px solid var(--border);">Batal Edit</button>
                 </form>
@@ -4429,6 +4438,111 @@
             if(document.getElementById('riwayatTrxOverlay')?.classList.contains('show')) renderRiwayatTrx();
             if(document.getElementById('riwayatAsetOverlay')?.classList.contains('show')) renderRiwayatAset();
         };
+
+        // ================== FITUR SCAN NOTA ==================
+        (function() {
+            var inputEl = document.getElementById('inputScanNota');
+            if (!inputEl) return;
+
+            inputEl.addEventListener('change', async function(e) {
+                var file = e.target.files[0];
+                if (!file) return;
+
+                var statusEl = document.getElementById('scanNotaStatus');
+                var btnScan  = document.getElementById('btnScanNota');
+
+                // Tampilkan loading
+                statusEl.style.display = 'block';
+                statusEl.style.background = 'var(--primary-light)';
+                statusEl.style.color = 'var(--primary)';
+                statusEl.innerHTML = '⏳ Membaca nota, mohon tunggu...';
+                btnScan.disabled = true;
+                btnScan.style.opacity = '0.7';
+
+                try {
+                    // Konversi file ke base64
+                    var base64 = await new Promise(function(resolve, reject) {
+                        var reader = new FileReader();
+                        reader.onload  = function() { resolve(reader.result.split(',')[1]); };
+                        reader.onerror = reject;
+                        reader.readAsDataURL(file);
+                    });
+
+                    var mimeType = file.type || 'image/jpeg';
+
+                    // Kirim ke proxy Vercel
+                    var response = await fetch('/api/scan-nota', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ imageBase64: base64, mimeType: mimeType })
+                    });
+
+                    if (!response.ok) throw new Error('Server error: ' + response.status);
+
+                    var data = await response.json();
+
+                    // Ambil teks dari response Gemini
+                    var rawText = (data.candidates && data.candidates[0] &&
+                                   data.candidates[0].content && data.candidates[0].content.parts &&
+                                   data.candidates[0].content.parts[0]) ?
+                                   data.candidates[0].content.parts[0].text : '';
+
+                    if (!rawText) throw new Error('Respons kosong dari AI');
+
+                    // Bersihkan backtick jika ada lalu parse JSON
+                    var cleaned = rawText.replace(/```json|```/g, '').trim();
+                    var hasil = JSON.parse(cleaned);
+
+                    // Isi form otomatis
+                    var filled = [];
+
+                    if (hasil.tanggal) {
+                        var dateEl = document.getElementById('trxDate');
+                        if (dateEl) { dateEl.value = hasil.tanggal; filled.push('tanggal'); }
+                    }
+
+                    if (hasil.nominal && !isNaN(hasil.nominal)) {
+                        var amtEl = document.getElementById('amount');
+                        if (amtEl) {
+                            amtEl.value = String(Math.round(hasil.nominal)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                            filled.push('nominal');
+                        }
+                    }
+
+                    if (hasil.keterangan) {
+                        var noteEl = document.getElementById('note');
+                        if (noteEl) { noteEl.value = hasil.keterangan; filled.push('keterangan'); }
+                    }
+
+                    if (hasil.kategori && typeSelect && typeSelect.value !== 'income') {
+                        var catEl = document.getElementById('category');
+                        if (catEl) {
+                            var opts = Array.from(catEl.options).map(function(o) { return o.value; });
+                            if (opts.includes(hasil.kategori)) {
+                                catEl.value = hasil.kategori;
+                                checkCustomCategory();
+                                filled.push('kategori');
+                            }
+                        }
+                    }
+
+                    statusEl.style.background = '#D1FAE5';
+                    statusEl.style.color = '#065F46';
+                    statusEl.innerHTML = '✅ Berhasil! ' + filled.join(', ') + ' terisi otomatis. Periksa & klik Simpan.';
+
+                } catch (err) {
+                    console.error('Scan nota error:', err);
+                    statusEl.style.background = 'var(--warning-bg)';
+                    statusEl.style.color = 'var(--warning-text)';
+                    statusEl.innerHTML = '❌ Gagal membaca nota. Pastikan gambar jelas & coba lagi.';
+                } finally {
+                    btnScan.disabled = false;
+                    btnScan.style.opacity = '1';
+                    inputEl.value = ''; // reset agar file yang sama bisa diupload lagi
+                }
+            });
+        })();
+        // ======================================================
 
         // Jalankan Pengecekan Login Saat Aplikasi Dibuka
         loadCategories();
