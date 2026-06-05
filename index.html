@@ -575,9 +575,35 @@
         }
         .goal-summary-tile-val { font-size: 0.95rem; font-weight: 900; }
         .goal-form-card {
-            background: var(--card-bg); border-radius: 20px; padding: 1.25rem;
+            background: var(--card-bg); border-radius: 20px;
             border: 1px solid var(--border); box-shadow: var(--shadow-sm); margin-bottom: 1.5rem;
+            overflow: hidden;
         }
+        .goal-dropdown-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1rem 1.25rem; cursor: pointer; user-select: none;
+            transition: background 0.15s;
+        }
+        .goal-dropdown-header:active { background: var(--surface-color); }
+        .goal-dropdown-header-left { display: flex; align-items: center; gap: 0.55rem; }
+        .goal-dropdown-header-icon {
+            width: 32px; height: 32px; border-radius: 10px;
+            background: var(--primary-light); display: flex; align-items: center;
+            justify-content: center; font-size: 1rem; flex-shrink: 0;
+        }
+        .goal-dropdown-header-title { font-size: 0.88rem; font-weight: 800; color: var(--text-main); }
+        .goal-dropdown-header-sub { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.1rem; }
+        .goal-dropdown-chevron {
+            width: 20px; height: 20px; color: var(--text-muted); flex-shrink: 0;
+            transition: transform 0.25s ease;
+        }
+        .goal-dropdown-chevron.open { transform: rotate(180deg); }
+        .goal-dropdown-body {
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1);
+        }
+        .goal-dropdown-body.open { max-height: 1200px; }
+        .goal-dropdown-body-inner { padding: 0 1.25rem 1.25rem; border-top: 1px solid var(--border); }
         .goal-form-title {
             font-size: 0.9rem; font-weight: 800; color: var(--text-main);
             margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem;
@@ -684,55 +710,105 @@
             position: absolute; inset: 0; background: rgba(0,0,0,0.55);
             backdrop-filter: blur(4px); z-index: 600;
             opacity: 0; visibility: hidden; transition: 0.25s ease;
+            display: flex; align-items: flex-end;
         }
         .riwayat-modal-overlay.show { opacity: 1; visibility: visible; }
         .riwayat-modal {
-            position: absolute; bottom: 0; left: 0; right: 0;
+            width: 100%;
             background: var(--card-bg); border-radius: 24px 24px 0 0;
-            max-height: 92vh; display: flex; flex-direction: column;
+            height: 92vh;
+            display: flex; flex-direction: column;
             transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
-            overflow: hidden;
+            overflow: hidden;    /* clip action sheet saat translateY(100%) */
+            position: relative;  /* anchor untuk action-sheet absolute */
         }
         .riwayat-modal-overlay.show .riwayat-modal { transform: translateY(0); }
         .riwayat-modal-handle {
             width: 36px; height: 4px; background: var(--border);
-            border-radius: 2px; margin: 0.75rem auto 0;
+            border-radius: 2px; margin: 0.75rem auto 0; flex-shrink: 0;
         }
         .riwayat-modal-header {
-            padding: 0.75rem 1.25rem 0.85rem;
+            padding: 0.6rem 1.25rem 0.75rem;
             border-bottom: 1px solid var(--border); flex-shrink: 0;
             display: flex; align-items: center; justify-content: space-between;
         }
         .riwayat-modal-title { font-size: 1rem; font-weight: 800; color: var(--text-main); }
-        .riwayat-modal-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        /* Filter bar selalu sticky di atas, tidak ikut scroll */
+        .riwayat-sticky-top {
+            flex-shrink: 0;
+            border-bottom: 1px solid var(--border);
+            background: var(--card-bg);
+        }
         .riwayat-filter-bar {
-            padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border);
-            display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; flex-shrink: 0;
+            padding: 0.65rem 1rem; 
+            display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;
         }
         .riwayat-filter-select {
-            flex: 1; min-width: 130px; background: var(--surface-color);
+            flex: 1; min-width: 110px; background: var(--surface-color);
             border: 1px solid var(--border); border-radius: 10px;
-            padding: 0.5rem 0.75rem; font-size: 0.8rem; color: var(--text-main); outline: none;
+            padding: 0.45rem 0.65rem; font-size: 0.78rem; color: var(--text-main); outline: none;
         }
         .riwayat-filter-select:focus { border-color: var(--primary); }
         .riwayat-search {
-            flex: 1; min-width: 130px; background: var(--surface-color);
+            flex: 2; min-width: 120px; background: var(--surface-color);
             border: 1px solid var(--border); border-radius: 10px;
-            padding: 0.5rem 0.75rem; font-size: 0.8rem; color: var(--text-main); outline: none;
+            padding: 0.45rem 0.65rem; font-size: 0.78rem; color: var(--text-main); outline: none;
         }
         .riwayat-search:focus { border-color: var(--primary); }
         .riwayat-count {
-            font-size: 0.72rem; color: var(--text-muted); padding: 0.5rem 1.25rem 0;
-            flex-shrink: 0;
+            font-size: 0.7rem; color: var(--text-muted);
+            padding: 0.35rem 1rem 0.45rem; flex-shrink: 0;
         }
+        /* Body scroll — mengisi sisa tinggi */
+        .riwayat-modal-body {
+            flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        /* Action sheet — tersembunyi total sampai dipanggil */
+        .riwayat-action-sheet {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: var(--card-bg);
+            border-radius: 20px 20px 0 0;
+            padding: 0 1.25rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
+            border-top: 1px solid var(--border);
+            box-shadow: 0 -6px 20px rgba(0,0,0,0.1);
+            transform: translateY(100%);          /* tersembunyi ke bawah */
+            transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+            z-index: 10;
+            pointer-events: none;                 /* tidak bisa diklik saat hidden */
+        }
+        .riwayat-action-sheet.show {
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        .riwayat-action-dimmer {
+            position: absolute; inset: 0;
+            background: rgba(0,0,0,0.3);
+            opacity: 0; visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+            z-index: 9;
+        }
+        .riwayat-action-dimmer.show { opacity: 1; visibility: visible; }
+        .riwayat-action-handle {
+            width: 32px; height: 4px; background: var(--border);
+            border-radius: 2px; margin: 0.65rem auto 0.75rem;
+        }
+        .riwayat-action-title {
+            font-size: 0.78rem; font-weight: 700; color: var(--text-muted);
+            margin-bottom: 0.85rem; text-align: center;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        /* Tombol riwayat — lebih rapi, matching card style */
         .btn-riwayat {
-            background: var(--primary-light); color: var(--primary);
-            border: 1px solid rgba(79,70,229,0.25); border-radius: 10px;
-            padding: 0.35rem 0.75rem; font-size: 0.75rem; font-weight: 700;
-            cursor: pointer; display: flex; align-items: center; gap: 0.3rem;
-            white-space: nowrap; transition: 0.15s;
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            background: var(--surface-color); color: var(--text-muted);
+            border: 1px solid var(--border); border-radius: 10px;
+            padding: 0.3rem 0.7rem; font-size: 0.73rem; font-weight: 600;
+            cursor: pointer; white-space: nowrap; transition: 0.15s;
+            box-shadow: var(--shadow-sm);
         }
-        .btn-riwayat:active { transform: scale(0.96); background: rgba(79,70,229,0.15); }
+        .btn-riwayat:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+        .btn-riwayat:active { transform: scale(0.96); }
     </style>
 </head>
 <body>
@@ -1303,58 +1379,63 @@
                     </div>
                 </div>
 
-                <!-- Form tambah/edit goal -->
+                <!-- Form tambah/edit goal — collapsible dropdown -->
                 <div class="goal-form-card" id="goalFormCard">
-                    <div class="goal-form-title" id="goalFormTitle">
-                        <span>➕</span> Tambah Target Baru
-                    </div>
-
-                    <!-- Pilih emoji -->
-                    <div class="form-group">
-                        <label class="form-label">Pilih Ikon</label>
-                        <div class="goal-emoji-grid" id="goalEmojiGrid">
-                            <!-- rendered by JS -->
+                    <div class="goal-dropdown-header" onclick="toggleGoalForm()" id="goalFormHeader">
+                        <div class="goal-dropdown-header-left">
+                            <div class="goal-dropdown-header-icon" id="goalFormHeaderIcon">➕</div>
+                            <div>
+                                <div class="goal-dropdown-header-title" id="goalFormTitle">Tambah Target Baru</div>
+                                <div class="goal-dropdown-header-sub" id="goalFormSub">Klik untuk isi form target</div>
+                            </div>
                         </div>
-                        <input type="hidden" id="goalEmoji" value="🎯">
+                        <svg class="goal-dropdown-chevron" id="goalFormChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Nama Target</label>
-                        <input type="text" id="goalName" class="form-control" placeholder="Cth: DP Rumah, Dana Nikah, Liburan Jepang…">
+                    <div class="goal-dropdown-body" id="goalFormBody">
+                        <div class="goal-dropdown-body-inner">
+                            <!-- Pilih emoji -->
+                            <div class="form-group" style="margin-top:1rem;">
+                                <label class="form-label">Pilih Ikon</label>
+                                <div class="goal-emoji-grid" id="goalEmojiGrid"></div>
+                                <input type="hidden" id="goalEmoji" value="🎯">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Nama Target</label>
+                                <input type="text" id="goalName" class="form-control" placeholder="Cth: DP Rumah, Dana Nikah, Liburan Jepang…">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Nominal Target (Rp)</label>
+                                <input type="text" inputmode="numeric" id="goalTarget" class="form-control" placeholder="Cth: 50.000.000" oninput="formatInputRupiah(event)">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Dana Sudah Terkumpul (Rp)</label>
+                                <input type="text" inputmode="numeric" id="goalSaved" class="form-control" placeholder="0 jika mulai dari nol" oninput="formatInputRupiah(event)">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Deadline Target</label>
+                                <input type="date" id="goalDeadline" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Prioritas</label>
+                                <select id="goalPriority" class="form-control">
+                                    <option value="tinggi">🔴 Tinggi — harus segera</option>
+                                    <option value="sedang" selected>🟡 Sedang — dalam rencana</option>
+                                    <option value="rendah">🟢 Rendah — jangka panjang</option>
+                                </select>
+                            </div>
+                            <button class="btn-submit" id="btnSaveGoal" onclick="saveGoal()"
+                                style="background:linear-gradient(135deg,#4F46E5,#7C3AED);">
+                                Simpan Target
+                            </button>
+                            <button class="btn-submit hidden" id="btnCancelGoalEdit" onclick="cancelGoalEdit()"
+                                style="background:var(--surface-color);color:var(--text-main);border:1px solid var(--border);box-shadow:none;margin-top:0.6rem;">
+                                Batal Edit
+                            </button>
+                        </div>
                     </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Nominal Target (Rp)</label>
-                        <input type="text" inputmode="numeric" id="goalTarget" class="form-control" placeholder="Cth: 50.000.000" oninput="formatInputRupiah(event)">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Dana Sudah Terkumpul (Rp)</label>
-                        <input type="text" inputmode="numeric" id="goalSaved" class="form-control" placeholder="0 jika mulai dari nol" oninput="formatInputRupiah(event)">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Deadline Target</label>
-                        <input type="date" id="goalDeadline" class="form-control">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Prioritas</label>
-                        <select id="goalPriority" class="form-control">
-                            <option value="tinggi">🔴 Tinggi — harus segera</option>
-                            <option value="sedang" selected>🟡 Sedang — dalam rencana</option>
-                            <option value="rendah">🟢 Rendah — jangka panjang</option>
-                        </select>
-                    </div>
-
-                    <button class="btn-submit" id="btnSaveGoal" onclick="saveGoal()"
-                        style="background:linear-gradient(135deg,#4F46E5,#7C3AED);">
-                        Simpan Target
-                    </button>
-                    <button class="btn-submit hidden" id="btnCancelGoalEdit" onclick="cancelGoalEdit()"
-                        style="background:var(--surface-color);color:var(--text-main);border:1px solid var(--border);box-shadow:none;margin-top:0.6rem;">
-                        Batal Edit
-                    </button>
                 </div>
 
                 <!-- Daftar goals -->
@@ -1507,23 +1588,31 @@
                     <div class="riwayat-modal-title">📋 Riwayat Transaksi</div>
                     <button class="btn-close" onclick="closeRiwayatModal('trx')">&times;</button>
                 </div>
-                <!-- Filter bar -->
-                <div class="riwayat-filter-bar">
-                    <select class="riwayat-filter-select" id="riwayatTrxType" onchange="renderRiwayatTrx()">
-                        <option value="">Semua Jenis</option>
-                        <option value="income">Pemasukan</option>
-                        <option value="expense">Pengeluaran</option>
-                        <option value="transfer">Transfer</option>
-                    </select>
-                    <select class="riwayat-filter-select" id="riwayatTrxKategori" onchange="renderRiwayatTrx()">
-                        <option value="">Semua Kategori</option>
-                    </select>
-                    <input class="riwayat-search" id="riwayatTrxSearch" placeholder="🔍 Cari keterangan…" oninput="renderRiwayatTrx()">
+                <div class="riwayat-sticky-top">
+                    <div class="riwayat-filter-bar">
+                        <select class="riwayat-filter-select" id="riwayatTrxType" onchange="renderRiwayatTrx()">
+                            <option value="">Semua Jenis</option>
+                            <option value="income">Pemasukan</option>
+                            <option value="expense">Pengeluaran</option>
+                            <option value="transfer">Transfer</option>
+                        </select>
+                        <select class="riwayat-filter-select" id="riwayatTrxKategori" onchange="renderRiwayatTrx()">
+                            <option value="">Semua Kategori</option>
+                        </select>
+                        <input class="riwayat-search" id="riwayatTrxSearch" placeholder="🔍 Cari…" oninput="renderRiwayatTrx()">
+                    </div>
+                    <div class="riwayat-count" id="riwayatTrxCount"></div>
                 </div>
-                <div class="riwayat-count" id="riwayatTrxCount"></div>
-                <div class="riwayat-modal-body" style="padding: 0 0 1rem;">
-                    <div class="click-hint" style="padding: 0.5rem 1.25rem;">💡 Klik data untuk Edit/Hapus</div>
-                    <ul class="transaction-list" id="riwayatTrxList" style="padding: 0 1rem;"></ul>
+                <div class="riwayat-modal-body">
+                    <div class="click-hint" style="padding:0.5rem 1rem 0;">💡 Klik data untuk Edit/Hapus</div>
+                    <ul class="transaction-list" id="riwayatTrxList" style="padding:0 1rem;"></ul>
+                </div>
+                <div class="riwayat-action-dimmer" id="riwayatTrxDimmer" onclick="closeRiwayatActionSheet('trx')"></div>
+                <div class="riwayat-action-sheet" id="riwayatTrxActionSheet">
+                    <div class="riwayat-action-handle"></div>
+                    <div class="riwayat-action-title" id="riwayatTrxActionTitle">Opsi Data</div>
+                    <button class="btn-submit update-btn" style="margin-bottom:0.65rem;" onclick="doEditFromRiwayat('trx')">✏️ Edit Data</button>
+                    <button class="btn-submit" style="background:var(--expense);" onclick="doDeleteFromRiwayat('trx')">🗑 Hapus Permanen</button>
                 </div>
             </div>
         </div>
@@ -1536,20 +1625,28 @@
                     <div class="riwayat-modal-title">📋 Riwayat Aset / Tabungan</div>
                     <button class="btn-close" onclick="closeRiwayatModal('aset')">&times;</button>
                 </div>
-                <!-- Filter bar -->
-                <div class="riwayat-filter-bar">
-                    <select class="riwayat-filter-select" id="riwayatAsetType" onchange="renderRiwayatAset()">
-                        <option value="">Semua Jenis</option>
-                        <option value="savings">Kas & Tabungan</option>
-                        <option value="investment">Investasi</option>
-                        <option value="tangible">Aset Fisik</option>
-                    </select>
-                    <input class="riwayat-search" id="riwayatAsetSearch" placeholder="🔍 Cari nama aset…" oninput="renderRiwayatAset()">
+                <div class="riwayat-sticky-top">
+                    <div class="riwayat-filter-bar">
+                        <select class="riwayat-filter-select" id="riwayatAsetType" onchange="renderRiwayatAset()">
+                            <option value="">Semua Jenis</option>
+                            <option value="savings">Kas & Tabungan</option>
+                            <option value="investment">Investasi</option>
+                            <option value="tangible">Aset Fisik</option>
+                        </select>
+                        <input class="riwayat-search" id="riwayatAsetSearch" placeholder="🔍 Cari nama aset…" oninput="renderRiwayatAset()">
+                    </div>
+                    <div class="riwayat-count" id="riwayatAsetCount"></div>
                 </div>
-                <div class="riwayat-count" id="riwayatAsetCount"></div>
-                <div class="riwayat-modal-body" style="padding: 0 0 1rem;">
-                    <div class="click-hint" style="padding: 0.5rem 1.25rem;">💡 Klik data untuk Edit/Hapus</div>
-                    <ul class="transaction-list" id="riwayatAsetList" style="padding: 0 1rem;"></ul>
+                <div class="riwayat-modal-body">
+                    <div class="click-hint" style="padding:0.5rem 1rem 0;">💡 Klik data untuk Edit/Hapus</div>
+                    <ul class="transaction-list" id="riwayatAsetList" style="padding:0 1rem;"></ul>
+                </div>
+                <div class="riwayat-action-dimmer" id="riwayatAsetDimmer" onclick="closeRiwayatActionSheet('aset')"></div>
+                <div class="riwayat-action-sheet" id="riwayatAsetActionSheet">
+                    <div class="riwayat-action-handle"></div>
+                    <div class="riwayat-action-title" id="riwayatAsetActionTitle">Opsi Aset</div>
+                    <button class="btn-submit update-btn" style="margin-bottom:0.65rem;" onclick="doEditFromRiwayat('aset')">✏️ Edit Data</button>
+                    <button class="btn-submit" style="background:var(--expense);" onclick="doDeleteFromRiwayat('aset')">🗑 Hapus Permanen</button>
                 </div>
             </div>
         </div>
@@ -2412,6 +2509,65 @@
             }
         }
 
+        let _riwayatSource     = null;
+        let _riwayatActionId   = null;
+        let _riwayatActionType = null;
+
+        function openRiwayatActionSheet(modalType, itemId, label) {
+            _riwayatActionId   = itemId;
+            _riwayatActionType = modalType === 'trx' ? 'trx' : 'asset';
+            const sheet  = document.getElementById(modalType === 'trx' ? 'riwayatTrxActionSheet'  : 'riwayatAsetActionSheet');
+            const dimmer = document.getElementById(modalType === 'trx' ? 'riwayatTrxDimmer'       : 'riwayatAsetDimmer');
+            const title  = document.getElementById(modalType === 'trx' ? 'riwayatTrxActionTitle'  : 'riwayatAsetActionTitle');
+            if(title)  title.innerText = label;
+            if(sheet)  sheet.classList.add('show');
+            if(dimmer) dimmer.classList.add('show');
+        }
+
+        function closeRiwayatActionSheet(modalType) {
+            const sheet  = document.getElementById(modalType === 'trx' ? 'riwayatTrxActionSheet'  : 'riwayatAsetActionSheet');
+            const dimmer = document.getElementById(modalType === 'trx' ? 'riwayatTrxDimmer'       : 'riwayatAsetDimmer');
+            if(sheet)  sheet.classList.remove('show');
+            if(dimmer) dimmer.classList.remove('show');
+            _riwayatActionId   = null;
+            _riwayatActionType = null;
+        }
+
+        function doEditFromRiwayat(modalType) {
+            if(!_riwayatActionId) return;
+            const itemId   = _riwayatActionId;
+            const itemType = _riwayatActionType;
+            _riwayatSource = modalType;
+            closeRiwayatActionSheet(modalType);
+            closeRiwayatModal(modalType === 'trx' ? 'trx' : 'aset');
+            if(itemType === 'trx') {
+                switchView('transaksi');
+                setTimeout(() => editTransaction(itemId), 200);
+            } else {
+                switchView('tabungan');
+                setTimeout(() => editAsset(itemId), 200);
+            }
+        }
+
+        function doDeleteFromRiwayat(modalType) {
+            if(!_riwayatActionId) return;
+            const itemId    = _riwayatActionId;
+            const itemType  = _riwayatActionType;
+            const colName   = itemType === 'trx' ? 'transactions' : 'savings';
+            const dataArray = itemType === 'trx' ? transactions : savings;
+            const backup    = dataArray.find(x => x.id === itemId);
+            if(backup) {
+                lastDeletedBackup     = { ...backup };
+                lastDeletedId         = itemId;
+                lastDeletedCollection = colName;
+                delete lastDeletedBackup.id;
+            }
+            closeRiwayatActionSheet(modalType);
+            db.collection(DB_COLLECTION).doc(currentProfileId).collection(colName).doc(itemId).delete()
+                .then(() => showToastUndo('Data terhapus 🗑️'))
+                .catch(() => showToast('Gagal menghapus'));
+        }
+
         function openItemActionModal(id, type) { 
             selectedItemId = id; selectedItemType = type; 
             const modal = document.getElementById('itemActionModal');
@@ -2424,13 +2580,16 @@
         }
         
         function triggerEditItem() { 
-            if(!selectedItemId) return; 
+            if(!selectedItemId) return;
+            // Tandai dari mana edit ini dipicu
+            _riwayatSource = selectedItemType === 'trx' ? 'trx' : 'aset';
             if(selectedItemType === 'trx') editTransaction(selectedItemId); else editAsset(selectedItemId); 
             closeItemActionModal(); 
         }
         
         function triggerDeleteItem() { 
             if(!selectedItemId) return; 
+            const src = selectedItemType === 'trx' ? 'trx' : 'aset'; // simpan sebelum closeItemActionModal
             const collectionName = selectedItemType === 'trx' ? "transactions" : "savings"; 
             const dataArray = selectedItemType === 'trx' ? transactions : savings;
             const itemToBackup = dataArray.find(item => item.id === selectedItemId);
@@ -2441,7 +2600,12 @@
                 delete lastDeletedBackup.id; 
             }
             db.collection(DB_COLLECTION).doc(currentProfileId).collection(collectionName).doc(selectedItemId).delete()
-            .then(() => { closeItemActionModal(); showToastUndo("Data terhapus 🗑️"); })
+            .then(() => { 
+                closeItemActionModal(); 
+                showToastUndo("Data terhapus 🗑️");
+                // Kembali ke modal riwayat setelah hapus
+                setTimeout(() => openRiwayatModal(src === 'trx' ? 'transaksi' : 'aset'), 350);
+            })
             .catch(() => showToast("Gagal menghapus"));
         }
 
@@ -2743,7 +2907,10 @@
             const noteEl = document.getElementById('note'); if(noteEl) noteEl.value = ''; typeSelect.value = 'expense'; 
             const dateEl = document.getElementById('trxDate'); if(dateEl) dateEl.value = getTodayYMD();
             const walletSel = document.getElementById('walletSelect'); if(walletSel && wallets.length > 0) walletSel.value = wallets[0];
-            handleTypeChange(); 
+            handleTypeChange();
+            // Kembali ke riwayat jika edit dipicu dari sana
+            if(_riwayatSource === 'trx') { _riwayatSource = null; openRiwayatModal('transaksi'); }
+            else _riwayatSource = null;
         };
 
         const editAsset = (id) => { 
@@ -2762,7 +2929,10 @@
             btnSubmitAsset.innerText = "Simpan Data Aset"; btnSubmitAsset.classList.remove('update-btn'); btnCancelAssetEdit.classList.add('hidden'); 
             const dateEl = document.getElementById('savingsDate'); if(dateEl) dateEl.value = getTodayYMD();
             const sourceWEl = document.getElementById('assetSourceWallet'); if(sourceWEl) sourceWEl.value = 'None';
-            const nameEl = document.getElementById('savingsName'); if(nameEl) nameEl.value = ''; savingsAmountInput.value = ''; savingsTypeSelect.value = 'savings'; 
+            const nameEl = document.getElementById('savingsName'); if(nameEl) nameEl.value = ''; savingsAmountInput.value = ''; savingsTypeSelect.value = 'savings';
+            // Kembali ke riwayat jika edit dipicu dari sana
+            if(_riwayatSource === 'aset') { _riwayatSource = null; openRiwayatModal('aset'); }
+            else _riwayatSource = null;
         };
 
         const updateUI = () => { 
@@ -3490,6 +3660,29 @@
             'rendah': { label:'🟢 Rendah', color:'#10B981', bg:'#ECFDF5', darkBg:'rgba(16,185,129,0.15)' }
         };
 
+        // Toggle form tambah target
+        function toggleGoalForm(forceOpen) {
+            const body    = document.getElementById('goalFormBody');
+            const chevron = document.getElementById('goalFormChevron');
+            if(!body) return;
+            const isOpen  = body.classList.contains('open');
+            const open    = forceOpen !== undefined ? forceOpen : !isOpen;
+            body.classList.toggle('open', open);
+            if(chevron) chevron.classList.toggle('open', open);
+            const sub = document.getElementById('goalFormSub');
+            if(sub) sub.innerText = open ? 'Isi detail target di bawah' : 'Klik untuk isi form target';
+        }
+
+        // Toggle riwayat setoran per goal
+        function toggleDepositHistory(uid) {
+            const el    = document.getElementById(uid);
+            const chev  = document.getElementById('chev_'+uid);
+            if(!el) return;
+            const isOpen = el.style.maxHeight && el.style.maxHeight !== '0px';
+            el.style.maxHeight    = isOpen ? '0px' : el.scrollHeight + 'px';
+            if(chev) chev.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+
         // Render emoji picker
         function initGoalEmojiPicker() {
             const grid = document.getElementById('goalEmojiGrid');
@@ -3646,6 +3839,7 @@
                             const deposits = savings.filter(s => s.goalId === g.id)
                                 .sort((a,b) => (b.timestamp?.seconds||0) - (a.timestamp?.seconds||0));
                             if(!deposits.length) return '';
+                            const total = deposits.reduce((a,d) => a+(d.depositAmount||d.amount||0), 0);
                             const rows = deposits.map(d =>
                                 `<div class="deposit-row">
                                     <div class="deposit-row-info">
@@ -3661,9 +3855,20 @@
                                     </div>
                                 </div>`
                             ).join('');
-                            return `<div style="margin-top:0.65rem;background:var(--surface-color);border-radius:10px;padding:0.6rem 0.75rem;border:1px solid var(--border);">
-                                <div style="font-size:0.68rem;font-weight:700;color:var(--text-muted);margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.4px;">📋 Riwayat Setoran (${deposits.length})</div>
-                                ${rows}
+                            const uid = 'dep_'+g.id;
+                            return `<div style="margin-top:0.65rem;background:var(--surface-color);border-radius:12px;border:1px solid var(--border);overflow:hidden;">
+                                <div onclick="event.stopPropagation(); toggleDepositHistory('${uid}')" style="display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0.75rem;cursor:pointer;">
+                                    <div style="font-size:0.72rem;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:0.4rem;">
+                                        <span>📋</span> Riwayat Setoran <span style="background:var(--primary-light);color:var(--primary);border-radius:5px;padding:0.05rem 0.4rem;font-size:0.65rem;">${deposits.length}</span>
+                                        <span style="color:var(--income);font-weight:800;margin-left:0.2rem;">${formatRupiah(total)}</span>
+                                    </div>
+                                    <svg id="chev_${uid}" style="width:16px;height:16px;color:var(--text-muted);transition:transform 0.25s;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                                </div>
+                                <div id="${uid}" style="max-height:0;overflow:hidden;transition:max-height 0.3s cubic-bezier(0.4,0,0.2,1);">
+                                    <div style="padding:0 0.75rem 0.65rem;border-top:1px solid var(--border);">
+                                        <div style="padding-top:0.5rem;">${rows}</div>
+                                    </div>
+                                </div>
                             </div>`;
                         })()}
                     </div>
@@ -3720,12 +3925,12 @@
 
         function cancelGoalEdit() {
             editingGoalId = null;
-            document.getElementById('goalFormTitle').innerHTML = '<span>➕</span> Tambah Target Baru';
+            document.getElementById('goalFormTitle').innerText = 'Tambah Target Baru';
+            document.getElementById('goalFormHeaderIcon').innerText = '➕';
             document.getElementById('btnSaveGoal').innerText   = 'Simpan Target';
             document.getElementById('btnCancelGoalEdit').classList.add('hidden');
             resetGoalForm();
-            const gView = document.getElementById('viewGoals');
-            if(gView) gView.scrollTo({ top: 0, behavior: 'smooth' });
+            toggleGoalForm(false); // tutup form setelah batal
         }
 
         // Action modal
@@ -3932,7 +4137,7 @@
 
         // Edit goal — prefill form
         function triggerEditGoal() {
-            const id = selectedGoalId;  // simpan dulu sebelum modal close
+            const id = selectedGoalId;
             const g = goals.find(x => x.id === id); if(!g) return;
             editingGoalId = g.id;
             _resetSelectedGoalId();
@@ -3944,11 +4149,13 @@
             document.getElementById('goalDeadline').value = g.deadline || '';
             document.getElementById('goalPriority').value = g.priority || 'sedang';
 
-            document.getElementById('goalFormTitle').innerHTML = '<span>✏️</span> Edit Target';
-            document.getElementById('btnSaveGoal').innerText   = 'Update Target';
+            document.getElementById('goalFormTitle').innerText   = 'Edit Target: ' + g.name;
+            document.getElementById('goalFormHeaderIcon').innerText = g.emoji || '✏️';
+            document.getElementById('btnSaveGoal').innerText      = 'Update Target';
             document.getElementById('btnCancelGoalEdit').classList.remove('hidden');
             initGoalEmojiPicker();
             closeGoalActionModal();
+            toggleGoalForm(true); // buka form
             const gView = document.getElementById('viewGoals');
             if(gView) gView.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -4091,36 +4298,47 @@
         // ============= MODAL RIWAYAT =============
         // =====================================================
 
+        let _riwayatTrxScrollPos  = 0;
+        let _riwayatAsetScrollPos = 0;
+
         function openRiwayatModal(type) {
             if(type === 'transaksi') {
                 // Isi dropdown kategori dari data transaksi yang ada
                 const cats = [...new Set(transactions.map(t => t.category).filter(Boolean))].sort();
                 const sel = document.getElementById('riwayatTrxKategori');
                 if(sel) {
+                    const prev = sel.value;
                     sel.innerHTML = '<option value="">Semua Kategori</option>' +
                         cats.map(c => `<option value="${c}">${c}</option>`).join('');
+                    if(prev) sel.value = prev; // pertahankan filter sebelumnya
                 }
-                // Reset filter
-                const typeEl = document.getElementById('riwayatTrxType');
-                const searchEl = document.getElementById('riwayatTrxSearch');
-                if(typeEl) typeEl.value = '';
-                if(searchEl) searchEl.value = '';
                 renderRiwayatTrx();
-                document.getElementById('riwayatTrxOverlay').classList.add('show');
+                const overlay = document.getElementById('riwayatTrxOverlay');
+                overlay.classList.add('show');
+                // Restore scroll position
+                const body = overlay.querySelector('.riwayat-modal-body');
+                if(body) setTimeout(() => body.scrollTop = _riwayatTrxScrollPos, 80);
             } else {
-                // Reset filter
-                const typeEl = document.getElementById('riwayatAsetType');
-                const searchEl = document.getElementById('riwayatAsetSearch');
-                if(typeEl) typeEl.value = '';
-                if(searchEl) searchEl.value = '';
                 renderRiwayatAset();
-                document.getElementById('riwayatAsetOverlay').classList.add('show');
+                const overlay = document.getElementById('riwayatAsetOverlay');
+                overlay.classList.add('show');
+                const body = overlay.querySelector('.riwayat-modal-body');
+                if(body) setTimeout(() => body.scrollTop = _riwayatAsetScrollPos, 80);
             }
         }
 
         function closeRiwayatModal(type) {
-            const id = type === 'trx' ? 'riwayatTrxOverlay' : 'riwayatAsetOverlay';
-            document.getElementById(id)?.classList.remove('show');
+            if(type === 'trx') {
+                const overlay = document.getElementById('riwayatTrxOverlay');
+                const body = overlay?.querySelector('.riwayat-modal-body');
+                if(body) _riwayatTrxScrollPos = body.scrollTop; // simpan posisi scroll
+                overlay?.classList.remove('show');
+            } else {
+                const overlay = document.getElementById('riwayatAsetOverlay');
+                const body = overlay?.querySelector('.riwayat-modal-body');
+                if(body) _riwayatAsetScrollPos = body.scrollTop;
+                overlay?.classList.remove('show');
+            }
         }
 
         function renderRiwayatTrx() {
@@ -4153,7 +4371,7 @@
                 const sign  = t.type === 'income' ? '+' : t.type === 'expense' ? '-' : '⇄';
                 const color = t.type === 'income' ? 'income-text' : t.type === 'expense' ? 'expense-text' : 'transfer-text';
                 const wallet = isTransfer ? `${t.wallet||'Tunai'} ➔ ${t.walletTo||'?'}` : (t.wallet||'Tunai');
-                return `<li class="transaction-item" onclick="openItemActionModal('${t.id}','trx'); closeRiwayatModal('trx');">
+                return `<li class="transaction-item" onclick="openRiwayatActionSheet('trx','${t.id}','${(t.category||'-').replace(/'/g,"\\'")}')">
                     <div class="transaction-info">
                         <h4>${t.category||'-'}</h4>
                         <p>${displayDateDDMMYYYY(t.date)} <span class="wallet-badge">${wallet}</span>${t.note ? `<br><i>${t.note}</i>` : ''}</p>
@@ -4194,7 +4412,7 @@
                 const icon = s.type === 'investment' ? '📈' : s.type === 'tangible' ? '🏠' : '💰';
                 const walletInfo = s.sourceWallet && s.sourceWallet !== 'None'
                     ? `<span class="wallet-badge">${s.sourceWallet}</span>` : '';
-                return `<li class="transaction-item" onclick="openItemActionModal('${s.id}','asset'); closeRiwayatModal('aset');">
+                return `<li class="transaction-item" onclick="openRiwayatActionSheet('aset','${s.id}','${(s.name||'-').replace(/'/g,"\\'")}')">
                     <div class="transaction-info">
                         <h4>${icon} ${s.name||'-'}</h4>
                         <p>${s.date||'-'} ${walletInfo} <span style="font-size:0.7rem;color:var(--text-muted);">${lbl}</span></p>
@@ -4216,18 +4434,22 @@
         loadCategories();
         checkLoginStatus(); 
         // ================== LOGIKA SPLASH SCREEN ==================
-        document.addEventListener("DOMContentLoaded", function() {
-            setTimeout(() => {
-                const splash = document.getElementById('splashScreen');
-                if(splash) {
-                    splash.style.opacity = '0';
-                    splash.style.visibility = 'hidden';
-                    setTimeout(() => {
-                        splash.remove();
-                    }, 600);
-                }
-            }, 2500); 
-        });
+        function hideSplash() {
+            const splash = document.getElementById('splashScreen');
+            if(!splash) return;
+            splash.style.transition = 'opacity 0.6s ease, visibility 0.6s ease';
+            splash.style.opacity = '0';
+            splash.style.visibility = 'hidden';
+            setTimeout(() => { try { splash.parentNode.removeChild(splash); } catch(e){} }, 700);
+        }
+        // Hilangkan splash setelah 2.5 detik (fallback jika auth lambat)
+        setTimeout(hideSplash, 2500);
+        // Hilangkan splash segera saat login berhasil agar tidak stuck
+        const _origSwitchToMain = switchToMainApp;
+        switchToMainApp = function(uid, name, photoUrl) {
+            hideSplash();
+            _origSwitchToMain(uid, name, photoUrl);
+        };
     </script>
 </body>
 </html>
