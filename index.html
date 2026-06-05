@@ -4444,6 +4444,42 @@
             var inputEl = document.getElementById('inputScanNota');
             if (!inputEl) return;
 
+            // Kompres gambar sebelum dikirim (maks 1200px, quality 0.82)
+            function compressImage(file) {
+                return new Promise(function(resolve) {
+                    // PDF tidak dikompres, langsung baca as-is
+                    if (file.type === 'application/pdf') {
+                        var r = new FileReader();
+                        r.onload = function() { resolve({ base64: r.result.split(',')[1], mimeType: 'application/pdf' }); };
+                        r.readAsDataURL(file);
+                        return;
+                    }
+                    var img = new Image();
+                    var url = URL.createObjectURL(file);
+                    img.onload = function() {
+                        URL.revokeObjectURL(url);
+                        var MAX = 1200;
+                        var w = img.width, h = img.height;
+                        if (w > MAX || h > MAX) {
+                            if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+                            else       { w = Math.round(w * MAX / h); h = MAX; }
+                        }
+                        var canvas = document.createElement('canvas');
+                        canvas.width = w; canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        var dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+                        resolve({ base64: dataUrl.split(',')[1], mimeType: 'image/jpeg' });
+                    };
+                    img.onerror = function() {
+                        // fallback: baca langsung tanpa kompres
+                        var r = new FileReader();
+                        r.onload = function() { resolve({ base64: r.result.split(',')[1], mimeType: file.type || 'image/jpeg' }); };
+                        r.readAsDataURL(file);
+                    };
+                    img.src = url;
+                });
+            }
+
             inputEl.addEventListener('change', async function(e) {
                 var file = e.target.files[0];
                 if (!file) return;
@@ -4451,47 +4487,60 @@
                 var statusEl = document.getElementById('scanNotaStatus');
                 var btnScan  = document.getElementById('btnScanNota');
 
-                // Tampilkan loading
                 statusEl.style.display = 'block';
                 statusEl.style.background = 'var(--primary-light)';
                 statusEl.style.color = 'var(--primary)';
-                statusEl.innerHTML = '⏳ Membaca nota, mohon tunggu...';
+                statusEl.innerHTML = '⏳ Memproses gambar...';
                 btnScan.disabled = true;
                 btnScan.style.opacity = '0.7';
 
                 try {
-                    // Konversi file ke base64
-                    var base64 = await new Promise(function(resolve, reject) {
-                        var reader = new FileReader();
-                        reader.onload  = function() { resolve(reader.result.split(',')[1]); };
-                        reader.onerror = reject;
-                        reader.readAsDataURL(file);
-                    });
+                    // 1. Kompres gambar
+                    statusEl.innerHTML = '⏳ Mengompres gambar...';
+                    var compressed = await compressImage(file);
 
-                    var mimeType = file.type || 'image/jpeg';
-
-                    // Kirim ke proxy Vercel
+                    // 2. Kirim ke proxy Vercel
+                    statusEl.innerHTML = '⏳ Mengirim ke AI, mohon tunggu...';
                     var response = await fetch('/api/scan-nota', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ imageBase64: base64, mimeType: mimeType })
+                        body: JSON.stringify({ imageBase64: compressed.base64, mimeType: compressed.mimeType })
                     });
 
-                    if (!response.ok) throw new Error('Server error: ' + response.status);
+                    // Tangkap error HTTP dengan detail
+                    if (!response.ok) {
+                        var errText = '';
+                        try { errText = await response.text(); } catch(_) {}
+                        throw new Error('HTTP ' + response.status + ': ' + errText);
+                    }
 
                     var data = await response.json();
+                    console.log('Gemini raw response:', JSON.stringify(data));
+
+                    // Cek error dari Gemini API
+                    if (data.error) {
+                        throw new Error('Gemini error: ' + (data.error.message || JSON.stringify(data.error)));
+                    }
 
                     // Ambil teks dari response Gemini
-                    var rawText = (data.candidates && data.candidates[0] &&
-                                   data.candidates[0].content && data.candidates[0].content.parts &&
-                                   data.candidates[0].content.parts[0]) ?
-                                   data.candidates[0].content.parts[0].text : '';
+                    var rawText = '';
+                    try {
+                        rawText = data.candidates[0].content.parts[0].text;
+                    } catch(_) {}
 
-                    if (!rawText) throw new Error('Respons kosong dari AI');
+                    if (!rawText) {
+                        // Cek apakah ada finishReason lain (SAFETY, dll)
+                        var reason = '';
+                        try { reason = data.candidates[0].finishReason; } catch(_) {}
+                        throw new Error('Respons AI kosong' + (reason ? ' (reason: ' + reason + ')' : '') + '. Coba foto ulang dengan pencahayaan lebih baik.');
+                    }
 
-                    // Bersihkan backtick jika ada lalu parse JSON
+                    // Parse JSON dari respons (bersihkan markdown code block jika ada)
                     var cleaned = rawText.replace(/```json|```/g, '').trim();
-                    var hasil = JSON.parse(cleaned);
+                    // Ambil hanya bagian JSON jika ada teks lain
+                    var jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+                    if (!jsonMatch) throw new Error('Format respons AI tidak valid: ' + cleaned.substring(0, 100));
+                    var hasil = JSON.parse(jsonMatch[0]);
 
                     // Isi form otomatis
                     var filled = [];
@@ -4501,10 +4550,10 @@
                         if (dateEl) { dateEl.value = hasil.tanggal; filled.push('tanggal'); }
                     }
 
-                    if (hasil.nominal && !isNaN(hasil.nominal)) {
+                    if (hasil.nominal && !isNaN(Number(hasil.nominal))) {
                         var amtEl = document.getElementById('amount');
                         if (amtEl) {
-                            amtEl.value = String(Math.round(hasil.nominal)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                            amtEl.value = String(Math.round(Number(hasil.nominal))).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
                             filled.push('nominal');
                         }
                     }
@@ -4528,17 +4577,18 @@
 
                     statusEl.style.background = '#D1FAE5';
                     statusEl.style.color = '#065F46';
-                    statusEl.innerHTML = '✅ Berhasil! ' + filled.join(', ') + ' terisi otomatis. Periksa & klik Simpan.';
+                    statusEl.innerHTML = '✅ Berhasil! <strong>' + filled.join(', ') + '</strong> terisi otomatis. Periksa & klik Simpan.';
 
                 } catch (err) {
                     console.error('Scan nota error:', err);
                     statusEl.style.background = 'var(--warning-bg)';
                     statusEl.style.color = 'var(--warning-text)';
-                    statusEl.innerHTML = '❌ Gagal membaca nota. Pastikan gambar jelas & coba lagi.';
+                    // Tampilkan pesan error yang spesifik agar mudah debug
+                    statusEl.innerHTML = '❌ <strong>Error:</strong> ' + (err.message || 'Gagal membaca nota.');
                 } finally {
                     btnScan.disabled = false;
                     btnScan.style.opacity = '1';
-                    inputEl.value = ''; // reset agar file yang sama bisa diupload lagi
+                    inputEl.value = '';
                 }
             });
         })();
