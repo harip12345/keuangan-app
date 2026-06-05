@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -18,7 +17,8 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'GEMINI_API_KEY belum di-set di environment variables Vercel' });
     }
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // Gunakan model terbaru yang tersedia
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
     const prompt = `Kamu adalah asisten pencatatan keuangan. Baca gambar nota/struk/receipt ini dengan teliti.
 Ekstrak informasi dan balas HANYA dengan JSON murni (tanpa markdown, tanpa backtick, tanpa penjelasan):
@@ -55,8 +55,6 @@ Aturan:
     });
 
     const data = await geminiResponse.json();
-
-    // Teruskan response Gemini apa adanya ke client
     return res.status(200).json(data);
 
   } catch (err) {
