@@ -4529,11 +4529,20 @@
                     // Isi form otomatis
                     var filled = [];
 
+                    // 1. Set tipe transaksi (income / expense) DULU sebelum kategori
+                    if (hasil.type && typeSelect) {
+                        typeSelect.value = hasil.type;
+                        handleTypeChange(); // reload kategori sesuai tipe
+                        filled.push(hasil.type === 'income' ? 'Pemasukan' : 'Pengeluaran');
+                    }
+
+                    // 2. Tanggal
                     if (hasil.tanggal) {
                         var dateEl = document.getElementById('trxDate');
                         if (dateEl) { dateEl.value = hasil.tanggal; filled.push('tanggal'); }
                     }
 
+                    // 3. Nominal
                     if (hasil.nominal && !isNaN(Number(hasil.nominal))) {
                         var amtEl = document.getElementById('amount');
                         if (amtEl) {
@@ -4542,12 +4551,14 @@
                         }
                     }
 
+                    // 4. Keterangan
                     if (hasil.keterangan) {
                         var noteEl = document.getElementById('note');
                         if (noteEl) { noteEl.value = hasil.keterangan; filled.push('keterangan'); }
                     }
 
-                    if (hasil.kategori && typeSelect && typeSelect.value !== 'income') {
+                    // 5. Kategori (setelah tipe di-set, supaya opsi kategori sudah benar)
+                    if (hasil.kategori) {
                         var catEl = document.getElementById('category');
                         if (catEl) {
                             var opts = Array.from(catEl.options).map(function(o) { return o.value; });
@@ -4555,6 +4566,21 @@
                                 catEl.value = hasil.kategori;
                                 checkCustomCategory();
                                 filled.push('kategori');
+                            }
+                        }
+                    }
+
+                    // 6. Wallet / Rekening
+                    if (hasil.wallet) {
+                        var walletEl = document.getElementById('walletSelect');
+                        if (walletEl) {
+                            var wOpts = Array.from(walletEl.options).map(function(o) { return o.value; });
+                            if (wOpts.includes(hasil.wallet)) {
+                                walletEl.value = hasil.wallet;
+                                filled.push('rekening: ' + hasil.wallet);
+                            } else {
+                                // Fallback ke Tunai kalau rekening tidak ditemukan
+                                if (wOpts.includes('Tunai')) { walletEl.value = 'Tunai'; filled.push('rekening: Tunai'); }
                             }
                         }
                     }
