@@ -4561,7 +4561,8 @@
 
                     statusEl.style.background = '#D1FAE5';
                     statusEl.style.color = '#065F46';
-                    statusEl.innerHTML = '✅ Berhasil! <strong>' + filled.join(', ') + '</strong> terisi otomatis. Periksa & klik Simpan.';
+                    var modelInfo = data.model_used ? ' <span style="opacity:0.6;font-size:0.78rem">(' + data.model_used + ')</span>' : '';
+                    statusEl.innerHTML = '✅ Berhasil! <strong>' + filled.join(', ') + '</strong> terisi otomatis. Periksa & klik Simpan.' + modelInfo;
 
                 } catch (err) {
                     console.error('Scan nota error:', err);
