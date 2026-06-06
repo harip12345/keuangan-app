@@ -4515,32 +4515,16 @@
                     }
 
                     var data = await response.json();
-                    console.log('Gemini raw response:', JSON.stringify(data));
+                    console.log('API raw response:', JSON.stringify(data));
 
-                    // Cek error dari Gemini API
+                    // Cek error dari proxy/API
                     if (data.error) {
-                        throw new Error('Gemini error: ' + (data.error.message || JSON.stringify(data.error)));
+                        throw new Error(data.error);
                     }
 
-                    // Ambil teks dari response Gemini
-                    var rawText = '';
-                    try {
-                        rawText = data.candidates[0].content.parts[0].text;
-                    } catch(_) {}
-
-                    if (!rawText) {
-                        // Cek apakah ada finishReason lain (SAFETY, dll)
-                        var reason = '';
-                        try { reason = data.candidates[0].finishReason; } catch(_) {}
-                        throw new Error('Respons AI kosong' + (reason ? ' (reason: ' + reason + ')' : '') + '. Coba foto ulang dengan pencahayaan lebih baik.');
-                    }
-
-                    // Parse JSON dari respons (bersihkan markdown code block jika ada)
-                    var cleaned = rawText.replace(/```json|```/g, '').trim();
-                    // Ambil hanya bagian JSON jika ada teks lain
-                    var jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-                    if (!jsonMatch) throw new Error('Format respons AI tidak valid: ' + cleaned.substring(0, 100));
-                    var hasil = JSON.parse(jsonMatch[0]);
+                    // Hasil sudah di-parse oleh proxy, langsung pakai
+                    var hasil = data.hasil;
+                    if (!hasil) throw new Error('Respons tidak valid dari server. Coba lagi.');
 
                     // Isi form otomatis
                     var filled = [];
