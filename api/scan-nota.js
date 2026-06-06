@@ -4,24 +4,62 @@ const VISION_MODELS = [
   'google/gemma-4-31b-it:free',
   'meta-llama/llama-4-maverick:free',
   'meta-llama/llama-4-scout:free',
-  'openrouter/auto',  // OpenRouter pilihkan model gratis yang tersedia
+  'openrouter/auto',
 ];
 
 async function callOpenRouter(apiKey, model, imageBase64, mimeType) {
-  const prompt = `Kamu adalah asisten pencatatan keuangan. Baca gambar nota/struk/receipt ini.
-Balas HANYA dengan JSON murni (tanpa markdown, tanpa backtick, tanpa penjelasan apapun):
+  const today = new Date().toISOString().split('T')[0];
+
+  const prompt = `Kamu adalah asisten pencatatan keuangan pribadi. Baca gambar nota/struk/receipt/kwitansi ini dengan teliti.
+
+Tentukan informasi berikut lalu balas HANYA dengan JSON murni (tanpa markdown, tanpa backtick, tanpa penjelasan):
 {
+  "type": "expense",
   "tanggal": "YYYY-MM-DD",
   "nominal": 75000,
   "keterangan": "deskripsi singkat transaksi",
-  "kategori": "Makanan & Minuman"
+  "kategori": "Jajan",
+  "wallet": "Tunai"
 }
-Aturan:
-- tanggal: format YYYY-MM-DD. Jika tidak ada, gunakan hari ini.
-- nominal: total yang dibayar, angka bulat tanpa titik/koma/simbol.
-- keterangan: nama toko atau jenis pembelian, maks 50 karakter.
-- kategori: pilih SATU dari: Makanan & Minuman, Transport, Belanja, Kesehatan, Hiburan, Tagihan, Lainnya.
-- Balas HANYA JSON, tidak ada teks lain.`;
+
+=== ATURAN TYPE ===
+- "expense" : jika nota adalah pembayaran / pembelian / pengeluaran (belanja, makan, bensin, klinik, dll)
+- "income"  : jika nota adalah bukti penerimaan uang / gaji / hasil jual / transfer masuk
+
+=== ATURAN KATEGORI ===
+Jika type = "expense", pilih SATU dari:
+Bensin, Body care, Dating, Ganti Oli, Infak, Jajan, Jalan-jalan, Makan dan Minum, Make up, Ngasih Ortu, Ngopi, Ojek, Parkir, Kuota/Wifi, Sabun Muka, Shopping, Skincare, Staycation, Sunscreen, Tabungan, Lainnya
+
+Jika type = "income", pilih SATU dari:
+Gaji / Upah, Hasil Usaha / Bisnis, Bonus / THR, Pemberian / Uang Saku, Pencairan Investasi, Lainnya
+
+Panduan memilih kategori:
+- Klinik, dokter, apotek, obat, rumah sakit, perawatan gigi → Lainnya (expense)
+- Makan, restoran, warteg, cafe, minuman → Makan dan Minum
+- Grab, Gojek, ojek, parkir, bensin → sesuai jenisnya
+- Skincare, sabun muka, sunscreen, body care → sesuai jenisnya
+- Belanja online, toko, mall → Shopping
+- Listrik, air, internet, pulsa → Kuota/Wifi atau Lainnya
+
+=== ATURAN WALLET ===
+Cari petunjuk metode pembayaran di nota. Pilih SATU dari:
+Tunai, Muamalat, BSI, Bank Jago, SeaBank, Blu, e-Wallet
+
+Panduan memilih wallet:
+- "CASH", "Tunai", "Bayar Tunai" → Tunai
+- "QRIS", "GoPay", "OVO", "Dana", "ShopeePay", "LinkAja" → e-Wallet
+- "Muamalat", "Muammalat" → Muamalat
+- "BSI", "Bank Syariah Indonesia" → BSI
+- "Jago", "Bank Jago" → Bank Jago
+- "SeaBank", "Sea Bank" → SeaBank
+- "Blu", "BCA Digital" → Blu
+- Jika tidak ada petunjuk sama sekali → Tunai
+
+=== ATURAN LAIN ===
+- tanggal: format YYYY-MM-DD. Jika tidak ada tanggal di nota, gunakan hari ini: ${today}
+- nominal: total akhir yang dibayar (bukan subtotal sebelum diskon), angka bulat tanpa titik/koma/simbol
+- keterangan: nama toko + jenis transaksi, maks 60 karakter
+- Balas HANYA JSON, tidak ada teks lain sama sekali`;
 
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
@@ -41,7 +79,7 @@ Aturan:
         ]
       }],
       temperature: 0.1,
-      max_tokens: 300
+      max_tokens: 400
     })
   });
 
@@ -64,13 +102,11 @@ export default async function handler(req, res) {
 
     let lastError = '';
 
-    // Coba satu per satu model, lanjut ke berikutnya kalau gagal
     for (const model of VISION_MODELS) {
       console.log(`Mencoba model: ${model}`);
       try {
         const { status, data } = await callOpenRouter(apiKey, model, imageBase64, mimeType);
 
-        // Kalau rate limit atau model tidak tersedia, coba model berikutnya
         if (status === 429 || status === 404 || status === 503) {
           const reason = data?.error?.message || `HTTP ${status}`;
           console.warn(`Model ${model} gagal (${reason}), coba model berikutnya...`);
@@ -78,36 +114,34 @@ export default async function handler(req, res) {
           continue;
         }
 
-        // Error lain yang tidak perlu dicoba ulang
         if (status !== 200) {
           const reason = data?.error?.message || `HTTP ${status}`;
           return res.status(500).json({ error: `API error: ${reason}` });
         }
 
-        // Sukses — ambil teks dari response
         const rawText = data?.choices?.[0]?.message?.content || '';
-        if (!rawText) {
-          lastError = `${model}: respons kosong`;
-          continue;
-        }
+        if (!rawText) { lastError = `${model}: respons kosong`; continue; }
 
-        // Bersihkan dan ekstrak JSON
         const cleaned = rawText.replace(/```json|```/g, '').trim();
         const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) {
-          lastError = `${model}: format tidak valid`;
-          continue;
-        }
+        if (!jsonMatch) { lastError = `${model}: format tidak valid`; continue; }
 
         const hasil = JSON.parse(jsonMatch[0]);
+        if (!hasil.nominal && !hasil.keterangan) { lastError = `${model}: data tidak terbaca`; continue; }
 
-        // Validasi field penting ada
-        if (!hasil.nominal && !hasil.keterangan) {
-          lastError = `${model}: data tidak terbaca`;
-          continue;
-        }
+        // Validasi & normalisasi nilai-nilai yang dikembalikan
+        const validTypes    = ['expense', 'income'];
+        const validWallets  = ['Tunai', 'Muamalat', 'BSI', 'Bank Jago', 'SeaBank', 'Blu', 'e-Wallet'];
+        const validExpCats  = ['Bensin','Body care','Dating','Ganti Oli','Infak','Jajan','Jalan-jalan','Makan dan Minum','Make up','Ngasih Ortu','Ngopi','Ojek','Parkir','Kuota/Wifi','Sabun Muka','Shopping','Skincare','Staycation','Sunscreen','Tabungan','Lainnya'];
+        const validIncCats  = ['Gaji / Upah','Hasil Usaha / Bisnis','Bonus / THR','Pemberian / Uang Saku','Pencairan Investasi','Lainnya'];
 
-        console.log(`Berhasil dengan model: ${model}`);
+        if (!validTypes.includes(hasil.type))   hasil.type   = 'expense';
+        if (!validWallets.includes(hasil.wallet)) hasil.wallet = 'Tunai';
+
+        const validCats = hasil.type === 'income' ? validIncCats : validExpCats;
+        if (!validCats.includes(hasil.kategori)) hasil.kategori = 'Lainnya';
+
+        console.log(`Berhasil dengan model: ${model}`, hasil);
         return res.status(200).json({ hasil, model_used: model });
 
       } catch (err) {
@@ -117,7 +151,6 @@ export default async function handler(req, res) {
       }
     }
 
-    // Semua model gagal
     return res.status(503).json({
       error: `Semua model AI sedang tidak tersedia. Coba lagi dalam beberapa menit. Detail: ${lastError}`
     });
