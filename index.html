@@ -4564,9 +4564,18 @@
                             var opts = Array.from(catEl.options).map(function(o) { return o.value; });
                             if (opts.includes(hasil.kategori)) {
                                 catEl.value = hasil.kategori;
-                                checkCustomCategory();
-                                filled.push('kategori');
+                                checkCustomCategory(); // tampilkan/sembunyikan custom field
+                                filled.push('kategori: ' + hasil.kategori);
                             }
+                        }
+                    }
+
+                    // 5b. Isi custom category jika kategori = "Lainnya"
+                    if (hasil.kategori === 'Lainnya' && hasil.kategori_custom) {
+                        var customEl = document.getElementById('customCategory');
+                        if (customEl) {
+                            customEl.value = hasil.kategori_custom;
+                            filled.push('kategori custom: ' + hasil.kategori_custom);
                         }
                     }
 
