@@ -19,6 +19,7 @@ Tentukan informasi berikut lalu balas HANYA dengan JSON murni (tanpa markdown, t
   "nominal": 75000,
   "keterangan": "deskripsi singkat transaksi",
   "kategori": "Jajan",
+  "kategori_custom": "",
   "wallet": "Tunai"
 }
 
@@ -59,6 +60,7 @@ Panduan memilih wallet:
 - tanggal: format YYYY-MM-DD. Jika tidak ada tanggal di nota, gunakan hari ini: ${today}
 - nominal: total akhir yang dibayar (bukan subtotal sebelum diskon), angka bulat tanpa titik/koma/simbol
 - keterangan: nama toko + jenis transaksi, maks 60 karakter
+- kategori_custom: WAJIB diisi hanya jika kategori = "Lainnya". Tulis deskripsi spesifik pengeluaran/pemasukan (contoh: "Perawatan Gigi", "Biaya Klinik", "Iuran Sekolah", "Servis Motor"). Jika kategori bukan "Lainnya", isi dengan string kosong "".
 - Balas HANYA JSON, tidak ada teks lain sama sekali`;
 
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
