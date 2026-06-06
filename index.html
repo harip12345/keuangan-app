@@ -842,7 +842,7 @@
     </div>
 
     <!-- ================== TAMPILAN LOGIN SCREEN (DIPERBARUI) ================== -->
-    <div id="loginScreen" class="login-container">
+    <div id="loginScreen" class="login-container" style="display:none; opacity:0;">
         <div class="login-card">
             
             <!-- Logo Custom: Huruf H abstrak dengan aksen panah hijau (seperti di gambar) -->
@@ -4859,26 +4859,43 @@
         })();
         // ======================================================
 
-        // Jalankan Pengecekan Login Saat Aplikasi Dibuka
-        loadCategories();
-        checkLoginStatus(); 
         // ================== LOGIKA SPLASH SCREEN ==================
+        var _splashHidden = false;
         function hideSplash() {
+            if (_splashHidden) return;
+            _splashHidden = true;
             const splash = document.getElementById('splashScreen');
-            if(!splash) return;
-            splash.style.transition = 'opacity 0.6s ease, visibility 0.6s ease';
+            if (!splash) return;
+            splash.style.transition = 'opacity 0.5s ease, visibility 0.5s ease';
             splash.style.opacity = '0';
             splash.style.visibility = 'hidden';
-            setTimeout(() => { try { splash.parentNode.removeChild(splash); } catch(e){} }, 700);
+            setTimeout(() => { try { splash.parentNode.removeChild(splash); } catch(e){} }, 600);
         }
-        // Hilangkan splash setelah 2.5 detik (fallback jika auth lambat)
-        setTimeout(hideSplash, 2500);
-        // Hilangkan splash segera saat login berhasil agar tidak stuck
+
+        // Override switchToMainApp SEBELUM checkLoginStatus dipanggil
+        // supaya hideSplash selalu ikut terpanggil tidak peduli kapan Firebase respond
         const _origSwitchToMain = switchToMainApp;
         switchToMainApp = function(uid, name, photoUrl) {
             hideSplash();
             _origSwitchToMain(uid, name, photoUrl);
         };
+
+        // Fallback: paksa hilangkan splash jika setelah 4 detik masih tampil
+        // (menangani kasus Firebase timeout / koneksi lambat di Vercel)
+        setTimeout(function() {
+            hideSplash();
+            // Jika mainApp belum muncul setelah 4 detik, tampilkan login screen
+            var main = document.getElementById('mainAppContainer');
+            var login = document.getElementById('loginScreen');
+            if (main && main.style.display === 'none' && login && login.style.display === 'none') {
+                login.style.display = 'flex';
+                setTimeout(() => { login.style.opacity = '1'; }, 50);
+            }
+        }, 4000);
+
+        // Jalankan Pengecekan Login Saat Aplikasi Dibuka
+        loadCategories();
+        checkLoginStatus();
     </script>
 </body>
 </html>
