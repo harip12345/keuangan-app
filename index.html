@@ -4557,25 +4557,40 @@
                         if (noteEl) { noteEl.value = hasil.keterangan; filled.push('keterangan'); }
                     }
 
-                    // 5. Kategori (setelah tipe di-set, supaya opsi kategori sudah benar)
+                    // 5. Kategori + custom category
                     if (hasil.kategori) {
                         var catEl = document.getElementById('category');
                         if (catEl) {
                             var opts = Array.from(catEl.options).map(function(o) { return o.value; });
                             if (opts.includes(hasil.kategori)) {
                                 catEl.value = hasil.kategori;
-                                checkCustomCategory(); // tampilkan/sembunyikan custom field
-                                filled.push('kategori: ' + hasil.kategori);
                             }
                         }
-                    }
 
-                    // 5b. Isi custom category jika kategori = "Lainnya"
-                    if (hasil.kategori === 'Lainnya' && hasil.kategori_custom) {
-                        var customEl = document.getElementById('customCategory');
-                        if (customEl) {
-                            customEl.value = hasil.kategori_custom;
-                            filled.push('kategori custom: ' + hasil.kategori_custom);
+                        // Isi custom DULU sebelum checkCustomCategory dipanggil
+                        // supaya tidak tertimpa/dikosongkan oleh fungsi tersebut
+                        if (hasil.kategori === 'Lainnya' && hasil.kategori_custom) {
+                            var customEl = document.getElementById('customCategory');
+                            if (customEl) {
+                                customEl.value = hasil.kategori_custom;
+                            }
+                        }
+
+                        // Baru panggil checkCustomCategory untuk tampilkan/sembunyikan kotak custom
+                        // Override: jangan biarkan checkCustomCategory mengosongkan value yang baru diisi
+                        if (hasil.kategori === 'Lainnya') {
+                            var ccGroup = document.getElementById('customCategoryGroup');
+                            var ccInput = document.getElementById('customCategory');
+                            if (ccGroup) ccGroup.classList.remove('hidden');
+                            if (ccInput) {
+                                ccInput.setAttribute('required', 'true');
+                                // Jaga value tetap terisi (jangan panggil checkCustomCategory yang bisa reset)
+                                if (hasil.kategori_custom) ccInput.value = hasil.kategori_custom;
+                            }
+                            filled.push('kategori: Lainnya (' + (hasil.kategori_custom || '') + ')');
+                        } else {
+                            checkCustomCategory();
+                            filled.push('kategori: ' + hasil.kategori);
                         }
                     }
 
