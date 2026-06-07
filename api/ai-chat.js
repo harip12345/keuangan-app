@@ -2,7 +2,7 @@ const CHAT_MODELS = [
   'google/gemma-4-31b-it:free',
   'meta-llama/llama-4-maverick:free',
   'meta-llama/llama-4-scout:free',
-  'openrouter/free',
+  'openrouter/auto',
 ];
 
 export default async function handler(req, res) {
