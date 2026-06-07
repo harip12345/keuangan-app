@@ -88,48 +88,12 @@
         body.dark-mode { background-color: #020617; }
        
         /* ================= SPLASH SCREEN STYLES ================= */
-        .splash-container {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100dvh;
-            /* Background gradasi yang sama dengan aplikasi & login */
-            background: linear-gradient(150deg, #A7F3D0 0%, #BAE6FD 40%, #93C5FD 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 999999; /* Pastikan berada di paling atas menutupi semuanya */
-            transition: opacity 0.6s ease, visibility 0.6s ease;
-            overflow: hidden;
-        }
-        body.dark-mode .splash-container { background: linear-gradient(150deg, #064e3b 0%, #0c4a6e 100%); }
+        body.dark-mode
 
         /* Ornamen Blob Background */
-        .splash-container::before {
-            content: ''; position: absolute; top: -5%; right: -10%; width: 250px; height: 250px;
-            background: rgba(252, 211, 77, 0.5); border-radius: 50%; filter: blur(60px); z-index: 0; pointer-events: none;
-        }
-        .splash-container::after {
-            content: ''; position: absolute; bottom: 10%; left: -10%; width: 300px; height: 300px;
-            background: rgba(52, 211, 153, 0.4); border-radius: 50%; filter: blur(60px); z-index: 0; pointer-events: none;
-        }
-        body.dark-mode .splash-container::before { background: rgba(52, 211, 153, 0.15); }
-        body.dark-mode .splash-container::after { background: rgba(56, 189, 248, 0.15); }
-
-        .splash-logo {
-            width: 100px; height: 100px; 
-            background: rgba(255,255,255,0.8);
-            border-radius: 28px; 
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: var(--shadow-lg); 
-            backdrop-filter: blur(5px);
-            z-index: 1;
-            /* Animasi berdetak (pulse) */
-            animation: pulseLogo 2s infinite ease-in-out;
-        }
-        body.dark-mode .splash-logo { background: rgba(30,41,59,0.8); }
-        
-        .splash-title {
-            font-family: 'Poppins', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--text-main); 
-            margin-top: 1.5rem; z-index: 1; text-align: center; letter-spacing: 0.5px;
-            /* Animasi muncul perlahan dari bawah */
-            animation: fadeInUp 0.8s ease-out;
-        }
+        body.dark-mode
+        body.dark-mode
+        body.dark-mode
 
         @keyframes pulseLogo {
             0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.5); }
@@ -814,34 +778,42 @@
         .ai-bubble { display:flex; gap:8px; align-items:flex-start; }
         .ai-bubble-bot { flex-direction:row; }
         .ai-bubble-user { flex-direction:row-reverse; }
-        .ai-avatar { width:32px; height:32px; border-radius:50%; background:var(--primary-light); display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; margin-top:2px; }
-        .ai-bubble-content { max-width:82%; padding:0.6rem 0.85rem; border-radius:16px; font-size:0.84rem; line-height:1.55; }
+        .ai-avatar { width:32px; height:32px; border-radius:50%; background:var(--primary-light); display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; margin-top:2px; overflow:hidden; }
+        .ai-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+        .ai-bubble-content { max-width:82%; padding:0.6rem 0.85rem; border-radius:16px; font-size:0.84rem; line-height:1.55; word-break:break-word; }
         .ai-bubble-bot  .ai-bubble-content { background:var(--bg-color); border:1px solid var(--border); border-radius:4px 16px 16px 16px; color:var(--text-main); }
         .ai-bubble-user .ai-bubble-content { background:linear-gradient(135deg,#6366F1,#8B5CF6); color:#fff; border-radius:16px 4px 16px 16px; }
         .ai-bubble-content strong { font-weight:700; }
+        .ai-bubble-user .ai-bubble-content { cursor:pointer; }
         .ai-typing { display:flex; gap:4px; align-items:center; padding:4px 0; }
         .ai-typing span { width:7px; height:7px; border-radius:50%; background:var(--text-muted); animation:aiDot 1.2s infinite; }
         .ai-typing span:nth-child(2){animation-delay:.2s} .ai-typing span:nth-child(3){animation-delay:.4s}
         @keyframes aiDot{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
         .ai-quick-btn { padding:5px 11px; border:1px solid var(--border); border-radius:20px; background:var(--card-bg); color:var(--text-secondary); font-size:0.72rem; cursor:pointer; white-space:nowrap; transition:all .2s; flex-shrink:0; }
-        .ai-quick-btn:hover { background:var(--primary-light); color:var(--primary); border-color:var(--primary); }
+        .ai-quick-btn:hover,.ai-quick-btn:active { background:var(--primary-light); color:var(--primary); border-color:var(--primary); }
         #quickPrompts::-webkit-scrollbar { display:none; }
         #fabAiBtn:active { transform:scale(0.88); }
+        /* Modal keyboard-aware: gunakan dvh agar keyboard tidak menutupi input */
+        #aiModalDrawer { max-height:92dvh; max-height:92vh; }
+        #aiChatMessages { overscroll-behavior:contain; }
+        /* Hapus context menu browser default pada bubble */
+        .ai-bubble-content { -webkit-user-select:none; user-select:none; }
+        .ai-bubble-bot .ai-bubble-content { cursor:pointer; }
+        /* Delete confirm popup */
+        #aiDeletePopup { position:absolute; background:var(--card-bg); border:1px solid var(--border); border-radius:14px; padding:8px 4px; box-shadow:0 8px 24px rgba(0,0,0,.18); z-index:200; min-width:140px; display:none; flex-direction:column; gap:2px; }
+        .ai-del-opt { padding:9px 16px; font-size:.84rem; cursor:pointer; border-radius:10px; color:var(--text-main); border:none; background:transparent; text-align:left; width:100%; }
+        .ai-del-opt:hover { background:var(--primary-light); }
+        .ai-del-opt.danger { color:#EF4444; }
+        .ai-del-opt.danger:hover { background:#FEE2E2; }
+        /* avatar profil di chat */
+        .ai-user-avatar { width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;margin-top:2px; }
+        .ai-user-avatar-fallback { width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:#fff;flex-shrink:0;margin-top:2px; }
         /* ===== SCAN NOTA ===== */
         #btnScanNota:disabled { opacity:.65; cursor:not-allowed; }
     </style>
 </head>
 <body>
 <!-- ================== TAMPILAN SPLASH SCREEN ================== -->
-    <div id="splashScreen" class="splash-container">
-        <div class="splash-logo">
-            <!-- Logo yang sama dengan halaman login -->
-            <svg width="50" height="50" viewBox="0 0 24 24">
-                <path d="M7 6v12M17 6v12M7 12h8" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round"/>
-                <path d="M10 16L18 6M14 6h4v4" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-        </div>
-        <h1 class="splash-title"></h1>
     </div>
 
     <!-- ================== TAMPILAN LOGIN SCREEN (DIPERBARUI) ================== -->
@@ -1814,50 +1786,59 @@
             <!-- Backdrop -->
             <div id="aiModalBackdrop" onclick="toggleAiModal()"
                 style="position:absolute;inset:0;background:rgba(0,0,0,.45);opacity:0;transition:opacity .25s;pointer-events:none;"></div>
-            <!-- Drawer dari bawah -->
+            <!-- Delete popup -->
+            <div id="aiDeletePopup" style="display:none;">
+                <button class="ai-del-opt" onclick="closeDeletePopup()">✕ &nbsp;Batal</button>
+                <button class="ai-del-opt danger" onclick="confirmDeleteAiMsg()">🗑 &nbsp;Hapus pesan ini</button>
+            </div>
+            <!-- Drawer dari bawah, keyboard-aware -->
             <div id="aiModalDrawer"
-                style="position:absolute;bottom:0;left:0;right:0;height:82%;background:var(--card-bg);border-radius:20px 20px 0 0;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.32,1);pointer-events:all;overflow:hidden;">
+                style="position:absolute;bottom:0;left:0;right:0;height:88%;background:var(--card-bg);border-radius:20px 20px 0 0;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.32,1);pointer-events:all;overflow:hidden;">
                 <!-- Handle bar -->
-                <div style="display:flex;justify-content:center;padding:.75rem 0 0;">
-                    <div style="width:40px;height:4px;border-radius:2px;background:var(--border);"></div>
+                <div style="display:flex;justify-content:center;padding:.6rem 0 0;flex-shrink:0;">
+                    <div style="width:36px;height:4px;border-radius:2px;background:var(--border);"></div>
                 </div>
                 <!-- Header -->
-                <div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem 1.2rem .5rem;">
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6366F1,#8B5CF6);display:flex;align-items:center;justify-content:center;">
-                            <svg viewBox="0 0 24 24" fill="white" width="20" height="20"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1v2h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2v-2h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2M7.5 13A2.5 2.5 0 0 0 5 15.5 2.5 2.5 0 0 0 7.5 18 2.5 2.5 0 0 0 10 15.5 2.5 2.5 0 0 0 7.5 13m9 0A2.5 2.5 0 0 0 14 15.5a2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5A2.5 2.5 0 0 0 16.5 13z"/></svg>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem 1.1rem .4rem;flex-shrink:0;">
+                    <div style="display:flex;align-items:center;gap:9px;">
+                        <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#6366F1,#8B5CF6);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <svg viewBox="0 0 24 24" fill="white" width="19" height="19"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1v2h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2v-2h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2M7.5 13A2.5 2.5 0 0 0 5 15.5 2.5 2.5 0 0 0 7.5 18 2.5 2.5 0 0 0 10 15.5 2.5 2.5 0 0 0 7.5 13m9 0A2.5 2.5 0 0 0 14 15.5a2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5A2.5 2.5 0 0 0 16.5 13z"/></svg>
                         </div>
                         <div>
-                            <div style="font-size:.95rem;font-weight:700;color:var(--text-main);">Asisten Keuangan AI Cerdas</div>
-                            <div style="font-size:.7rem;color:var(--text-muted);">Analisis keuangan real-time</div>
+                            <div style="font-size:.92rem;font-weight:700;color:var(--text-main);">Asisten AI Cerdas</div>
+                            <div style="font-size:.68rem;color:var(--text-muted);">Analisis keuangan real-time</div>
                         </div>
                     </div>
-                    <button onclick="toggleAiModal()" style="width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--bg-color);color:var(--text-muted);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
-                </div>
-                <!-- Quick prompts -->
-                <div id="quickPrompts" style="padding:0 1rem .6rem;display:flex;gap:6px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;">
-                    <button class="ai-quick-btn" style="white-space:nowrap;" onclick="sendQuickPrompt('Bulan ini saya boros di kategori apa?')">📊 Analisis bulan ini</button>
-                    <button class="ai-quick-btn" style="white-space:nowrap;" onclick="sendQuickPrompt('Berikan saran cara hemat berdasarkan pengeluaran saya')">💡 Saran hemat</button>
-                    <button class="ai-quick-btn" style="white-space:nowrap;" onclick="sendQuickPrompt('Berapa total pengeluaran vs pemasukan bulan ini?')">💰 Ringkasan bulan ini</button>
-                    <button class="ai-quick-btn" style="white-space:nowrap;" onclick="sendQuickPrompt('Prediksi pengeluaran saya bulan depan')">🔮 Prediksi bulan depan</button>
-                </div>
-                <!-- Pesan chat -->
-                <div id="aiChatMessages" style="flex:1;overflow-y:auto;padding:0 1rem .5rem;display:flex;flex-direction:column;gap:10px;min-height:0;">
-                    <div class="ai-bubble ai-bubble-bot">
-                        <div class="ai-avatar">🤖</div>
-                        <div class="ai-bubble-content">Halo! Saya <strong>Asisten Keuangan AI</strong> Anda 🤖<br>Tanya apapun tentang keuangan — analisis, saran hemat, atau prediksi pengeluaran!</div>
+                    <div style="display:flex;gap:6px;align-items:center;">
+                        <button onclick="aiClearAll()" title="Hapus semua chat" style="width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:var(--bg-color);color:var(--text-muted);font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">🗑</button>
+                        <button onclick="toggleAiModal()" style="width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:var(--bg-color);color:var(--text-muted);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
                     </div>
                 </div>
-                <!-- Input -->
-                <div style="padding:.6rem 1rem;border-top:1px solid var(--border);background:var(--card-bg);flex-shrink:0;padding-bottom:calc(.6rem + env(safe-area-inset-bottom));">
+                <!-- Quick prompts -->
+                <div id="quickPrompts" style="padding:0 1rem .55rem;display:flex;gap:6px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;">
+                    <button class="ai-quick-btn" onclick="sendQuickPrompt('Bulan ini saya boros di kategori apa?')">📊 Analisis bulan ini</button>
+                    <button class="ai-quick-btn" onclick="sendQuickPrompt('Berikan saran cara hemat berdasarkan pengeluaran saya')">💡 Saran hemat</button>
+                    <button class="ai-quick-btn" onclick="sendQuickPrompt('Berapa total pengeluaran vs pemasukan bulan ini?')">💰 Ringkasan bulan ini</button>
+                    <button class="ai-quick-btn" onclick="sendQuickPrompt('Prediksi pengeluaran saya bulan depan')">🔮 Prediksi bulan depan</button>
+                </div>
+                <!-- Area chat: HANYA ini yang scroll, tidak ada scroll ganda -->
+                <div id="aiChatMessages"
+                    style="flex:1;overflow-y:auto;overflow-x:hidden;padding:0 1rem .5rem;display:flex;flex-direction:column;gap:10px;min-height:0;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;">
+                    <div class="ai-bubble ai-bubble-bot">
+                        <div class="ai-avatar">🤖</div>
+                        <div class="ai-bubble-content">Halo! Saya <strong>Asisten AI Cerdas</strong> Anda 🤖<br>Tanya apapun tentang keuangan — analisis, saran hemat, atau prediksi pengeluaran!<br><br><span style="font-size:.76rem;opacity:.7;">💡 Ketuk pesan untuk opsi hapus</span></div>
+                    </div>
+                </div>
+                <!-- Input area: flex-shrink:0 agar tidak tertekan keyboard -->
+                <div id="aiInputArea" style="padding:.55rem 1rem;border-top:1px solid var(--border);background:var(--card-bg);flex-shrink:0;padding-bottom:calc(.55rem + env(safe-area-inset-bottom));">
                     <div style="display:flex;gap:8px;align-items:flex-end;">
                         <textarea id="aiChatInput" rows="1" placeholder="Tanya sesuatu tentang keuangan Anda..."
-                            style="flex:1;padding:.6rem .85rem;border:1px solid var(--border);border-radius:20px;font-size:.86rem;resize:none;background:var(--bg-color);color:var(--text-main);font-family:inherit;max-height:100px;overflow-y:auto;line-height:1.4;outline:none;"
+                            style="flex:1;padding:.55rem .8rem;border:1px solid var(--border);border-radius:20px;font-size:.85rem;resize:none;background:var(--bg-color);color:var(--text-main);font-family:inherit;max-height:80px;overflow-y:auto;line-height:1.4;outline:none;"
                             onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiChat();}"
-                            oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+                            oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"></textarea>
                         <button onclick="sendAiChat()" id="aiSendBtn"
-                            style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#6366F1,#8B5CF6);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(99,102,241,.4);">
-                            <svg viewBox="0 0 24 24" fill="white" width="17" height="17"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                            style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#6366F1,#8B5CF6);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(99,102,241,.4);">
+                            <svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
                         </button>
                     </div>
                 </div>
@@ -4647,20 +4628,19 @@
 
         // ==================== AI CHAT MODAL ====================
         var aiChatHistory = [];
-        var aiModalOpen = false;
+        var aiModalOpen   = false;
+        var aiMsgData     = [];
+        var aiDeletePopupTarget = null;
 
         function toggleAiModal() {
             var modal    = document.getElementById('aiModal');
             var drawer   = document.getElementById('aiModalDrawer');
             var backdrop = document.getElementById('aiModalBackdrop');
             if (!modal) return;
-
             if (!aiModalOpen) {
-                // Buka
                 aiModalOpen = true;
                 modal.style.display = 'block';
                 modal.style.pointerEvents = 'all';
-                // Trigger animasi setelah display:block
                 requestAnimationFrame(function() {
                     requestAnimationFrame(function() {
                         backdrop.style.opacity = '1';
@@ -4668,13 +4648,13 @@
                         drawer.style.transform = 'translateY(0)';
                     });
                 });
-                // Scroll chat ke bawah
+                if (aiMsgData.length === 0) loadAiHistory();
                 setTimeout(function() {
                     var msgs = document.getElementById('aiChatMessages');
                     if (msgs) msgs.scrollTop = msgs.scrollHeight;
+                    adjustDrawerForKeyboard();
                 }, 350);
             } else {
-                // Tutup
                 aiModalOpen = false;
                 backdrop.style.opacity = '0';
                 backdrop.style.pointerEvents = 'none';
@@ -4683,95 +4663,244 @@
                     modal.style.display = 'none';
                     modal.style.pointerEvents = 'none';
                 }, 320);
+                closeDeletePopup();
             }
         }
 
-        function buatRingkasanKeuangan() {
-            var now = new Date(), bulanIni = now.getMonth(), tahunIni = now.getFullYear();
-            var trxBulanIni = transactions.filter(function(t) {
-                var d = t.date ? new Date(t.date.split('/').reverse().join('-')) : null;
-                return d && d.getMonth() === bulanIni && d.getFullYear() === tahunIni;
-            });
-            var totalIncome = 0, totalExpense = 0, perKategori = {}, perRekening = {};
-            trxBulanIni.forEach(function(t) {
-                if (t.type === 'income') totalIncome += t.amount;
-                else { totalExpense += t.amount; perKategori[t.category] = (perKategori[t.category]||0)+t.amount; }
-                perRekening[t.wallet] = (perRekening[t.wallet]||0) + (t.type==='income' ? t.amount : -t.amount);
-            });
-            var tren = [];
-            for (var i = 2; i >= 0; i--) {
-                var d = new Date(tahunIni, bulanIni-i, 1), m = d.getMonth(), y = d.getFullYear();
-                var tb = transactions.filter(function(t){ var dd=t.date?new Date(t.date.split('/').reverse().join('-')):null; return dd&&dd.getMonth()===m&&dd.getFullYear()===y; });
-                var inc=0,exp=0; tb.forEach(function(t){if(t.type==='income')inc+=t.amount;else exp+=t.amount;});
-                tren.push(d.toLocaleString('id-ID',{month:'long'})+': pemasukan Rp'+inc.toLocaleString('id-ID')+', pengeluaran Rp'+exp.toLocaleString('id-ID'));
+        function adjustDrawerForKeyboard() {
+            if (!window.visualViewport) return;
+            var vv = window.visualViewport;
+            function onVVChange() {
+                var drawer = document.getElementById('aiModalDrawer');
+                if (!drawer || !aiModalOpen) return;
+                var keyboardH = window.innerHeight - vv.height;
+                if (keyboardH > 100) {
+                    drawer.style.height = (vv.height - 10) + 'px';
+                } else {
+                    drawer.style.height = '82%';
+                }
+                var msgs = document.getElementById('aiChatMessages');
+                if (msgs) setTimeout(function(){ msgs.scrollTop = msgs.scrollHeight; }, 80);
             }
-            var katSorted = Object.entries(perKategori).sort(function(a,b){return b[1]-a[1];}).slice(0,7);
-            var rekSorted = Object.entries(perRekening).sort(function(a,b){return Math.abs(b[1])-Math.abs(a[1]);});
-            return [
-                '=== DATA KEUANGAN USER ===',
-                'Bulan: '+now.toLocaleString('id-ID',{month:'long',year:'numeric'}),
-                'Pemasukan: Rp'+totalIncome.toLocaleString('id-ID'),
-                'Pengeluaran: Rp'+totalExpense.toLocaleString('id-ID'),
-                'Surplus/defisit: Rp'+(totalIncome-totalExpense).toLocaleString('id-ID'),
-                'Per kategori: '+katSorted.map(function(k){return k[0]+' Rp'+k[1].toLocaleString('id-ID');}).join(', '),
-                'Per rekening: '+rekSorted.map(function(r){return r[0]+' Rp'+r[1].toLocaleString('id-ID');}).join(', '),
-                'Tren 3 bln: '+tren.join(' | '),
-                'Total transaksi bulan ini: '+trxBulanIni.length,
-                '==========================='
-            ].join('\n');
+            vv.addEventListener('resize', onVVChange);
         }
 
-        function appendBubble(role, text, isTyping) {
-            var container = document.getElementById('aiChatMessages'); if(!container) return null;
+        function getAiUserAvatar() {
+            var profile = profiles.find(function(p){ return p.id === currentProfileId; });
+            var photo   = (profile && profile.photo) ? profile.photo : '';
+            var name    = (profile && profile.name)  ? profile.name  : 'U';
+            var initial = name.charAt(0).toUpperCase();
+            if (photo) {
+                return '<img src="' + photo + '" class="ai-user-avatar" onerror="this.style.display=\'none\'">';
+            }
+            var colors = ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#3B82F6','#EF4444'];
+            var ci = name.charCodeAt(0) % colors.length;
+            return '<div class="ai-user-avatar-fallback" style="background:' + colors[ci] + '">' + initial + '</div>';
+        }
+
+        function loadAiHistory() {
+            if (!currentProfileId || !db) return;
+            db.collection(DB_COLLECTION).doc(currentProfileId)
+              .collection('ai_chat').orderBy('ts').limit(80)
+              .get().then(function(snap) {
+                aiMsgData = [];
+                aiChatHistory = [];
+                var container = document.getElementById('aiChatMessages');
+                if (!container) return;
+                while (container.children.length > 1) container.removeChild(container.lastChild);
+                snap.forEach(function(doc) {
+                    var d = doc.data();
+                    d.id = doc.id;
+                    aiMsgData.push(d);
+                    aiChatHistory.push({ role: d.role === 'bot' ? 'assistant' : 'user', content: d.text });
+                    appendBubble(d.role, d.text, false, doc.id);
+                });
+                var msgs = document.getElementById('aiChatMessages');
+                if (msgs) msgs.scrollTop = msgs.scrollHeight;
+            }).catch(function(e){ console.warn('loadAiHistory:', e); });
+        }
+
+        function saveAiMsg(role, text) {
+            if (!currentProfileId || !db) return Promise.resolve(null);
+            return db.collection(DB_COLLECTION).doc(currentProfileId)
+              .collection('ai_chat').add({
+                role: role, text: text,
+                ts: firebase.firestore.FieldValue.serverTimestamp()
+              });
+        }
+
+        function deleteAiMsg(docId) {
+            if (!currentProfileId || !db || !docId) return;
+            db.collection(DB_COLLECTION).doc(currentProfileId)
+              .collection('ai_chat').doc(docId).delete()
+              .then(function() {
+                var el = document.querySelector('[data-msgid="' + docId + '"]');
+                if (el) {
+                    el.style.transition = 'opacity .2s';
+                    el.style.opacity = '0';
+                    setTimeout(function(){ if(el.parentNode) el.remove(); }, 220);
+                }
+                aiMsgData = aiMsgData.filter(function(m){ return m.id !== docId; });
+                aiChatHistory = aiMsgData.map(function(m){
+                    return { role: m.role === 'bot' ? 'assistant' : 'user', content: m.text };
+                });
+              }).catch(function(e){ console.warn('deleteAiMsg:', e); });
+        }
+
+        function showDeletePopup(e, docId) {
+            if (!docId) return;
+            closeDeletePopup();
+            aiDeletePopupTarget = docId;
+            var popup = document.getElementById('aiDeletePopup');
+            if (!popup) return;
+            popup.style.display = 'flex';
+            var drawer = document.getElementById('aiModalDrawer');
+            var rect   = drawer ? drawer.getBoundingClientRect() : {left:0, top:0};
+            var clientX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : 120);
+            var clientY = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : 200);
+            var x = clientX - rect.left;
+            var y = clientY - rect.top;
+            popup.style.left = Math.min(x, rect.width - 160) + 'px';
+            popup.style.top  = Math.max(y - 80, 10) + 'px';
+        }
+
+        function closeDeletePopup() {
+            var popup = document.getElementById('aiDeletePopup');
+            if (popup) popup.style.display = 'none';
+            aiDeletePopupTarget = null;
+        }
+
+        function confirmDeleteAiMsg() {
+            if (aiDeletePopupTarget) deleteAiMsg(aiDeletePopupTarget);
+            closeDeletePopup();
+        }
+
+        function appendBubble(role, text, isTyping, docId) {
+            var container = document.getElementById('aiChatMessages');
+            if (!container) return null;
             var div = document.createElement('div');
-            div.className = 'ai-bubble ai-bubble-' + (role==='user'?'user':'bot');
+            div.className = 'ai-bubble ai-bubble-' + (role === 'user' ? 'user' : 'bot');
+            if (docId) div.setAttribute('data-msgid', docId);
+
             if (role === 'bot') {
                 if (isTyping) {
                     div.innerHTML = '<div class="ai-avatar">🤖</div><div class="ai-bubble-content"><div class="ai-typing"><span></span><span></span><span></span></div></div>';
                 } else {
-                    var html = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-                        .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
-                    div.innerHTML = '<div class="ai-avatar">🤖</div><div class="ai-bubble-content">'+html+'</div>';
+                    var html = text
+                        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                        .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+                        .replace(/\n/g,'<br>');
+                    div.innerHTML = '<div class="ai-avatar">🤖</div><div class="ai-bubble-content">' + html + '</div>';
+                    if (docId) {
+                        div.querySelector('.ai-bubble-content').addEventListener('click', function(e){
+                            e.stopPropagation(); showDeletePopup(e, docId);
+                        });
+                    }
                 }
             } else {
-                div.innerHTML = '<div class="ai-bubble-content">'+text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div><div class="ai-avatar" style="background:var(--primary);font-size:.8rem;">👤</div>';
+                var avatarHtml = getAiUserAvatar();
+                var safeText = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                div.innerHTML = '<div class="ai-bubble-content">' + safeText + '</div>' + avatarHtml;
+                if (docId) {
+                    div.querySelector('.ai-bubble-content').addEventListener('click', function(e){
+                        e.stopPropagation(); showDeletePopup(e, docId);
+                    });
+                }
             }
             container.appendChild(div);
             container.scrollTop = container.scrollHeight;
             return div;
         }
 
+        function buatRingkasanKeuangan() {
+            var now = new Date(), bi = now.getMonth(), ti = now.getFullYear();
+            var trxBi = transactions.filter(function(t) {
+                var d = t.date ? new Date(t.date.split('/').reverse().join('-')) : null;
+                return d && d.getMonth() === bi && d.getFullYear() === ti;
+            });
+            var inc = 0, exp = 0, kat = {}, rek = {};
+            trxBi.forEach(function(t) {
+                if (t.type === 'income') inc += t.amount;
+                else { exp += t.amount; kat[t.category] = (kat[t.category]||0) + t.amount; }
+                rek[t.wallet] = (rek[t.wallet]||0) + (t.type==='income' ? t.amount : -t.amount);
+            });
+            var tren = [];
+            for (var i = 2; i >= 0; i--) {
+                var d = new Date(ti, bi-i, 1), m = d.getMonth(), y = d.getFullYear();
+                var tb = transactions.filter(function(t){
+                    var dd = t.date ? new Date(t.date.split('/').reverse().join('-')) : null;
+                    return dd && dd.getMonth()===m && dd.getFullYear()===y;
+                });
+                var ti2=0, te2=0;
+                tb.forEach(function(t){ if(t.type==='income') ti2+=t.amount; else te2+=t.amount; });
+                tren.push(d.toLocaleString('id-ID',{month:'long'})+': masuk Rp'+ti2.toLocaleString('id-ID')+', keluar Rp'+te2.toLocaleString('id-ID'));
+            }
+            var katS = Object.entries(kat).sort(function(a,b){return b[1]-a[1];}).slice(0,7);
+            var rekS = Object.entries(rek).sort(function(a,b){return Math.abs(b[1])-Math.abs(a[1]);});
+            var prof = profiles.find(function(p){ return p.id === currentProfileId; });
+            return [
+                '=== DATA KEUANGAN ===',
+                'Nama: ' + (prof ? prof.name : 'User'),
+                'Bulan: ' + now.toLocaleString('id-ID',{month:'long',year:'numeric'}),
+                'Pemasukan: Rp' + inc.toLocaleString('id-ID'),
+                'Pengeluaran: Rp' + exp.toLocaleString('id-ID'),
+                'Surplus/defisit: Rp' + (inc-exp).toLocaleString('id-ID'),
+                'Per kategori: ' + katS.map(function(k){return k[0]+' Rp'+k[1].toLocaleString('id-ID');}).join(', '),
+                'Per rekening: ' + rekS.map(function(r){return r[0]+' Rp'+r[1].toLocaleString('id-ID');}).join(', '),
+                'Tren: ' + tren.join(' | '),
+                'Total transaksi: ' + trxBi.length,
+                '====================='
+            ].join('\n');
+        }
+
         async function sendAiChat() {
-            var input = document.getElementById('aiChatInput');
+            var input   = document.getElementById('aiChatInput');
             var sendBtn = document.getElementById('aiSendBtn');
             if (!input) return;
-            var userText = input.value.trim(); if (!userText) return;
+            var userText = input.value.trim();
+            if (!userText) return;
             input.value = ''; input.style.height = 'auto';
             sendBtn.disabled = true;
-            var qp = document.getElementById('quickPrompts'); if(qp) qp.style.display = 'none';
-            appendBubble('user', userText);
-            var typingBubble = appendBubble('bot', '', true);
-            aiChatHistory.push({ role:'user', content:userText });
-            if (aiChatHistory.length > 10) aiChatHistory = aiChatHistory.slice(aiChatHistory.length-10);
+            closeDeletePopup();
+            var qp = document.getElementById('quickPrompts');
+            if (qp) qp.style.display = 'none';
+
+            // Simpan & render pesan user
+            var userDocId = null;
+            try { var uRef = await saveAiMsg('user', userText); if (uRef) userDocId = uRef.id; } catch(e){}
+            appendBubble('user', userText, false, userDocId);
+            aiChatHistory.push({ role:'user', content: userText });
+            if (aiChatHistory.length > 14) aiChatHistory = aiChatHistory.slice(-14);
+
+            var typingBubble = appendBubble('bot', '', true, null);
+
             try {
-                var response = await fetch('/api/ai-chat', {
-                    method:'POST', headers:{'Content-Type':'application/json'},
+                var resp = await fetch('/api/ai-chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ history: aiChatHistory, konteks: buatRingkasanKeuangan() })
                 });
-                if (!response.ok) { var ed = await response.json().catch(function(){return{};}); throw new Error(ed.error||'HTTP '+response.status); }
-                var data = await response.json();
-                var replyText = data.reply || 'Maaf, tidak ada respons.';
-                if (typingBubble && typingBubble.parentNode) {
-                    var html = replyText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-                        .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
-                    typingBubble.innerHTML = '<div class="ai-avatar">🤖</div><div class="ai-bubble-content">'+html+'</div>';
-                    var c=document.getElementById('aiChatMessages'); if(c) c.scrollTop=c.scrollHeight;
+                if (!resp.ok) {
+                    var ed = await resp.json().catch(function(){return{};});
+                    throw new Error(ed.error || 'HTTP ' + resp.status);
                 }
-                aiChatHistory.push({ role:'assistant', content:replyText });
+                var data = await resp.json();
+                var replyText = data.reply || 'Maaf, tidak ada respons.';
+
+                // Simpan & render balasan AI
+                var botDocId = null;
+                try { var bRef = await saveAiMsg('bot', replyText); if (bRef) botDocId = bRef.id; } catch(e){}
+                if (typingBubble && typingBubble.parentNode) typingBubble.remove();
+                appendBubble('bot', replyText, false, botDocId);
+                aiChatHistory.push({ role:'assistant', content: replyText });
+
             } catch(err) {
-                if (typingBubble && typingBubble.parentNode)
-                    typingBubble.innerHTML = '<div class="ai-avatar">🤖</div><div class="ai-bubble-content" style="color:var(--expense)">❌ '+( err.message||'Coba lagi')+'</div>';
-            } finally { sendBtn.disabled = false; }
+                if (typingBubble && typingBubble.parentNode) {
+                    typingBubble.innerHTML = '<div class="ai-avatar">🤖</div><div class="ai-bubble-content" style="color:var(--expense)">❌ ' + (err.message||'Coba lagi') + '</div>';
+                }
+            } finally {
+                sendBtn.disabled = false;
+            }
         }
 
         function sendQuickPrompt(text) {
@@ -4780,28 +4909,20 @@
             input.value = text;
             sendAiChat();
         }
+
+        // Tutup popup jika klik di luar
+        document.addEventListener('click', function(e) {
+            var popup = document.getElementById('aiDeletePopup');
+            if (popup && popup.style.display === 'flex' && !popup.contains(e.target)) {
+                closeDeletePopup();
+            }
+        });
         // ==================== /AI CHAT MODAL ====================
 
         // Jalankan Pengecekan Login Saat Aplikasi Dibuka
         loadCategories();
         checkLoginStatus(); 
         // ================== LOGIKA SPLASH SCREEN ==================
-        function hideSplash() {
-            const splash = document.getElementById('splashScreen');
-            if(!splash) return;
-            splash.style.transition = 'opacity 0.6s ease, visibility 0.6s ease';
-            splash.style.opacity = '0';
-            splash.style.visibility = 'hidden';
-            setTimeout(() => { try { splash.parentNode.removeChild(splash); } catch(e){} }, 700);
-        }
-        // Hilangkan splash setelah 2.5 detik (fallback jika auth lambat)
-        setTimeout(hideSplash, 2500);
-        // Hilangkan splash segera saat login berhasil agar tidak stuck
-        const _origSwitchToMain = switchToMainApp;
-        switchToMainApp = function(uid, name, photoUrl) {
-            hideSplash();
-            _origSwitchToMain(uid, name, photoUrl);
-        };
-    </script>
+</script>
 </body>
 </html>
