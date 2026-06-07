@@ -810,22 +810,23 @@
         .btn-riwayat:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
         .btn-riwayat:active { transform: scale(0.96); }
 
-        /* ===== AI CHAT ===== */
+        /* ===== AI CHAT MODAL ===== */
         .ai-bubble { display:flex; gap:8px; align-items:flex-start; }
         .ai-bubble-bot { flex-direction:row; }
         .ai-bubble-user { flex-direction:row-reverse; }
         .ai-avatar { width:32px; height:32px; border-radius:50%; background:var(--primary-light); display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; margin-top:2px; }
-        .ai-bubble-content { max-width:82%; padding:0.65rem 0.9rem; border-radius:16px; font-size:0.85rem; line-height:1.6; }
-        .ai-bubble-bot  .ai-bubble-content { background:var(--card-bg); border:1px solid var(--border); border-radius:4px 16px 16px 16px; color:var(--text-main); }
-        .ai-bubble-user .ai-bubble-content { background:var(--primary); color:#fff; border-radius:16px 4px 16px 16px; }
+        .ai-bubble-content { max-width:82%; padding:0.6rem 0.85rem; border-radius:16px; font-size:0.84rem; line-height:1.55; }
+        .ai-bubble-bot  .ai-bubble-content { background:var(--bg-color); border:1px solid var(--border); border-radius:4px 16px 16px 16px; color:var(--text-main); }
+        .ai-bubble-user .ai-bubble-content { background:linear-gradient(135deg,#6366F1,#8B5CF6); color:#fff; border-radius:16px 4px 16px 16px; }
         .ai-bubble-content strong { font-weight:700; }
         .ai-typing { display:flex; gap:4px; align-items:center; padding:4px 0; }
         .ai-typing span { width:7px; height:7px; border-radius:50%; background:var(--text-muted); animation:aiDot 1.2s infinite; }
         .ai-typing span:nth-child(2){animation-delay:.2s} .ai-typing span:nth-child(3){animation-delay:.4s}
         @keyframes aiDot{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
-        .ai-quick-btn { padding:5px 11px; border:1px solid var(--border); border-radius:20px; background:var(--card-bg); color:var(--text-secondary); font-size:0.72rem; cursor:pointer; white-space:nowrap; transition:all .2s; }
+        .ai-quick-btn { padding:5px 11px; border:1px solid var(--border); border-radius:20px; background:var(--card-bg); color:var(--text-secondary); font-size:0.72rem; cursor:pointer; white-space:nowrap; transition:all .2s; flex-shrink:0; }
         .ai-quick-btn:hover { background:var(--primary-light); color:var(--primary); border-color:var(--primary); }
-        #viewAichat:not(.hidden) { display:flex !important; flex-direction:column; }
+        #quickPrompts::-webkit-scrollbar { display:none; }
+        #fabAiBtn:active { transform:scale(0.88); }
         /* ===== SCAN NOTA ===== */
         #btnScanNota:disabled { opacity:.65; cursor:not-allowed; }
     </style>
@@ -1350,7 +1351,15 @@
             </div>
         </div>
 
-        <button class="fab-btn" id="fabAddBtn" onclick="openAddTransaction()">+</button>
+        <!-- FAB Tambah Transaksi -->
+        <button class="fab-btn" id="fabAddBtn" onclick="openAddTransaction()" title="Tambah Transaksi">+</button>
+
+        <!-- FAB Asisten AI -->
+        <button id="fabAiBtn" title="Asisten AI Cerdas"
+            style="position:absolute;bottom:90px;left:20px;width:56px;height:56px;background:linear-gradient(135deg,#6366F1,#8B5CF6);color:white;border:none;border-radius:50%;display:flex;justify-content:center;align-items:center;box-shadow:0 4px 20px rgba(99,102,241,.5);cursor:pointer;z-index:20;transition:.3s cubic-bezier(.175,.885,.32,1.275);"
+            onclick="toggleAiModal()">
+            <svg viewBox="0 0 24 24" fill="white" width="26" height="26"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1v2h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2v-2h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2M7.5 13A2.5 2.5 0 0 0 5 15.5 2.5 2.5 0 0 0 7.5 18 2.5 2.5 0 0 0 10 15.5 2.5 2.5 0 0 0 7.5 13m9 0A2.5 2.5 0 0 0 14 15.5a2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5A2.5 2.5 0 0 0 16.5 13z"/></svg>
+        </button>
 
         <div class="bottom-nav">
             <button class="nav-item active" onclick="switchView('transaksi')" id="navTransaksi">
@@ -1372,10 +1381,6 @@
             <button class="nav-item" onclick="switchView('laporan')" id="navLaporan">
                 <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
                 Laporan
-            </button>
-            <button class="nav-item" onclick="switchView('aichat')" id="navAichat">
-                <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
-                AI Chat
             </button>
         </div>
 
@@ -1804,39 +1809,61 @@
     </div>
 
 
-        <!-- ===== HALAMAN AI CHAT ===== -->
-        <div id="viewAichat" class="main-view hidden">
-            <div class="content-section" style="padding-bottom:.5rem;flex-shrink:0;">
-                <h2 style="font-size:1.1rem;font-weight:700;color:var(--text-main);margin:0 0 .15rem;">🤖 Asisten Keuangan AI</h2>
-                <p style="font-size:.75rem;color:var(--text-muted);margin:0;">Tanya apapun tentang keuangan Anda</p>
-            </div>
-            <div id="quickPrompts" style="padding:0 1.5rem .75rem;display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0;">
-                <button class="ai-quick-btn" onclick="sendQuickPrompt('Bulan ini saya boros di kategori apa?')">📊 Analisis bulan ini</button>
-                <button class="ai-quick-btn" onclick="sendQuickPrompt('Berikan saran cara hemat berdasarkan pengeluaran saya')">💡 Saran hemat</button>
-                <button class="ai-quick-btn" onclick="sendQuickPrompt('Berapa total pengeluaran vs pemasukan bulan ini?')">💰 Ringkasan bulan ini</button>
-                <button class="ai-quick-btn" onclick="sendQuickPrompt('Prediksi pengeluaran saya bulan depan')">🔮 Prediksi bulan depan</button>
-            </div>
-            <div id="aiChatMessages" style="flex:1;overflow-y:auto;padding:0 1.5rem .5rem;display:flex;flex-direction:column;gap:12px;min-height:0;">
-                <div class="ai-bubble ai-bubble-bot">
-                    <div class="ai-avatar">🤖</div>
-                    <div class="ai-bubble-content">Halo! Saya asisten keuangan AI Anda. Mau tanya apa hari ini? 😊</div>
+        <!-- ===== MODAL ASISTEN AI CERDAS ===== -->
+        <div id="aiModal" style="display:none;position:absolute;inset:0;z-index:100;pointer-events:none;">
+            <!-- Backdrop -->
+            <div id="aiModalBackdrop" onclick="toggleAiModal()"
+                style="position:absolute;inset:0;background:rgba(0,0,0,.45);opacity:0;transition:opacity .25s;pointer-events:none;"></div>
+            <!-- Drawer dari bawah -->
+            <div id="aiModalDrawer"
+                style="position:absolute;bottom:0;left:0;right:0;height:82%;background:var(--card-bg);border-radius:20px 20px 0 0;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.32,1);pointer-events:all;overflow:hidden;">
+                <!-- Handle bar -->
+                <div style="display:flex;justify-content:center;padding:.75rem 0 0;">
+                    <div style="width:40px;height:4px;border-radius:2px;background:var(--border);"></div>
                 </div>
-            </div>
-            <div style="padding:.75rem 1.5rem;border-top:1px solid var(--border);background:var(--card-bg);flex-shrink:0;">
-                <div style="display:flex;gap:8px;align-items:flex-end;">
-                    <textarea id="aiChatInput" rows="1" placeholder="Tanya sesuatu..."
-                        style="flex:1;padding:.65rem .9rem;border:1px solid var(--border);border-radius:20px;font-size:.88rem;resize:none;background:var(--bg-color);color:var(--text-main);font-family:inherit;max-height:120px;overflow-y:auto;line-height:1.4;"
-                        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiChat();}"
-                        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-                    <button onclick="sendAiChat()" id="aiSendBtn"
-                        style="width:42px;height:42px;border-radius:50%;background:var(--primary);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <svg viewBox="0 0 24 24" fill="white" width="18" height="18"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-                    </button>
+                <!-- Header -->
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem 1.2rem .5rem;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6366F1,#8B5CF6);display:flex;align-items:center;justify-content:center;">
+                            <svg viewBox="0 0 24 24" fill="white" width="20" height="20"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1v2h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2v-2h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2M7.5 13A2.5 2.5 0 0 0 5 15.5 2.5 2.5 0 0 0 7.5 18 2.5 2.5 0 0 0 10 15.5 2.5 2.5 0 0 0 7.5 13m9 0A2.5 2.5 0 0 0 14 15.5a2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5A2.5 2.5 0 0 0 16.5 13z"/></svg>
+                        </div>
+                        <div>
+                            <div style="font-size:.95rem;font-weight:700;color:var(--text-main);">Asisten Keuangan AI Cerdas</div>
+                            <div style="font-size:.7rem;color:var(--text-muted);">Analisis keuangan real-time</div>
+                        </div>
+                    </div>
+                    <button onclick="toggleAiModal()" style="width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--bg-color);color:var(--text-muted);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
                 </div>
-                <p style="font-size:.68rem;color:var(--text-muted);text-align:center;margin:6px 0 0;">AI menganalisis data transaksi Anda secara real-time</p>
+                <!-- Quick prompts -->
+                <div id="quickPrompts" style="padding:0 1rem .6rem;display:flex;gap:6px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;">
+                    <button class="ai-quick-btn" style="white-space:nowrap;" onclick="sendQuickPrompt('Bulan ini saya boros di kategori apa?')">📊 Analisis bulan ini</button>
+                    <button class="ai-quick-btn" style="white-space:nowrap;" onclick="sendQuickPrompt('Berikan saran cara hemat berdasarkan pengeluaran saya')">💡 Saran hemat</button>
+                    <button class="ai-quick-btn" style="white-space:nowrap;" onclick="sendQuickPrompt('Berapa total pengeluaran vs pemasukan bulan ini?')">💰 Ringkasan bulan ini</button>
+                    <button class="ai-quick-btn" style="white-space:nowrap;" onclick="sendQuickPrompt('Prediksi pengeluaran saya bulan depan')">🔮 Prediksi bulan depan</button>
+                </div>
+                <!-- Pesan chat -->
+                <div id="aiChatMessages" style="flex:1;overflow-y:auto;padding:0 1rem .5rem;display:flex;flex-direction:column;gap:10px;min-height:0;">
+                    <div class="ai-bubble ai-bubble-bot">
+                        <div class="ai-avatar">🤖</div>
+                        <div class="ai-bubble-content">Halo! Saya <strong>Asisten Keuangan AI</strong> Anda 🤖<br>Tanya apapun tentang keuangan — analisis, saran hemat, atau prediksi pengeluaran!</div>
+                    </div>
+                </div>
+                <!-- Input -->
+                <div style="padding:.6rem 1rem;border-top:1px solid var(--border);background:var(--card-bg);flex-shrink:0;padding-bottom:calc(.6rem + env(safe-area-inset-bottom));">
+                    <div style="display:flex;gap:8px;align-items:flex-end;">
+                        <textarea id="aiChatInput" rows="1" placeholder="Tanya sesuatu tentang keuangan Anda..."
+                            style="flex:1;padding:.6rem .85rem;border:1px solid var(--border);border-radius:20px;font-size:.86rem;resize:none;background:var(--bg-color);color:var(--text-main);font-family:inherit;max-height:100px;overflow-y:auto;line-height:1.4;outline:none;"
+                            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiChat();}"
+                            oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+                        <button onclick="sendAiChat()" id="aiSendBtn"
+                            style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#6366F1,#8B5CF6);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(99,102,241,.4);">
+                            <svg viewBox="0 0 24 24" fill="white" width="17" height="17"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
-        <!-- ===== /HALAMAN AI CHAT ===== -->
+        <!-- ===== /MODAL ASISTEN AI CERDAS ===== -->
 
     <!-- MAIN SCRIPT -->
     <script>
@@ -3059,8 +3086,8 @@
             }); 
         };
 
-        const views = { 'transaksi': document.getElementById('viewTransaksi'), 'tabungan': document.getElementById('viewTabungan'), 'analisis': document.getElementById('viewAnalisis'), 'laporan': document.getElementById('viewLaporan'), 'goals': document.getElementById('viewGoals'), 'aichat': document.getElementById('viewAichat') };
-        const navItems = { 'transaksi': document.getElementById('navTransaksi'), 'tabungan': document.getElementById('navTabungan'), 'analisis': document.getElementById('navAnalisis'), 'laporan': document.getElementById('navLaporan'), 'goals': document.getElementById('navGoals'), 'aichat': document.getElementById('navAichat') };
+        const views = { 'transaksi': document.getElementById('viewTransaksi'), 'tabungan': document.getElementById('viewTabungan'), 'analisis': document.getElementById('viewAnalisis'), 'laporan': document.getElementById('viewLaporan'), 'goals': document.getElementById('viewGoals') };
+        const navItems = { 'transaksi': document.getElementById('navTransaksi'), 'tabungan': document.getElementById('navTabungan'), 'analisis': document.getElementById('navAnalisis'), 'laporan': document.getElementById('navLaporan'), 'goals': document.getElementById('navGoals') };
 
         const switchView = (viewName) => { 
             if(!navItems[viewName] || !views[viewName]) return;
@@ -3071,8 +3098,12 @@
             if(viewName === 'analisis') renderAnalytics();
             if(viewName === 'laporan') renderLaporan();
             if(viewName === 'goals') renderGoals();
+            // FAB tambah transaksi: tampil di semua halaman kecuali transaksi (ada form inline)
             const fab = document.getElementById('fabAddBtn'); 
-            if(fab) fab.style.display = viewName === 'transaksi' ? 'none' : 'flex'; 
+            if(fab) fab.style.display = viewName === 'transaksi' ? 'none' : 'flex';
+            // FAB AI selalu tampil di semua halaman
+            const fabAi = document.getElementById('fabAiBtn');
+            if(fabAi) fabAi.style.display = 'flex';
         };
         switchView('transaksi');
 
@@ -4614,8 +4645,46 @@
         })();
         // ==================== /SCAN NOTA ====================
 
-        // ==================== AI CHAT ====================
+        // ==================== AI CHAT MODAL ====================
         var aiChatHistory = [];
+        var aiModalOpen = false;
+
+        function toggleAiModal() {
+            var modal    = document.getElementById('aiModal');
+            var drawer   = document.getElementById('aiModalDrawer');
+            var backdrop = document.getElementById('aiModalBackdrop');
+            if (!modal) return;
+
+            if (!aiModalOpen) {
+                // Buka
+                aiModalOpen = true;
+                modal.style.display = 'block';
+                modal.style.pointerEvents = 'all';
+                // Trigger animasi setelah display:block
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(function() {
+                        backdrop.style.opacity = '1';
+                        backdrop.style.pointerEvents = 'all';
+                        drawer.style.transform = 'translateY(0)';
+                    });
+                });
+                // Scroll chat ke bawah
+                setTimeout(function() {
+                    var msgs = document.getElementById('aiChatMessages');
+                    if (msgs) msgs.scrollTop = msgs.scrollHeight;
+                }, 350);
+            } else {
+                // Tutup
+                aiModalOpen = false;
+                backdrop.style.opacity = '0';
+                backdrop.style.pointerEvents = 'none';
+                drawer.style.transform = 'translateY(100%)';
+                setTimeout(function() {
+                    modal.style.display = 'none';
+                    modal.style.pointerEvents = 'none';
+                }, 320);
+            }
+        }
 
         function buatRingkasanKeuangan() {
             var now = new Date(), bulanIni = now.getMonth(), tahunIni = now.getFullYear();
@@ -4707,9 +4776,11 @@
 
         function sendQuickPrompt(text) {
             var input = document.getElementById('aiChatInput');
-            if (input) { input.value = text; sendAiChat(); }
+            if (!input) return;
+            input.value = text;
+            sendAiChat();
         }
-        // ==================== /AI CHAT ====================
+        // ==================== /AI CHAT MODAL ====================
 
         // Jalankan Pengecekan Login Saat Aplikasi Dibuka
         loadCategories();
