@@ -16,8 +16,8 @@ export default async function handler(req, res) {
     const { history, konteks } = req.body;
     if (!history || !Array.isArray(history)) return res.status(400).json({ error: 'history tidak valid' });
 
-    const apiKey = process.env.OPENROUTER_API_KEY;
-    if (!apiKey) return res.status(500).json({ error: 'OPENROUTER_API_KEY belum di-set di Vercel' });
+    const openrouterKey = process.env.OPENROUTER_API_KEY;
+    const groqKey = process.env.GROQ_API_KEY; // Mengambil key Groq dari Vercel
 
     const systemPrompt = `Kamu adalah Konsultan Keuangan Pribadi (Personal Wealth Consultant) yang analitis, objektif, dan berorientasi pada kesehatan arus kas serta pertumbuhan aset. 
 Kamu memiliki akses eksklusif ke data keuangan real-time klien berikut:
@@ -40,48 +40,90 @@ Tugas dan Standar Operasional Kamu:
 
     let lastError = '';
 
-    for (const model of CHAT_MODELS) {
+    // 1. COBA MENGGUNAKAN OPENROUTER DULU
+    if (openrouterKey) {
+      for (const model of CHAT_MODELS) {
+        try {
+          const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openrouterKey}`,
+              'Content-Type': 'application/json',
+              'HTTP-Referer': 'https://vercel.app',
+              'X-Title': 'Finance App AI Chat'
+            },
+            body: JSON.stringify({
+              model,
+              messages,
+              temperature: 0.7,
+              max_tokens: 500
+            })
+          });
+
+          if (response.status === 429 || response.status === 404 || response.status === 503) {
+            const d = await response.json();
+            lastError = `OpenRouter (${model}): ${d?.error?.message || response.status}`;
+            continue;
+          }
+
+          if (!response.ok) {
+            const d = await response.json();
+            lastError = `OpenRouter HTTP ${response.status}: ${d?.error?.message}`;
+            continue;
+          }
+
+          const data = await response.json();
+          const reply = data?.choices?.[0]?.message?.content || '';
+          if (!reply) { lastError = `OpenRouter (${model}): respons kosong`; continue; }
+
+          return res.status(200).json({ reply, model_used: model, provider: 'OpenRouter' });
+
+        } catch (err) {
+          lastError = `OpenRouter (${model}): ${err.message}`;
+          continue;
+        }
+      }
+    } else {
+      lastError = 'OPENROUTER_API_KEY tidak dikonfigurasi. ';
+    }
+
+    // 2. JIKA OPENROUTER GAGAL/KOSONG, COBA JALUR CADANGAN KE GROQ
+    if (groqKey) {
       try {
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        const groqModel = 'llama3-8b-8192'; // Anda bisa ganti ke model Groq lain jika mau
+        const response = await fetch('https://groq.com', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-            'HTTP-Referer': 'https://vercel.app',
-            'X-Title': 'Finance App AI Chat'
+            'Authorization': `Bearer ${groqKey}`,
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            model,
+            model: groqModel,
             messages,
             temperature: 0.7,
             max_tokens: 500
           })
         });
 
-        if (response.status === 429 || response.status === 404 || response.status === 503) {
+        if (response.ok) {
+          const data = await response.json();
+          const reply = data?.choices?.[0]?.message?.content || '';
+          if (reply) {
+            return res.status(200).json({ reply, model_used: groqModel, provider: 'Groq (Backup)' });
+          }
+        } else {
           const d = await response.json();
-          lastError = `${model}: ${d?.error?.message || response.status}`;
-          continue;
+          lastError += ` | Groq Error: ${d?.error?.message || response.status}`;
         }
-
-        if (!response.ok) {
-          const d = await response.json();
-          return res.status(500).json({ error: d?.error?.message || `HTTP ${response.status}` });
-        }
-
-        const data = await response.json();
-        const reply = data?.choices?.[0]?.message?.content || '';
-        if (!reply) { lastError = `${model}: respons kosong`; continue; }
-
-        return res.status(200).json({ reply, model_used: model });
-
       } catch (err) {
-        lastError = `${model}: ${err.message}`;
-        continue;
+        lastError += ` | Groq Exception: ${err.message}`;
       }
+    } else {
+      lastError += ' | GROQ_API_KEY tidak dikonfigurasi.';
     }
 
-    return res.status(503).json({ error: `Semua model AI sedang tidak tersedia. Coba lagi sebentar. (${lastError})` });
+    // JIKA KEDUANYA GAGAL
+    return res.status(503).json({ error: `Semua layanan AI sedang tidak tersedia. (${lastError})` });
 
   } catch (err) {
     console.error('ai-chat error:', err);
