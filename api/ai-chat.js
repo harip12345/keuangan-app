@@ -3,9 +3,9 @@ const CHAT_MODELS = [
   'meta-llama/llama-4-maverick:free',
   'meta-llama/llama-4-scout:free',
   'openrouter/free'
-  'qwen/qwen3-next-80b-a3b-instruct:free
-  'openai/gpt-oss-120b:free
-  'nvidia/nemotron-3-super-120b-a12b:free,
+  'qwen/qwen3-next-80b-a3b-instruct:free'
+  'openai/gpt-oss-120b:free'
+  'nvidia/nemotron-3-super-120b-a12b:free',
 ];
 
 export default async function handler(req, res) {
