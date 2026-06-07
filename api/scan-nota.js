@@ -4,7 +4,7 @@ const VISION_MODELS = [
   'google/gemma-4-31b-it:free',
   'meta-llama/llama-4-maverick:free',
   'meta-llama/llama-4-scout:free',
-  'openrouter/auto',
+  'openrouter/free',
 ];
 
 async function callOpenRouter(apiKey, model, imageBase64, mimeType) {
