@@ -88,12 +88,48 @@
         body.dark-mode { background-color: #020617; }
        
         /* ================= SPLASH SCREEN STYLES ================= */
-        body.dark-mode
+        .splash-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100dvh;
+            /* Background gradasi yang sama dengan aplikasi & login */
+            background: linear-gradient(150deg, #A7F3D0 0%, #BAE6FD 40%, #93C5FD 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 999999; /* Pastikan berada di paling atas menutupi semuanya */
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+            overflow: hidden;
+        }
+        body.dark-mode .splash-container { background: linear-gradient(150deg, #064e3b 0%, #0c4a6e 100%); }
 
         /* Ornamen Blob Background */
-        body.dark-mode
-        body.dark-mode
-        body.dark-mode
+        .splash-container::before {
+            content: ''; position: absolute; top: -5%; right: -10%; width: 250px; height: 250px;
+            background: rgba(252, 211, 77, 0.5); border-radius: 50%; filter: blur(60px); z-index: 0; pointer-events: none;
+        }
+        .splash-container::after {
+            content: ''; position: absolute; bottom: 10%; left: -10%; width: 300px; height: 300px;
+            background: rgba(52, 211, 153, 0.4); border-radius: 50%; filter: blur(60px); z-index: 0; pointer-events: none;
+        }
+        body.dark-mode .splash-container::before { background: rgba(52, 211, 153, 0.15); }
+        body.dark-mode .splash-container::after { background: rgba(56, 189, 248, 0.15); }
+
+        .splash-logo {
+            width: 100px; height: 100px; 
+            background: rgba(255,255,255,0.8);
+            border-radius: 28px; 
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: var(--shadow-lg); 
+            backdrop-filter: blur(5px);
+            z-index: 1;
+            /* Animasi berdetak (pulse) */
+            animation: pulseLogo 2s infinite ease-in-out;
+        }
+        body.dark-mode .splash-logo { background: rgba(30,41,59,0.8); }
+        
+        .splash-title {
+            font-family: 'Poppins', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--text-main); 
+            margin-top: 1.5rem; z-index: 1; text-align: center; letter-spacing: 0.5px;
+            /* Animasi muncul perlahan dari bawah */
+            animation: fadeInUp 0.8s ease-out;
+        }
 
         @keyframes pulseLogo {
             0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.5); }
@@ -508,24 +544,6 @@
         .btn-close { background: var(--surface-color); border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 1.2rem; display: flex; justify-content: center; align-items: center; cursor: pointer; color: var(--text-muted); transition: 0.2s;}
 
         .wallet-list-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px dashed var(--border); }
-        #viewAichat:not(.hidden) { display:flex !important; flex-direction:column; }
-        .ai-bubble { display:flex; gap:8px; align-items:flex-start; }
-        .ai-bubble-bot { flex-direction:row; }
-        .ai-bubble-user { flex-direction:row-reverse; }
-        .ai-avatar { width:32px; height:32px; border-radius:50%; background:var(--primary-light); display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; margin-top:2px; }
-        .ai-bubble-content { max-width:80%; padding:0.65rem 0.9rem; border-radius:16px; font-size:0.85rem; line-height:1.55; }
-        .ai-bubble-bot .ai-bubble-content { background:var(--card-bg); border:1px solid var(--border); border-radius:4px 16px 16px 16px; color:var(--text-main); }
-        .ai-bubble-user .ai-bubble-content { background:var(--primary); color:white; border-radius:16px 4px 16px 16px; }
-        .ai-bubble-content strong { font-weight:700; }
-        .ai-bubble-content ul { padding-left:1.2rem; margin:4px 0; }
-        .ai-bubble-content li { margin-bottom:2px; }
-        .ai-quick-btn { padding:5px 10px; border:1px solid var(--border); border-radius:20px; background:var(--card-bg); color:var(--text-secondary); font-size:0.72rem; cursor:pointer; white-space:nowrap; transition:all 0.2s; }
-        .ai-quick-btn:hover { background:var(--primary-light); color:var(--primary); border-color:var(--primary); }
-        .ai-typing { display:flex; gap:4px; align-items:center; padding:8px 12px; }
-        .ai-typing span { width:6px; height:6px; border-radius:50%; background:var(--text-muted); animation:aiTyping 1.2s infinite; }
-        .ai-typing span:nth-child(2) { animation-delay:0.2s; }
-        .ai-typing span:nth-child(3) { animation-delay:0.4s; }
-        @keyframes aiTyping { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
         .wallet-list-item:last-child { border-bottom: none; }
         .wallet-name-sec { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; color: var(--text-main); font-size: 0.9rem;}
         .wallet-bal-sec { font-weight: 800; font-size: 0.95rem; color: var(--text-main); }
@@ -791,14 +809,42 @@
         }
         .btn-riwayat:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
         .btn-riwayat:active { transform: scale(0.96); }
+
+        /* ===== AI CHAT ===== */
+        .ai-bubble { display:flex; gap:8px; align-items:flex-start; }
+        .ai-bubble-bot { flex-direction:row; }
+        .ai-bubble-user { flex-direction:row-reverse; }
+        .ai-avatar { width:32px; height:32px; border-radius:50%; background:var(--primary-light); display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; margin-top:2px; }
+        .ai-bubble-content { max-width:82%; padding:0.65rem 0.9rem; border-radius:16px; font-size:0.85rem; line-height:1.6; }
+        .ai-bubble-bot  .ai-bubble-content { background:var(--card-bg); border:1px solid var(--border); border-radius:4px 16px 16px 16px; color:var(--text-main); }
+        .ai-bubble-user .ai-bubble-content { background:var(--primary); color:#fff; border-radius:16px 4px 16px 16px; }
+        .ai-bubble-content strong { font-weight:700; }
+        .ai-typing { display:flex; gap:4px; align-items:center; padding:4px 0; }
+        .ai-typing span { width:7px; height:7px; border-radius:50%; background:var(--text-muted); animation:aiDot 1.2s infinite; }
+        .ai-typing span:nth-child(2){animation-delay:.2s} .ai-typing span:nth-child(3){animation-delay:.4s}
+        @keyframes aiDot{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+        .ai-quick-btn { padding:5px 11px; border:1px solid var(--border); border-radius:20px; background:var(--card-bg); color:var(--text-secondary); font-size:0.72rem; cursor:pointer; white-space:nowrap; transition:all .2s; }
+        .ai-quick-btn:hover { background:var(--primary-light); color:var(--primary); border-color:var(--primary); }
+        #viewAichat:not(.hidden) { display:flex !important; flex-direction:column; }
+        /* ===== SCAN NOTA ===== */
+        #btnScanNota:disabled { opacity:.65; cursor:not-allowed; }
     </style>
 </head>
 <body>
 <!-- ================== TAMPILAN SPLASH SCREEN ================== -->
+    <div id="splashScreen" class="splash-container">
+        <div class="splash-logo">
+            <!-- Logo yang sama dengan halaman login -->
+            <svg width="50" height="50" viewBox="0 0 24 24">
+                <path d="M7 6v12M17 6v12M7 12h8" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M10 16L18 6M14 6h4v4" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <h1 class="splash-title"></h1>
     </div>
 
     <!-- ================== TAMPILAN LOGIN SCREEN (DIPERBARUI) ================== -->
-    <div id="loginScreen" class="login-container" style="opacity:1;">
+    <div id="loginScreen" class="login-container">
         <div class="login-card">
             
             <!-- Logo Custom: Huruf H abstrak dengan aksen panah hijau (seperti di gambar) -->
@@ -1034,15 +1080,15 @@
                         <input type="text" id="note" class="form-control" placeholder="Beli makan siang, dll (Opsional)">
                     </div>
 
-                    <!-- ====== TOMBOL SCAN NOTA ====== -->
+                    <!-- SCAN NOTA -->
                     <input type="file" id="inputScanNota" accept="image/*,application/pdf" style="display:none">
-                    <button type="button" id="btnScanNota" onclick="document.getElementById('inputScanNota').click()"
-                        style="width:100%; padding:0.85rem; margin-bottom:0.75rem; background:linear-gradient(135deg,#6366F1,#8B5CF6); color:white; border:none; border-radius:14px; font-size:0.95rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 15px rgba(99,102,241,0.4); letter-spacing:0.01em;">
-                        <span style="font-size:1.15rem;">📷</span> Scan / Upload Nota Otomatis
+                    <button type="button" id="btnScanNota"
+                        style="width:100%;padding:.85rem;margin-bottom:.75rem;background:linear-gradient(135deg,#6366F1,#8B5CF6);color:#fff;border:none;border-radius:14px;font-size:.95rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 15px rgba(99,102,241,.4);"
+                        onclick="document.getElementById('inputScanNota').click()">
+                        <span style="font-size:1.15rem">📷</span> Scan / Upload Nota Otomatis
                     </button>
-                    <div id="scanNotaStatus" style="display:none; margin:-0.25rem 0 0.75rem; padding:0.75rem 1rem; border-radius:12px; font-size:0.83rem; text-align:center; font-weight:500; line-height:1.4;"></div>
-                    <!-- ============================== -->
-
+                    <div id="scanNotaStatus" style="display:none;margin:-0.25rem 0 0.75rem;padding:.75rem 1rem;border-radius:12px;font-size:.83rem;text-align:center;font-weight:500;line-height:1.4;"></div>
+                    <!-- /SCAN NOTA -->
                     <button type="submit" class="btn-submit" id="btnSubmitTrx">Simpan Transaksi</button>
                     <button type="button" class="btn-submit hidden" id="btnCancelEdit" onclick="cancelEdit()" style="background: var(--surface-color); color: var(--text-main); margin-top: 0.5rem; box-shadow:none; border: 1px solid var(--border);">Batal Edit</button>
                 </form>
@@ -1324,54 +1370,13 @@
                 Analisis
             </button>
             <button class="nav-item" onclick="switchView('laporan')" id="navLaporan">
-                <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg> 
+                <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
                 Laporan
             </button>
             <button class="nav-item" onclick="switchView('aichat')" id="navAichat">
                 <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
                 AI Chat
             </button>
-        </div>
-
-        <!-- =================== HALAMAN AI CHAT =================== -->
-        <div id="viewAichat" class="main-view hidden" style="flex-direction:column; height:100%; padding-bottom:0;">
-            <div class="content-section" style="padding-bottom:0.5rem; flex-shrink:0;">
-                <h2 style="font-size:1.1rem; font-weight:700; color:var(--text-main); margin:0 0 0.15rem;">
-                    <span style="margin-right:6px;">🤖</span>Asisten Keuangan AI
-                </h2>
-                <p style="font-size:0.75rem; color:var(--text-muted); margin:0;">Tanya apapun tentang keuangan Anda</p>
-            </div>
-
-            <!-- Quick prompts -->
-            <div id="quickPrompts" style="padding:0 1.5rem 0.75rem; display:flex; gap:6px; flex-wrap:wrap; flex-shrink:0;">
-                <button class="ai-quick-btn" onclick="sendQuickPrompt('Bulan ini saya boros di kategori apa?')">📊 Analisis bulan ini</button>
-                <button class="ai-quick-btn" onclick="sendQuickPrompt('Berikan saran cara hemat berdasarkan pengeluaran saya')">💡 Saran hemat</button>
-                <button class="ai-quick-btn" onclick="sendQuickPrompt('Berapa total pengeluaran vs pemasukan bulan ini?')">💰 Ringkasan bulan ini</button>
-                <button class="ai-quick-btn" onclick="sendQuickPrompt('Prediksi pengeluaran saya bulan depan')">🔮 Prediksi bulan depan</button>
-            </div>
-
-            <!-- Chat messages -->
-            <div id="aiChatMessages" style="flex:1; overflow-y:auto; padding:0 1.5rem 0.5rem; display:flex; flex-direction:column; gap:12px; min-height:0;">
-                <div class="ai-bubble ai-bubble-bot">
-                    <div class="ai-avatar">🤖</div>
-                    <div class="ai-bubble-content">Halo! Saya asisten keuangan AI Anda. Saya bisa analisis pengeluaran, beri saran hemat, atau jawab pertanyaan seputar keuangan Anda. Mau tanya apa hari ini?</div>
-                </div>
-            </div>
-
-            <!-- Input area -->
-            <div style="padding:0.75rem 1.5rem; border-top:1px solid var(--border); background:var(--card-bg); flex-shrink:0;">
-                <div style="display:flex; gap:8px; align-items:flex-end;">
-                    <textarea id="aiChatInput" rows="1" placeholder="Tanya sesuatu..." 
-                        style="flex:1; padding:0.65rem 0.9rem; border:1px solid var(--border); border-radius:20px; font-size:0.88rem; resize:none; background:var(--bg-color); color:var(--text-main); font-family:inherit; max-height:120px; overflow-y:auto; line-height:1.4;"
-                        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiChat();}"
-                        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-                    <button onclick="sendAiChat()" id="aiSendBtn"
-                        style="width:42px;height:42px;border-radius:50%;background:var(--primary);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <svg viewBox="0 0 24 24" fill="white" width="18" height="18"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-                    </button>
-                </div>
-                <p style="font-size:0.68rem; color:var(--text-muted); text-align:center; margin:6px 0 0;">AI menganalisis data transaksi Anda secara real-time</p>
-            </div>
         </div>
 
         <!-- =================== HALAMAN GOALS =================== -->
@@ -1797,6 +1802,41 @@
         </div>
 
     </div>
+
+
+        <!-- ===== HALAMAN AI CHAT ===== -->
+        <div id="viewAichat" class="main-view hidden">
+            <div class="content-section" style="padding-bottom:.5rem;flex-shrink:0;">
+                <h2 style="font-size:1.1rem;font-weight:700;color:var(--text-main);margin:0 0 .15rem;">🤖 Asisten Keuangan AI</h2>
+                <p style="font-size:.75rem;color:var(--text-muted);margin:0;">Tanya apapun tentang keuangan Anda</p>
+            </div>
+            <div id="quickPrompts" style="padding:0 1.5rem .75rem;display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0;">
+                <button class="ai-quick-btn" onclick="sendQuickPrompt('Bulan ini saya boros di kategori apa?')">📊 Analisis bulan ini</button>
+                <button class="ai-quick-btn" onclick="sendQuickPrompt('Berikan saran cara hemat berdasarkan pengeluaran saya')">💡 Saran hemat</button>
+                <button class="ai-quick-btn" onclick="sendQuickPrompt('Berapa total pengeluaran vs pemasukan bulan ini?')">💰 Ringkasan bulan ini</button>
+                <button class="ai-quick-btn" onclick="sendQuickPrompt('Prediksi pengeluaran saya bulan depan')">🔮 Prediksi bulan depan</button>
+            </div>
+            <div id="aiChatMessages" style="flex:1;overflow-y:auto;padding:0 1.5rem .5rem;display:flex;flex-direction:column;gap:12px;min-height:0;">
+                <div class="ai-bubble ai-bubble-bot">
+                    <div class="ai-avatar">🤖</div>
+                    <div class="ai-bubble-content">Halo! Saya asisten keuangan AI Anda. Mau tanya apa hari ini? 😊</div>
+                </div>
+            </div>
+            <div style="padding:.75rem 1.5rem;border-top:1px solid var(--border);background:var(--card-bg);flex-shrink:0;">
+                <div style="display:flex;gap:8px;align-items:flex-end;">
+                    <textarea id="aiChatInput" rows="1" placeholder="Tanya sesuatu..."
+                        style="flex:1;padding:.65rem .9rem;border:1px solid var(--border);border-radius:20px;font-size:.88rem;resize:none;background:var(--bg-color);color:var(--text-main);font-family:inherit;max-height:120px;overflow-y:auto;line-height:1.4;"
+                        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiChat();}"
+                        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+                    <button onclick="sendAiChat()" id="aiSendBtn"
+                        style="width:42px;height:42px;border-radius:50%;background:var(--primary);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <svg viewBox="0 0 24 24" fill="white" width="18" height="18"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    </button>
+                </div>
+                <p style="font-size:.68rem;color:var(--text-muted);text-align:center;margin:6px 0 0;">AI menganalisis data transaksi Anda secara real-time</p>
+            </div>
+        </div>
+        <!-- ===== /HALAMAN AI CHAT ===== -->
 
     <!-- MAIN SCRIPT -->
     <script>
@@ -3024,8 +3064,10 @@
 
         const switchView = (viewName) => { 
             if(!navItems[viewName] || !views[viewName]) return;
-            Object.values(navItems).forEach(btn => { if(btn) btn.classList.remove('active'); }); Object.values(views).forEach(v => { if(v) v.classList.add('hidden'); }); 
-            views[viewName].classList.remove('hidden'); navItems[viewName].classList.add('active'); 
+            Object.values(navItems).forEach(btn => { try{ if(btn) btn.classList.remove('active'); }catch(e){} });
+            Object.values(views).forEach(v => { try{ if(v) v.classList.add('hidden'); }catch(e){} });
+            try{ views[viewName].classList.remove('hidden'); }catch(e){}
+            try{ navItems[viewName].classList.add('active'); }catch(e){}
             if(viewName === 'analisis') renderAnalytics();
             if(viewName === 'laporan') renderLaporan();
             if(viewName === 'goals') renderGoals();
@@ -4457,207 +4499,31 @@
             if(document.getElementById('riwayatAsetOverlay')?.classList.contains('show')) renderRiwayatAset();
         };
 
-        // ================== FITUR AI CHAT ==================
-        var aiChatHistory = [];
 
-        function buatRingkasanKeuangan() {
-            var now = new Date();
-            var bulanIni = now.getMonth();
-            var tahunIni = now.getFullYear();
-
-            var trxBulanIni = transactions.filter(function(t) {
-                var d = t.date ? new Date(t.date.split('/').reverse().join('-')) : null;
-                return d && d.getMonth() === bulanIni && d.getFullYear() === tahunIni;
-            });
-
-            var totalIncome = 0, totalExpense = 0;
-            var perKategori = {}, perRekening = {};
-
-            trxBulanIni.forEach(function(t) {
-                if (t.type === 'income') totalIncome += t.amount;
-                else if (t.type === 'expense') {
-                    totalExpense += t.amount;
-                    perKategori[t.category] = (perKategori[t.category] || 0) + t.amount;
-                }
-                perRekening[t.wallet] = (perRekening[t.wallet] || 0) + (t.type === 'income' ? t.amount : -t.amount);
-            });
-
-            // 3 bulan terakhir untuk tren
-            var tren = [];
-            for (var i = 2; i >= 0; i--) {
-                var d = new Date(tahunIni, bulanIni - i, 1);
-                var m = d.getMonth(), y = d.getFullYear();
-                var trxBulan = transactions.filter(function(t) {
-                    var dd = t.date ? new Date(t.date.split('/').reverse().join('-')) : null;
-                    return dd && dd.getMonth() === m && dd.getFullYear() === y;
-                });
-                var inc = 0, exp = 0;
-                trxBulan.forEach(function(t) {
-                    if (t.type === 'income') inc += t.amount;
-                    else if (t.type === 'expense') exp += t.amount;
-                });
-                var namaBulan = d.toLocaleString('id-ID', { month: 'long' });
-                tren.push(namaBulan + ': pemasukan ' + formatRupiah(inc) + ', pengeluaran ' + formatRupiah(exp));
-            }
-
-            var katSorted = Object.entries(perKategori).sort(function(a,b){ return b[1]-a[1]; }).slice(0, 7);
-            var rekSorted = Object.entries(perRekening).sort(function(a,b){ return Math.abs(b[1])-Math.abs(a[1]); });
-
-            return [
-                '=== DATA KEUANGAN USER ===',
-                'Bulan ini (' + now.toLocaleString('id-ID',{month:'long',year:'numeric'}) + '):',
-                '- Total pemasukan: ' + formatRupiah(totalIncome),
-                '- Total pengeluaran: ' + formatRupiah(totalExpense),
-                '- Selisih (surplus/defisit): ' + formatRupiah(totalIncome - totalExpense),
-                '',
-                'Pengeluaran per kategori bulan ini:',
-                katSorted.map(function(k){ return '- ' + k[0] + ': ' + formatRupiah(k[1]); }).join('
-'),
-                '',
-                'Saldo per rekening:',
-                rekSorted.map(function(r){ return '- ' + r[0] + ': ' + formatRupiah(r[1]); }).join('
-'),
-                '',
-                'Tren 3 bulan terakhir:',
-                tren.join('
-'),
-                '',
-                'Total transaksi bulan ini: ' + trxBulanIni.length + ' transaksi',
-                '=== AKHIR DATA ==='
-            ].join('
-');
-        }
-
-        function appendBubble(role, text, isTyping) {
-            var container = document.getElementById('aiChatMessages');
-            if (!container) return null;
-            var div = document.createElement('div');
-            div.className = 'ai-bubble ' + (role === 'user' ? 'ai-bubble-user' : 'ai-bubble-bot');
-            if (role === 'bot') {
-                if (isTyping) {
-                    div.innerHTML = '<div class="ai-avatar">🤖</div><div class="ai-bubble-content"><div class="ai-typing"><span></span><span></span><span></span></div></div>';
-                } else {
-                    // render newline dan bold sederhana
-                    var html = text
-                        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-                        .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-                        .replace(/
-/g,'<br>');
-                    div.innerHTML = '<div class="ai-avatar">🤖</div><div class="ai-bubble-content">' + html + '</div>';
-                }
-            } else {
-                div.innerHTML = '<div class="ai-bubble-content">' + text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div><div class="ai-avatar" style="background:var(--primary);font-size:0.8rem;">👤</div>';
-            }
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-            return div;
-        }
-
-        async function sendAiChat() {
-            var input = document.getElementById('aiChatInput');
-            var sendBtn = document.getElementById('aiSendBtn');
-            var quickPrompts = document.getElementById('quickPrompts');
-            if (!input) return;
-            var userText = input.value.trim();
-            if (!userText) return;
-
-            input.value = '';
-            input.style.height = 'auto';
-            sendBtn.disabled = true;
-            if (quickPrompts) quickPrompts.style.display = 'none';
-
-            appendBubble('user', userText);
-            var typingBubble = appendBubble('bot', '', true);
-
-            // Siapkan konteks keuangan
-            var ringkasan = buatRingkasanKeuangan();
-
-            // Tambah ke history
-            aiChatHistory.push({ role: 'user', content: userText });
-
-            // Batasi history 10 pesan terakhir supaya tidak terlalu panjang
-            if (aiChatHistory.length > 10) aiChatHistory = aiChatHistory.slice(aiChatHistory.length - 10);
-
-            try {
-                var response = await fetch('/api/ai-chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        history: aiChatHistory,
-                        konteks: ringkasan
-                    })
-                });
-
-                if (!response.ok) {
-                    var errData = await response.json().catch(function(){ return {}; });
-                    throw new Error(errData.error || 'HTTP ' + response.status);
-                }
-
-                var data = await response.json();
-                var replyText = data.reply || 'Maaf, tidak ada respons dari AI.';
-
-                // Ganti typing bubble dengan jawaban
-                if (typingBubble && typingBubble.parentNode) {
-                    var html = replyText
-                        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-                        .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-                        .replace(/
-/g,'<br>');
-                    typingBubble.innerHTML = '<div class="ai-avatar">🤖</div><div class="ai-bubble-content">' + html + '</div>';
-                    var c = document.getElementById('aiChatMessages');
-                    if (c) c.scrollTop = c.scrollHeight;
-                }
-
-                aiChatHistory.push({ role: 'assistant', content: replyText });
-
-            } catch (err) {
-                if (typingBubble && typingBubble.parentNode) {
-                    typingBubble.innerHTML = '<div class="ai-avatar">🤖</div><div class="ai-bubble-content" style="color:var(--danger);">❌ Gagal: ' + (err.message || 'Coba lagi') + '</div>';
-                }
-            } finally {
-                sendBtn.disabled = false;
-            }
-        }
-
-        function sendQuickPrompt(text) {
-            var input = document.getElementById('aiChatInput');
-            if (input) { input.value = text; sendAiChat(); }
-        }
-        // ======================================================
-
-        // ================== FITUR SCAN NOTA ==================
+        // ==================== SCAN NOTA ====================
         (function() {
             var inputEl = document.getElementById('inputScanNota');
             if (!inputEl) return;
 
-            // Kompres gambar sebelum dikirim (maks 1200px, quality 0.82)
             function compressImage(file) {
                 return new Promise(function(resolve) {
-                    // PDF tidak dikompres, langsung baca as-is
                     if (file.type === 'application/pdf') {
                         var r = new FileReader();
                         r.onload = function() { resolve({ base64: r.result.split(',')[1], mimeType: 'application/pdf' }); };
-                        r.readAsDataURL(file);
-                        return;
+                        r.readAsDataURL(file); return;
                     }
                     var img = new Image();
                     var url = URL.createObjectURL(file);
                     img.onload = function() {
                         URL.revokeObjectURL(url);
-                        var MAX = 1200;
-                        var w = img.width, h = img.height;
-                        if (w > MAX || h > MAX) {
-                            if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
-                            else       { w = Math.round(w * MAX / h); h = MAX; }
-                        }
+                        var MAX = 1200, w = img.width, h = img.height;
+                        if (w > MAX || h > MAX) { if (w > h) { h = Math.round(h*MAX/w); w = MAX; } else { w = Math.round(w*MAX/h); h = MAX; } }
                         var canvas = document.createElement('canvas');
                         canvas.width = w; canvas.height = h;
                         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                        var dataUrl = canvas.toDataURL('image/jpeg', 0.82);
-                        resolve({ base64: dataUrl.split(',')[1], mimeType: 'image/jpeg' });
+                        resolve({ base64: canvas.toDataURL('image/jpeg', 0.82).split(',')[1], mimeType: 'image/jpeg' });
                     };
                     img.onerror = function() {
-                        // fallback: baca langsung tanpa kompres
                         var r = new FileReader();
                         r.onload = function() { resolve({ base64: r.result.split(',')[1], mimeType: file.type || 'image/jpeg' }); };
                         r.readAsDataURL(file);
@@ -4667,132 +4533,204 @@
             }
 
             inputEl.addEventListener('change', async function(e) {
-                var file = e.target.files[0];
-                if (!file) return;
-
+                var file = e.target.files[0]; if (!file) return;
                 var statusEl = document.getElementById('scanNotaStatus');
                 var btnScan  = document.getElementById('btnScanNota');
-
                 statusEl.style.display = 'block';
                 statusEl.style.background = 'var(--primary-light)';
                 statusEl.style.color = 'var(--primary)';
-                statusEl.innerHTML = '⏳ Memproses gambar...';
+                statusEl.innerHTML = '⏳ Mengompres & mengirim ke AI...';
                 btnScan.disabled = true;
-                btnScan.style.opacity = '0.7';
-
                 try {
-                    // 1. Kompres gambar
-                    statusEl.innerHTML = '⏳ Mengompres gambar...';
                     var compressed = await compressImage(file);
-
-                    // 2. Kirim ke proxy Vercel
-                    statusEl.innerHTML = '⏳ Mengirim ke AI, mohon tunggu...';
                     var response = await fetch('/api/scan-nota', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ imageBase64: compressed.base64, mimeType: compressed.mimeType })
                     });
-
-                    // Tangkap error HTTP dengan detail
-                    if (!response.ok) {
-                        var errText = '';
-                        try { errText = await response.text(); } catch(_) {}
-                        throw new Error('HTTP ' + response.status + ': ' + errText);
-                    }
-
+                    if (!response.ok) { var ed = await response.json().catch(function(){return{};}); throw new Error(ed.error || 'HTTP ' + response.status); }
                     var data = await response.json();
-                    console.log('API raw response:', JSON.stringify(data));
-
-                    // Cek error dari proxy/API
-                    if (data.error) {
-                        throw new Error(data.error);
-                    }
-
-                    // Hasil sudah di-parse oleh proxy, langsung pakai
+                    if (data.error) throw new Error(data.error);
                     var hasil = data.hasil;
-                    if (!hasil) throw new Error('Respons tidak valid dari server. Coba lagi.');
-
-                    // Isi form otomatis
+                    if (!hasil) throw new Error('Respons tidak valid dari server.');
                     var filled = [];
 
-                    // 1. Set tipe transaksi (income / expense) DULU sebelum kategori
-                    if (hasil.type && typeSelect) {
-                        typeSelect.value = hasil.type;
-                        handleTypeChange(); // reload kategori sesuai tipe
+                    // Type (income/expense)
+                    var typeSel = document.getElementById('type');
+                    if (hasil.type && typeSel) {
+                        typeSel.value = hasil.type;
+                        if (typeof handleTypeChange === 'function') handleTypeChange();
                         filled.push(hasil.type === 'income' ? 'Pemasukan' : 'Pengeluaran');
                     }
-
-                    // 2. Tanggal
-                    if (hasil.tanggal) {
-                        var dateEl = document.getElementById('trxDate');
-                        if (dateEl) { dateEl.value = hasil.tanggal; filled.push('tanggal'); }
+                    // Tanggal
+                    var dateEl = document.getElementById('trxDate');
+                    if (hasil.tanggal && dateEl) { dateEl.value = hasil.tanggal; filled.push('tanggal'); }
+                    // Nominal
+                    var amtEl = document.getElementById('amount');
+                    if (hasil.nominal && amtEl) {
+                        amtEl.value = String(Math.round(Number(hasil.nominal))).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                        filled.push('nominal');
                     }
-
-                    // 3. Nominal
-                    if (hasil.nominal && !isNaN(Number(hasil.nominal))) {
-                        var amtEl = document.getElementById('amount');
-                        if (amtEl) {
-                            amtEl.value = String(Math.round(Number(hasil.nominal))).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-                            filled.push('nominal');
+                    // Keterangan
+                    var noteEl = document.getElementById('note');
+                    if (hasil.keterangan && noteEl) { noteEl.value = hasil.keterangan; filled.push('keterangan'); }
+                    // Kategori
+                    var catEl = document.getElementById('category');
+                    if (hasil.kategori && catEl) {
+                        var opts = Array.from(catEl.options).map(function(o){return o.value;});
+                        if (opts.includes(hasil.kategori)) {
+                            catEl.value = hasil.kategori;
                         }
-                    }
-
-                    // 4. Keterangan
-                    if (hasil.keterangan) {
-                        var noteEl = document.getElementById('note');
-                        if (noteEl) { noteEl.value = hasil.keterangan; filled.push('keterangan'); }
-                    }
-
-                    // 5. Kategori + custom category
-                    if (hasil.kategori) {
-                        var catEl = document.getElementById('category');
-                        if (catEl) {
-                            var opts = Array.from(catEl.options).map(function(o) { return o.value; });
-                            if (opts.includes(hasil.kategori)) {
-                                catEl.value = hasil.kategori;
-                            }
-                        }
-
-                        // Isi custom DULU sebelum checkCustomCategory dipanggil
-                        // supaya tidak tertimpa/dikosongkan oleh fungsi tersebut
-                        if (hasil.kategori === 'Lainnya' && hasil.kategori_custom) {
-                            var customEl = document.getElementById('customCategory');
-                            if (customEl) {
-                                customEl.value = hasil.kategori_custom;
-                            }
-                        }
-
-                        // Baru panggil checkCustomCategory untuk tampilkan/sembunyikan kotak custom
-                        // Override: jangan biarkan checkCustomCategory mengosongkan value yang baru diisi
+                        // Custom category jika "Lainnya"
                         if (hasil.kategori === 'Lainnya') {
                             var ccGroup = document.getElementById('customCategoryGroup');
                             var ccInput = document.getElementById('customCategory');
                             if (ccGroup) ccGroup.classList.remove('hidden');
-                            if (ccInput) {
-                                ccInput.setAttribute('required', 'true');
-                                // Jaga value tetap terisi (jangan panggil checkCustomCategory yang bisa reset)
-                                if (hasil.kategori_custom) ccInput.value = hasil.kategori_custom;
-                            }
-                            filled.push('kategori: Lainnya (' + (hasil.kategori_custom || '') + ')');
+                            if (ccInput && hasil.kategori_custom) ccInput.value = hasil.kategori_custom;
                         } else {
-                            checkCustomCategory();
-                            filled.push('kategori: ' + hasil.kategori);
+                            if (typeof checkCustomCategory === 'function') checkCustomCategory();
                         }
+                        filled.push('kategori');
+                    }
+                    // Wallet
+                    var walletEl = document.getElementById('walletSelect');
+                    if (hasil.wallet && walletEl) {
+                        var wOpts = Array.from(walletEl.options).map(function(o){return o.value;});
+                        if (wOpts.includes(hasil.wallet)) { walletEl.value = hasil.wallet; filled.push('rekening: ' + hasil.wallet); }
+                        else if (wOpts.includes('Tunai')) { walletEl.value = 'Tunai'; filled.push('rekening: Tunai'); }
                     }
 
-                    // 6. Wallet / Rekening
-                    if (hasil.wallet) {
-                        var walletEl = document.getElementById('walletSelect');
-                        if (walletEl) {
-                            var wOpts = Array.from(walletEl.options).map(function(o) { return o.value; });
-                            if (wOpts.includes(hasil.wallet)) {
-                                walletEl.value = hasil.wallet;
-                                filled.push('rekening: ' + hasil.wallet);
-                            } else {
+                    var modelInfo = data.model_used ? ' <span style="opacity:.6;font-size:.75rem">(' + data.model_used + ')</span>' : '';
+                    statusEl.style.background = '#D1FAE5'; statusEl.style.color = '#065F46';
+                    statusEl.innerHTML = '✅ Berhasil! <strong>' + filled.join(', ') + '</strong> terisi otomatis.' + modelInfo;
+                } catch(err) {
+                    console.error('Scan nota:', err);
+                    statusEl.style.background = 'var(--warning-bg)'; statusEl.style.color = 'var(--warning-text)';
+                    statusEl.innerHTML = '❌ <strong>Error:</strong> ' + (err.message || 'Gagal membaca nota.');
+                } finally {
+                    btnScan.disabled = false;
+                    inputEl.value = '';
+                }
+            });
+        })();
+        // ==================== /SCAN NOTA ====================
+
+        // ==================== AI CHAT ====================
+        var aiChatHistory = [];
+
+        function buatRingkasanKeuangan() {
+            var now = new Date(), bulanIni = now.getMonth(), tahunIni = now.getFullYear();
+            var trxBulanIni = transactions.filter(function(t) {
+                var d = t.date ? new Date(t.date.split('/').reverse().join('-')) : null;
+                return d && d.getMonth() === bulanIni && d.getFullYear() === tahunIni;
+            });
+            var totalIncome = 0, totalExpense = 0, perKategori = {}, perRekening = {};
+            trxBulanIni.forEach(function(t) {
+                if (t.type === 'income') totalIncome += t.amount;
+                else { totalExpense += t.amount; perKategori[t.category] = (perKategori[t.category]||0)+t.amount; }
+                perRekening[t.wallet] = (perRekening[t.wallet]||0) + (t.type==='income' ? t.amount : -t.amount);
+            });
+            var tren = [];
+            for (var i = 2; i >= 0; i--) {
+                var d = new Date(tahunIni, bulanIni-i, 1), m = d.getMonth(), y = d.getFullYear();
+                var tb = transactions.filter(function(t){ var dd=t.date?new Date(t.date.split('/').reverse().join('-')):null; return dd&&dd.getMonth()===m&&dd.getFullYear()===y; });
+                var inc=0,exp=0; tb.forEach(function(t){if(t.type==='income')inc+=t.amount;else exp+=t.amount;});
+                tren.push(d.toLocaleString('id-ID',{month:'long'})+': pemasukan Rp'+inc.toLocaleString('id-ID')+', pengeluaran Rp'+exp.toLocaleString('id-ID'));
+            }
+            var katSorted = Object.entries(perKategori).sort(function(a,b){return b[1]-a[1];}).slice(0,7);
+            var rekSorted = Object.entries(perRekening).sort(function(a,b){return Math.abs(b[1])-Math.abs(a[1]);});
+            return [
+                '=== DATA KEUANGAN USER ===',
+                'Bulan: '+now.toLocaleString('id-ID',{month:'long',year:'numeric'}),
+                'Pemasukan: Rp'+totalIncome.toLocaleString('id-ID'),
+                'Pengeluaran: Rp'+totalExpense.toLocaleString('id-ID'),
+                'Surplus/defisit: Rp'+(totalIncome-totalExpense).toLocaleString('id-ID'),
+                'Per kategori: '+katSorted.map(function(k){return k[0]+' Rp'+k[1].toLocaleString('id-ID');}).join(', '),
+                'Per rekening: '+rekSorted.map(function(r){return r[0]+' Rp'+r[1].toLocaleString('id-ID');}).join(', '),
+                'Tren 3 bln: '+tren.join(' | '),
+                'Total transaksi bulan ini: '+trxBulanIni.length,
+                '==========================='
+            ].join('\n');
+        }
+
+        function appendBubble(role, text, isTyping) {
+            var container = document.getElementById('aiChatMessages'); if(!container) return null;
+            var div = document.createElement('div');
+            div.className = 'ai-bubble ai-bubble-' + (role==='user'?'user':'bot');
+            if (role === 'bot') {
+                if (isTyping) {
+                    div.innerHTML = '<div class="ai-avatar">🤖</div><div class="ai-bubble-content"><div class="ai-typing"><span></span><span></span><span></span></div></div>';
+                } else {
+                    var html = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                        .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+                    div.innerHTML = '<div class="ai-avatar">🤖</div><div class="ai-bubble-content">'+html+'</div>';
+                }
+            } else {
+                div.innerHTML = '<div class="ai-bubble-content">'+text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div><div class="ai-avatar" style="background:var(--primary);font-size:.8rem;">👤</div>';
+            }
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            return div;
+        }
+
+        async function sendAiChat() {
+            var input = document.getElementById('aiChatInput');
+            var sendBtn = document.getElementById('aiSendBtn');
+            if (!input) return;
+            var userText = input.value.trim(); if (!userText) return;
+            input.value = ''; input.style.height = 'auto';
+            sendBtn.disabled = true;
+            var qp = document.getElementById('quickPrompts'); if(qp) qp.style.display = 'none';
+            appendBubble('user', userText);
+            var typingBubble = appendBubble('bot', '', true);
+            aiChatHistory.push({ role:'user', content:userText });
+            if (aiChatHistory.length > 10) aiChatHistory = aiChatHistory.slice(aiChatHistory.length-10);
+            try {
+                var response = await fetch('/api/ai-chat', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({ history: aiChatHistory, konteks: buatRingkasanKeuangan() })
+                });
+                if (!response.ok) { var ed = await response.json().catch(function(){return{};}); throw new Error(ed.error||'HTTP '+response.status); }
+                var data = await response.json();
+                var replyText = data.reply || 'Maaf, tidak ada respons.';
+                if (typingBubble && typingBubble.parentNode) {
+                    var html = replyText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                        .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+                    typingBubble.innerHTML = '<div class="ai-avatar">🤖</div><div class="ai-bubble-content">'+html+'</div>';
+                    var c=document.getElementById('aiChatMessages'); if(c) c.scrollTop=c.scrollHeight;
+                }
+                aiChatHistory.push({ role:'assistant', content:replyText });
+            } catch(err) {
+                if (typingBubble && typingBubble.parentNode)
+                    typingBubble.innerHTML = '<div class="ai-avatar">🤖</div><div class="ai-bubble-content" style="color:var(--expense)">❌ '+( err.message||'Coba lagi')+'</div>';
+            } finally { sendBtn.disabled = false; }
+        }
+
+        function sendQuickPrompt(text) {
+            var input = document.getElementById('aiChatInput');
+            if (input) { input.value = text; sendAiChat(); }
+        }
+        // ==================== /AI CHAT ====================
 
         // Jalankan Pengecekan Login Saat Aplikasi Dibuka
         loadCategories();
-        checkLoginStatus();
+        checkLoginStatus(); 
+        // ================== LOGIKA SPLASH SCREEN ==================
+        function hideSplash() {
+            const splash = document.getElementById('splashScreen');
+            if(!splash) return;
+            splash.style.transition = 'opacity 0.6s ease, visibility 0.6s ease';
+            splash.style.opacity = '0';
+            splash.style.visibility = 'hidden';
+            setTimeout(() => { try { splash.parentNode.removeChild(splash); } catch(e){} }, 700);
+        }
+        // Hilangkan splash setelah 2.5 detik (fallback jika auth lambat)
+        setTimeout(hideSplash, 2500);
+        // Hilangkan splash segera saat login berhasil agar tidak stuck
+        const _origSwitchToMain = switchToMainApp;
+        switchToMainApp = function(uid, name, photoUrl) {
+            hideSplash();
+            _origSwitchToMain(uid, name, photoUrl);
+        };
     </script>
 </body>
 </html>
