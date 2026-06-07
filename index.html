@@ -800,16 +800,21 @@
         .ai-bubble-content { -webkit-user-select:none; user-select:none; }
         .ai-bubble-bot .ai-bubble-content { cursor:pointer; }
         /* Delete confirm popup */
-        #aiDeletePopup { position:absolute; background:var(--card-bg); border:1px solid var(--border); border-radius:14px; padding:8px 4px; box-shadow:0 8px 24px rgba(0,0,0,.18); z-index:200; min-width:140px; display:none; flex-direction:column; gap:2px; }
-        .ai-del-opt { padding:9px 16px; font-size:.84rem; cursor:pointer; border-radius:10px; color:var(--text-main); border:none; background:transparent; text-align:left; width:100%; }
-        .ai-del-opt:hover { background:var(--primary-light); }
-        .ai-del-opt.danger { color:#EF4444; }
-        .ai-del-opt.danger:hover { background:#FEE2E2; }
+        #aiDeletePopup { position:absolute; background:var(--card-bg); border:1px solid var(--border); border-radius:16px; padding:6px; box-shadow:0 12px 32px rgba(0,0,0,.22); z-index:200; min-width:160px; display:none; flex-direction:column; gap:2px; backdrop-filter:blur(8px); animation:popIn .18s cubic-bezier(.175,.885,.32,1.275); }
+        @keyframes popIn{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
+        .ai-del-opt { padding:10px 14px; font-size:.84rem; cursor:pointer; border-radius:12px; color:var(--text-main); border:none; background:transparent; text-align:left; width:100%; transition:background .12s; }
+        .ai-del-opt:hover,.ai-del-opt:active { background:var(--bg-color); }
+        .ai-del-opt.danger { color:#EF4444; font-weight:500; }
+        .ai-del-opt.danger:hover,.ai-del-opt.danger:active { background:#FEF2F2; }
         /* avatar profil di chat */
         .ai-user-avatar { width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;margin-top:2px; }
         .ai-user-avatar-fallback { width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:#fff;flex-shrink:0;margin-top:2px; }
         /* ===== SCAN NOTA ===== */
         #btnScanNota:disabled { opacity:.65; cursor:not-allowed; }
+        /* ===== KEYBOARD SMOOTH ===== */
+        #aiModalDrawer { will-change:transform,height; }
+        #aiChatInput:focus { outline:none; border-color:var(--primary) !important; box-shadow:0 0 0 3px rgba(99,102,241,.15); transition:border-color .15s, box-shadow .15s; }
+        #aiChatMessages { scroll-behavior:smooth; }
     </style>
 </head>
 <body>
@@ -1788,8 +1793,20 @@
                 style="position:absolute;inset:0;background:rgba(0,0,0,.45);opacity:0;transition:opacity .25s;pointer-events:none;"></div>
             <!-- Delete popup -->
             <div id="aiDeletePopup" style="display:none;">
-                <button class="ai-del-opt" onclick="closeDeletePopup()">✕ &nbsp;Batal</button>
-                <button class="ai-del-opt danger" onclick="confirmDeleteAiMsg()">🗑 &nbsp;Hapus pesan ini</button>
+                <button class="ai-del-opt" onclick="closeDeletePopup()">
+                    <span style="display:flex;align-items:center;gap:8px;">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        Batal
+                    </span>
+                </button>
+                <button class="ai-del-opt danger" onclick="confirmDeleteAiMsg()">
+                    <span style="display:flex;align-items:center;gap:8px;">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                        </svg>
+                        Hapus pesan ini
+                    </span>
+                </button>
             </div>
             <!-- Drawer dari bawah, keyboard-aware -->
             <div id="aiModalDrawer"
@@ -4812,45 +4829,133 @@
             return div;
         }
 
-        function buatRingkasanKeuangan() {
-            var now = new Date(), bi = now.getMonth(), ti = now.getFullYear();
-            var trxBi = transactions.filter(function(t) {
-                var d = t.date ? new Date(t.date.split('/').reverse().join('-')) : null;
-                return d && d.getMonth() === bi && d.getFullYear() === ti;
-            });
-            var inc = 0, exp = 0, kat = {}, rek = {};
-            trxBi.forEach(function(t) {
-                if (t.type === 'income') inc += t.amount;
-                else { exp += t.amount; kat[t.category] = (kat[t.category]||0) + t.amount; }
-                rek[t.wallet] = (rek[t.wallet]||0) + (t.type==='income' ? t.amount : -t.amount);
-            });
-            var tren = [];
-            for (var i = 2; i >= 0; i--) {
-                var d = new Date(ti, bi-i, 1), m = d.getMonth(), y = d.getFullYear();
-                var tb = transactions.filter(function(t){
-                    var dd = t.date ? new Date(t.date.split('/').reverse().join('-')) : null;
-                    return dd && dd.getMonth()===m && dd.getFullYear()===y;
-                });
-                var ti2=0, te2=0;
-                tb.forEach(function(t){ if(t.type==='income') ti2+=t.amount; else te2+=t.amount; });
-                tren.push(d.toLocaleString('id-ID',{month:'long'})+': masuk Rp'+ti2.toLocaleString('id-ID')+', keluar Rp'+te2.toLocaleString('id-ID'));
+        // Parse tanggal format app "25 Mei 2025" atau "2025-05-25" ke Date object
+        function parseTrxDate(dateStr) {
+            if (!dateStr) return null;
+            // Format "D Mon YYYY" - format utama app (contoh: "25 Mei 2025")
+            var bulanMap = {
+                'Jan':0,'Feb':1,'Mar':2,'Apr':3,'Mei':4,'Jun':5,
+                'Jul':6,'Agt':7,'Sep':8,'Okt':9,'Nov':10,'Des':11,
+                // fallback bahasa Inggris
+                'May':4,'Aug':7,'Oct':9,'Dec':11
+            };
+            var parts = dateStr.split(' ');
+            if (parts.length === 3 && bulanMap[parts[1]] !== undefined) {
+                return new Date(parseInt(parts[2]), bulanMap[parts[1]], parseInt(parts[0]));
             }
-            var katS = Object.entries(kat).sort(function(a,b){return b[1]-a[1];}).slice(0,7);
-            var rekS = Object.entries(rek).sort(function(a,b){return Math.abs(b[1])-Math.abs(a[1]);});
+            // Format "YYYY-MM-DD"
+            if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+                var p = dateStr.split('-');
+                return new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]));
+            }
+            // Format "DD/MM/YYYY"
+            if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+                var p2 = dateStr.split('/');
+                return new Date(parseInt(p2[2]), parseInt(p2[1])-1, parseInt(p2[0]));
+            }
+            return null;
+        }
+
+        function buatRingkasanKeuangan() {
+            var now = new Date();
             var prof = profiles.find(function(p){ return p.id === currentProfileId; });
-            return [
-                '=== DATA KEUANGAN ===',
-                'Nama: ' + (prof ? prof.name : 'User'),
-                'Bulan: ' + now.toLocaleString('id-ID',{month:'long',year:'numeric'}),
-                'Pemasukan: Rp' + inc.toLocaleString('id-ID'),
-                'Pengeluaran: Rp' + exp.toLocaleString('id-ID'),
-                'Surplus/defisit: Rp' + (inc-exp).toLocaleString('id-ID'),
-                'Per kategori: ' + katS.map(function(k){return k[0]+' Rp'+k[1].toLocaleString('id-ID');}).join(', '),
-                'Per rekening: ' + rekS.map(function(r){return r[0]+' Rp'+r[1].toLocaleString('id-ID');}).join(', '),
-                'Tren: ' + tren.join(' | '),
-                'Total transaksi: ' + trxBi.length,
-                '====================='
-            ].join('\n');
+            var rp = function(n){ return 'Rp' + Math.abs(n).toLocaleString('id-ID'); };
+
+            // Parse semua transaksi dengan tanggal yang benar
+            var allTrx = transactions.map(function(t) {
+                return { t: t, d: parseTrxDate(t.date) };
+            }).filter(function(x){ return x.d !== null; });
+
+            // Fungsi filter per bulan/tahun
+            function filterBulan(bln, thn) {
+                return allTrx.filter(function(x){
+                    return x.d.getMonth() === bln && x.d.getFullYear() === thn;
+                });
+            }
+
+            // Bulan ini
+            var bulanIni = now.getMonth(), tahunIni = now.getFullYear();
+            var trxBi = filterBulan(bulanIni, tahunIni);
+            var inc=0, exp=0, kat={}, rek={};
+            trxBi.forEach(function(x){
+                var t = x.t;
+                if (t.type==='income') inc += t.amount;
+                else { exp += t.amount; kat[t.category]=(kat[t.category]||0)+t.amount; }
+                rek[t.wallet]=(rek[t.wallet]||0)+(t.type==='income'?t.amount:-t.amount);
+            });
+
+            // Detail per tanggal bulan ini (group by date)
+            var perTgl = {};
+            trxBi.forEach(function(x){
+                var tgl = x.t.date || x.d.getDate()+'/'+x.d.getMonth()+'/'+x.d.getFullYear();
+                if (!perTgl[tgl]) perTgl[tgl] = {inc:0, exp:0, items:[]};
+                if (x.t.type==='income') perTgl[tgl].inc += x.t.amount;
+                else perTgl[tgl].exp += x.t.amount;
+                perTgl[tgl].items.push((x.t.type==='expense'?'-':'+') + rp(x.t.amount) + ' ' + (x.t.category||'') + (x.t.note?' ('+x.t.note+')':''));
+            });
+            var tglLines = Object.entries(perTgl)
+                .sort(function(a,b){ return a[0].localeCompare(b[0]); })
+                .map(function(e){ return e[0]+': '+e[1].items.join(', '); })
+                .join('\n');
+
+            // Tren 6 bulan terakhir
+            var tren = [];
+            for (var i=5; i>=0; i--) {
+                var d = new Date(tahunIni, bulanIni-i, 1);
+                var tb = filterBulan(d.getMonth(), d.getFullYear());
+                var ti2=0, te2=0;
+                tb.forEach(function(x){ if(x.t.type==='income') ti2+=x.t.amount; else te2+=x.t.amount; });
+                var nm = d.toLocaleString('id-ID',{month:'short',year:'numeric'});
+                tren.push(nm+': masuk '+rp(ti2)+', keluar '+rp(te2)+', total '+tb.length+' trx');
+            }
+
+            var katS = Object.entries(kat).sort(function(a,b){return b[1]-a[1];});
+            var rekS = Object.entries(rek).sort(function(a,b){return Math.abs(b[1])-Math.abs(a[1]);});
+
+            // Semua bulan yang punya data (untuk referensi AI)
+            var bulanAda = {};
+            allTrx.forEach(function(x){
+                var key = x.d.getFullYear()+'-'+(x.d.getMonth()+1);
+                bulanAda[key] = (bulanAda[key]||0)+1;
+            });
+            var bulanList = Object.entries(bulanAda)
+                .sort(function(a,b){return a[0].localeCompare(b[0]);})
+                .map(function(e){
+                    var p=e[0].split('-');
+                    var d=new Date(parseInt(p[0]),parseInt(p[1])-1,1);
+                    return d.toLocaleString('id-ID',{month:'long',year:'numeric'})+' ('+e[1]+' trx)';
+                }).join(', ');
+
+            var lines = [
+                '=== DATA KEUANGAN LENGKAP ===',
+                'Nama: '+(prof?prof.name:'User'),
+                'Data diakses: '+now.toLocaleString('id-ID',{dateStyle:'full'}),
+                '',
+                '--- BULAN INI: '+now.toLocaleString('id-ID',{month:'long',year:'numeric'})+' ---',
+                'Pemasukan: '+rp(inc),
+                'Pengeluaran: '+rp(exp),
+                'Surplus/defisit: '+(inc>=exp?'+':'-')+rp(inc-exp),
+                'Jumlah transaksi: '+trxBi.length,
+                '',
+                'Pengeluaran per kategori:',
+                katS.length ? katS.map(function(k){return '  '+k[0]+': '+rp(k[1]);}).join('\n') : '  (tidak ada)',
+                '',
+                'Saldo per rekening:',
+                rekS.length ? rekS.map(function(r){return '  '+r[0]+': '+(r[1]>=0?'+':'')+rp(r[1]);}).join('\n') : '  (tidak ada)',
+                '',
+                'Detail per tanggal bulan ini:',
+                tglLines || '  (tidak ada transaksi)',
+                '',
+                '--- TREN 6 BULAN TERAKHIR ---',
+                tren.join('\n'),
+                '',
+                '--- SEMUA BULAN YANG PUNYA DATA ---',
+                bulanList || '(tidak ada)',
+                '',
+                'TOTAL SEMUA TRANSAKSI: '+allTrx.length,
+                '=== AKHIR DATA ==='
+            ];
+            return lines.join('\n');
         }
 
         async function sendAiChat() {
