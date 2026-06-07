@@ -4709,15 +4709,28 @@
             var rekSorted = Object.entries(perRekening).sort(function(a,b){return Math.abs(b[1])-Math.abs(a[1]);});
             return [
                 '=== DATA KEUANGAN USER ===',
-                'Bulan: '+now.toLocaleString('id-ID',{month:'long',year:'numeric'}),
-                'Pemasukan: Rp'+totalIncome.toLocaleString('id-ID'),
-                'Pengeluaran: Rp'+totalExpense.toLocaleString('id-ID'),
-                'Surplus/defisit: Rp'+(totalIncome-totalExpense).toLocaleString('id-ID'),
-                'Per kategori: '+katSorted.map(function(k){return k[0]+' Rp'+k[1].toLocaleString('id-ID');}).join(', '),
-                'Per rekening: '+rekSorted.map(function(r){return r[0]+' Rp'+r[1].toLocaleString('id-ID');}).join(', '),
-                'Tren 3 bln: '+tren.join(' | '),
-                'Total transaksi bulan ini: '+trxBulanIni.length,
-                '==========================='
+                `Laporan ditarik pada: ${now.toLocaleString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}`,
+                '',
+                '--- RINGKASAN BULAN INI ---',
+                `Pemasukan: Rp${dataSekarang.totalIncome.toLocaleString('id-ID')}`,
+                `Pengeluaran: Rp${dataSekarang.totalExpense.toLocaleString('id-ID')}`,
+                `Surplus/Defisit: Rp${(dataSekarang.totalIncome - dataSekarang.totalExpense).toLocaleString('id-ID')}`,
+                `Rata-rata Pengeluaran Harian: Rp${dataSekarang.rataRataHarian.toLocaleString('id-ID')}`,
+                `Total Transaksi Bulan Ini: ${dataSekarang.jumlahTransaksi} transaksi`,
+                '',
+                '--- RINCIAN KATEGORI & REKENING (BULAN INI) ---',
+                // Menggunakan properti dari objek dataSekarang
+                `Per Kategori: ${dataSekarang.katSorted.map(k => `${k[0]} (Rp${k[1].toLocaleString('id-ID')})`).join(', ')}`,
+                `Per Rekening: ${dataSekarang.rekSorted.map(r => `${r[0]} (Rp${r[1].toLocaleString('id-ID')})`).join(', ')}`,
+                '',
+                '--- HISTORI 12 BULAN TERAKHIR ---',
+                 ...ringkasan12Bulan,
+                '',
+                '--- 15 TRANSAKSI TERAKHIR (DETAIL) ---',
+                ...transaksiTerbaru.map(t => 
+                `[${t.tanggal}] ${t.jenis} - ${t.kategori}: ${t.deskripsi} (Rp${t.nominal.toLocaleString('id-ID')}) | Akun: ${t.akun}`
+                ),
+                '=================================='
             ].join('\n');
         }
 
