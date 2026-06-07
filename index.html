@@ -1017,10 +1017,25 @@
         <div class="content-section" id="formSection" style="padding-top: 1rem;">
                 <div class="section-title">
                     <span>Catat Transaksi</span>
-                    <button class="btn-riwayat" onclick="openRiwayatModal('transaksi')">
-                        📋 Riwayat
-                    </button>
+                    <div style="display:flex;gap:6px;align-items:center;">
+                        <!-- Tombol scan nota kecil -->
+                        <input type="file" id="inputScanNota" accept="image/*,application/pdf" style="display:none">
+                        <button type="button" id="btnScanNota" title="Scan / Upload Nota"
+                            onclick="document.getElementById('inputScanNota').click()"
+                            style="display:flex;align-items:center;gap:5px;padding:0 10px;height:32px;background:linear-gradient(135deg,#6366F1,#8B5CF6);color:#fff;border:none;border-radius:20px;font-size:.75rem;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(99,102,241,.35);white-space:nowrap;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                                <circle cx="12" cy="13" r="4"/>
+                            </svg>
+                            Scan Nota
+                        </button>
+                        <button class="btn-riwayat" onclick="openRiwayatModal('transaksi')">
+                            📋 Riwayat
+                        </button>
+                    </div>
                 </div>
+                <!-- Status scan nota -->
+                <div id="scanNotaStatus" style="display:none;margin:.4rem 0 .2rem;padding:.6rem .9rem;border-radius:10px;font-size:.8rem;font-weight:500;line-height:1.4;"></div>
                 <form id="transactionForm">
                     <div class="form-group">
                         <label class="form-label">Tanggal Transaksi</label>
@@ -1058,15 +1073,6 @@
                         <input type="text" id="note" class="form-control" placeholder="Beli makan siang, dll (Opsional)">
                     </div>
 
-                    <!-- SCAN NOTA -->
-                    <input type="file" id="inputScanNota" accept="image/*,application/pdf" style="display:none">
-                    <button type="button" id="btnScanNota"
-                        style="width:100%;padding:.85rem;margin-bottom:.75rem;background:linear-gradient(135deg,#6366F1,#8B5CF6);color:#fff;border:none;border-radius:14px;font-size:.95rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 15px rgba(99,102,241,.4);"
-                        onclick="document.getElementById('inputScanNota').click()">
-                        <span style="font-size:1.15rem">📷</span> Scan / Upload Nota Otomatis
-                    </button>
-                    <div id="scanNotaStatus" style="display:none;margin:-0.25rem 0 0.75rem;padding:.75rem 1rem;border-radius:12px;font-size:.83rem;text-align:center;font-weight:500;line-height:1.4;"></div>
-                    <!-- /SCAN NOTA -->
                     <button type="submit" class="btn-submit" id="btnSubmitTrx">Simpan Transaksi</button>
                     <button type="button" class="btn-submit hidden" id="btnCancelEdit" onclick="cancelEdit()" style="background: var(--surface-color); color: var(--text-main); margin-top: 0.5rem; box-shadow:none; border: 1px solid var(--border);">Batal Edit</button>
                 </form>
@@ -1827,7 +1833,14 @@
                         </div>
                     </div>
                     <div style="display:flex;gap:6px;align-items:center;">
-                        <button onclick="aiClearAll()" title="Hapus semua chat" style="width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:var(--bg-color);color:var(--text-muted);font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">🗑</button>
+                        <button onclick="aiClearAll()" title="Hapus semua riwayat chat" style="width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:var(--bg-color);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,border-color .15s;" onmouseover="this.style.background='#FEF2F2';this.style.borderColor='#FCA5A5'" onmouseout="this.style.background='var(--bg-color)';this.style.borderColor='var(--border)'">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                                <path d="M10 11v6"/><path d="M14 11v6"/>
+                                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                            </svg>
+                        </button>
                         <button onclick="toggleAiModal()" style="width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:var(--bg-color);color:var(--text-muted);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
                     </div>
                 </div>
