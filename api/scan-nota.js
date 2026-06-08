@@ -1,78 +1,16 @@
-// 1. Model vision GRATIS asli di OpenRouter (Urutan terbaik & stabil)
+// Model vision gratis di OpenRouter, diurutkan dari yang terbaik
+// Kalau satu gagal/penuh, otomatis coba model berikutnya
 const VISION_MODELS = [
-  'google/gemini-2.5-flash:free', // Model vision gratis terbaik saat ini
-  'meta-llama/llama-3.2-11b-vision-instruct:free', // Cadangan vision gratis
+  'google/gemma-4-31b-it:free',
+  'meta-llama/llama-4-maverick:free',
+  'meta-llama/llama-4-scout:free',
+  'openrouter/auto',
 ];
 
-// Fungsi untuk hit API OpenRouter
-async function callOpenRouter(apiKey, model, imageBase64, mimeType, prompt) {
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': 'https://vercel.app',
-      'X-Title': 'Finance App Scan Nota'
-    },
-    body: JSON.stringify({
-      model,
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'text', text: prompt },
-          { type: 'image_url', image_url: { url: `data:${mimeType};base64,${imageBase64}` } }
-        ]
-      }],
-      temperature: 0.1,
-      max_tokens: 400
-    })
-  });
-  return { status: response.status, data: await response.json() };
-}
+async function callOpenRouter(apiKey, model, imageBase64, mimeType) {
+  const today = new Date().toISOString().split('T')[0];
 
-// 2. FUNGSI BARU: Hit API Groq Vision secara langsung
-async function callGroq(apiKey, imageBase64, mimeType, prompt) {
-  const response = await fetch('https://groq.com', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: 'llama-3.2-11b-vision-preview', // Model Vision Gratis & Super Cepat di Groq
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'text', text: prompt },
-          { type: 'image_url', image_url: { url: `data:${mimeType};base64,${imageBase64}` } }
-        ]
-      }],
-      temperature: 0.1,
-      max_tokens: 400
-    })
-  });
-  return { status: response.status, data: await response.json() };
-}
-
-export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-
-  try {
-    const { imageBase64, mimeType } = req.body;
-    if (!imageBase64) return res.status(400).json({ error: 'imageBase64 tidak ada di request' });
-    if (!mimeType) return res.status(400).json({ error: 'mimeType tidak ada di request' });
-
-    const openrouterKey = process.env.OPENROUTER_API_KEY;
-    const groqKey = process.env.GROQ_API_KEY; // Ambil Key Groq Privat Anda
-
-    let lastError = '';
-    const today = new Date().toISOString().split('T')[0];
-
-    const prompt = `Kamu adalah asisten pencatatan keuangan pribadi. Baca gambar nota/struk/receipt/kwitansi ini dengan teliti.
+  const prompt = `Kamu adalah asisten pencatatan keuangan pribadi. Baca gambar nota/struk/receipt/kwitansi ini dengan teliti.
 
 Tentukan informasi berikut lalu balas HANYA dengan JSON murni (tanpa markdown, tanpa backtick, tanpa penjelasan):
 {
@@ -125,108 +63,102 @@ Panduan memilih wallet:
 - kategori_custom: WAJIB diisi jika kategori = "Lainnya". Tulis nama jenis pengeluaran/pemasukan saja, singkat 2-4 kata, tanpa nama toko (contoh: "Perawatan Gigi", "Servis Motor", "Iuran Sekolah", "Obat-obatan", "Biaya Pengiriman"). Jika kategori bukan "Lainnya", isi string kosong "".
 - Balas HANYA JSON, tidak ada teks lain sama sekali`;
 
-    // ----------------------------------------------------
-    // JALUR 1: MENCOBA OPENROUTER TERLEBIH DAHULU
-    // ----------------------------------------------------
-    if (openrouterKey) {
-      for (const model of VISION_MODELS) {
-        console.log(`Mencoba model OpenRouter: ${model}`);
-        try {
-          const { status, data } = await callOpenRouter(openrouterKey, model, imageBase64, mimeType, prompt);
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': Bearer ${apiKey},
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://vercel.app',
+      'X-Title': 'Finance App Scan Nota'
+    },
+    body: JSON.stringify({
+      model,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'text', text: prompt },
+          { type: 'image_url', image_url: { url: data:${mimeType};base64,${imageBase64} } }
+        ]
+      }],
+      temperature: 0.1,
+      max_tokens: 400
+    })
+  });
 
-          if (status === 429 || status === 404 || status === 503) {
-            lastError = `OpenRouter (${model}): ${data?.error?.message || status}`;
-            continue;
-          }
+  return { status: response.status, data: await response.json() };
+}
 
-          if (status !== 200) {
-            lastError = `OpenRouter (${model}) HTTP ${status}: ${data?.error?.message}`;
-            continue;
-          }
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-          const rawText = data?.choices?.[0]?.message?.content || '';
-          if (!rawText) { lastError = `OpenRouter (${model}): respons kosong`; continue; }
+  try {
+    const { imageBase64, mimeType } = req.body;
+    if (!imageBase64) return res.status(400).json({ error: 'imageBase64 tidak ada di request' });
 
-          // Proses & Normalisasi JSON (Gunakan fungsi pembersih Anda)
-          const hasil = parsingDanValidasiJSON(rawText);
-          if (hasil) {
-            console.log(`Berhasil dengan OpenRouter: ${model}`, hasil);
-            return res.status(200).json({ hasil, model_used: model, provider: 'OpenRouter' });
-          } else {
-            lastError = `OpenRouter (${model}): Gagal validasi struktur JSON`;
-          }
+    const apiKey = process.env.OPENROUTER_API_KEY;
+    if (!apiKey) return res.status(500).json({ error: 'OPENROUTER_API_KEY belum di-set di Vercel Environment Variables' });
 
-        } catch (err) {
-          lastError = `OpenRouter (${model}) Exception: ${err.message}`;
+    let lastError = '';
+
+    for (const model of VISION_MODELS) {
+      console.log(Mencoba model: ${model});
+      try {
+        const { status, data } = await callOpenRouter(apiKey, model, imageBase64, mimeType);
+
+        if (status === 429 || status === 404 || status === 503) {
+          const reason = data?.error?.message || HTTP ${status};
+          console.warn(Model ${model} gagal (${reason}), coba model berikutnya...);
+          lastError = ${model}: ${reason};
           continue;
         }
-      }
-    } else {
-      lastError = 'OPENROUTER_API_KEY tidak di-set. ';
-    }
 
-    // ----------------------------------------------------
-    // JALUR 2: CADANGAN UTAMA MENGGUNAKAN GROQ VISION
-    // ----------------------------------------------------
-    if (groqKey) {
-      console.log('Semua OpenRouter gagal/tidak ada key. Beralih ke Groq...');
-      try {
-        const { status, data } = await callGroq(groqKey, imageBase64, mimeType, prompt);
-
-        if (status === 200) {
-          const rawText = data?.choices?.[0]?.message?.content || '';
-          const hasil = parsingDanValidasiJSON(rawText);
-          if (hasil) {
-            console.log('Berhasil dengan Groq (Backup Vision)', hasil);
-            return res.status(200).json({ hasil, model_used: 'llama-3.2-11b-vision-preview', provider: 'Groq' });
-          } else {
-            lastError += ' | Groq: Gagal validasi struktur JSON';
-          }
-        } else {
-          lastError += ` | Groq HTTP ${status}: ${data?.error?.message || 'Error'}`;
+        if (status !== 200) {
+          const reason = data?.error?.message || HTTP ${status};
+          return res.status(500).json({ error: API error: ${reason} });
         }
+
+        const rawText = data?.choices?.[0]?.message?.content || '';
+        if (!rawText) { lastError = ${model}: respons kosong; continue; }
+
+        const cleaned = rawText.replace(/json|/g, '').trim();
+        const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) { lastError = ${model}: format tidak valid; continue; }
+
+        const hasil = JSON.parse(jsonMatch[0]);
+        if (!hasil.nominal && !hasil.keterangan) { lastError = ${model}: data tidak terbaca; continue; }
+
+        // Validasi & normalisasi nilai-nilai yang dikembalikan
+        const validTypes    = ['expense', 'income'];
+        const validWallets  = ['Tunai', 'Muamalat', 'BSI', 'Bank Jago', 'SeaBank', 'Blu', 'e-Wallet'];
+        const validExpCats  = ['Bensin','Body care','Dating','Ganti Oli','Infak','Jajan','Jalan-jalan','Makan dan Minum','Make up','Ngasih Ortu','Ngopi','Ojek','Parkir','Kuota/Wifi','Sabun Muka','Shopping','Skincare','Staycation','Sunscreen','Tabungan','Lainnya'];
+        const validIncCats  = ['Gaji / Upah','Hasil Usaha / Bisnis','Bonus / THR','Pemberian / Uang Saku','Pencairan Investasi','Lainnya'];
+
+        if (!validTypes.includes(hasil.type))   hasil.type   = 'expense';
+        if (!validWallets.includes(hasil.wallet)) hasil.wallet = 'Tunai';
+
+        const validCats = hasil.type === 'income' ? validIncCats : validExpCats;
+        if (!validCats.includes(hasil.kategori)) hasil.kategori = 'Lainnya';
+
+        console.log(Berhasil dengan model: ${model}, hasil);
+        return res.status(200).json({ hasil, model_used: model });
+
       } catch (err) {
-        lastError += ` | Groq Exception: ${err.message}`;
+        lastError = ${model}: ${err.message};
+        console.error(Error pada model ${model}:, err.message);
+        continue;
       }
-    } else {
-      lastError += ' | GROQ_API_KEY tidak di-set.';
     }
 
-    // JIKA KEDUANYA GAGAL TOTAL
     return res.status(503).json({
-      error: `Semua model AI Vision sedang tidak tersedia. Detail kesalahan terakhir: ${lastError}`
+      error: Semua model AI sedang tidak tersedia. Coba lagi dalam beberapa menit. Detail: ${lastError}
     });
 
   } catch (err) {
     console.error('Handler error:', err);
     return res.status(500).json({ error: err.message || 'Internal server error' });
-  }
-}
-
-// Fungsi bantu untuk memisahkan logika parsing agar kode di atas bersih & tidak berulang
-function parsingDanValidasiJSON(rawText) {
-  try {
-    const cleaned = rawText.replace(/```json|```/g, '').trim();
-    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return null;
-
-    const hasil = JSON.parse(jsonMatch[0]);
-    if (!hasil.nominal && !hasil.keterangan) return null;
-
-    // Filter validasi bawaan Anda
-    const validTypes    = ['expense', 'income'];
-    const validWallets  = ['Tunai', 'Muamalat', 'BSI', 'Bank Jago', 'SeaBank', 'Blu', 'e-Wallet'];
-    const validExpCats  = ['Bensin','Body care','Dating','Ganti Oli','Infak','Jajan','Jalan-jalan','Makan dan Minum','Make up','Ngasih Ortu','Ngopi','Ojek','Parkir','Kuota/Wifi','Sabun Muka','Shopping','Skincare','Staycation','Sunscreen','Tabungan','Lainnya'];
-    const validIncCats  = ['Gaji / Upah','Hasil Usaha / Bisnis','Bonus / THR','Pemberian / Uang Saku','Pencairan Investasi','Lainnya'];
-
-    if (!validTypes.includes(hasil.type))   hasil.type   = 'expense';
-    if (!validWallets.includes(hasil.wallet)) hasil.wallet = 'Tunai';
-
-    const validCats = hasil.type === 'income' ? validIncCats : validExpCats;
-    if (!validCats.includes(hasil.kategori)) hasil.kategori = 'Lainnya';
-
-    return hasil;
-  } catch (e) {
-    return null;
   }
 }
