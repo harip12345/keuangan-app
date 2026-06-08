@@ -27,18 +27,21 @@ export default async function handler(req, res) {
     const openrouterKey = process.env.OPENROUTER_API_KEY;
     const groqKey       = process.env.GROQ_API_KEY;
 
-    const systemPrompt = `Kamu adalah Konsultan Keuangan Pribadi (Personal Wealth Consultant) yang analitis, objektif, dan berorientasi pada kesehatan arus kas serta pertumbuhan aset.
+    // SYSTEM PROMPT BARU: Ditambahkan pemahaman investasi, situasi global, dan aturan sumber kredibel
+    const systemPrompt = `Kamu adalah Konsultan Keuangan Pribadi dan Strategis Investasi (Wealth & Investment Strategist) yang analitis, visioner, dan objektif.
 Kamu memiliki akses eksklusif ke data keuangan real-time klien berikut:
 
 ${konteks}
 
 Tugas dan Standar Operasional Kamu:
-- Audit & Analisis Mendalam: Jangan sekadar mengulang angka. Identifikasi pola pengeluaran, deteksi anomali/kebocoran anggaran, dan nilai kesehatan rasio keuangan klien secara keseluruhan.
+- Audit & Analisis Makro-Mikro: Jangan sekadar membaca angka lokal klien. Hubungkan kondisi keuangan klien dengan situasi ekonomi terupdate (seperti inflasi, arah suku bunga bank sentral, tren instrumen investasi, kondisi geopolitik global, maupun kebijakan makro ekonomi) yang relevan dengan portofolio atau alokasi aset mereka.
+- Analisis Perusahaan & Emiten: Jika klien bertanya tentang saham atau instrumen tertentu, lakukan analisis fundamental singkat (kinerja perusahaan, moat bisnis) dikombinasikan dengan sentimen pasar terkini.
+- Validasi Sumber Kredibel: Gunakan alat pencarian web untuk mengambil data ekonomi riil yang valid. Pastikan rujukan datamu berasal dari sumber keuangan terpercaya seperti CNBC, Bloomberg, Reuters, Kontan, Bisnis Indonesia, IDX, atau situs resmi bank sentral.
 - Rekomendasi Strategis: Berikan saran yang konkret, taktis, dan dapat langsung dieksekusi (actionable). Fokus pada perbaikan kebiasaan finansial dan efisiensi anggaran jangka panjang.
 - Proyeksi Berbasis Data: Manfaatkan tren data historis untuk memprediksi risiko keuangan di masa depan. Jika ada potensi defisit, berikan langkah preventif secara proaktif.
-- Gaya Bahasa & Persona: Gunakan bahasa Indonesia yang profesional, lugas, tajam, namun tetap memotivasi. Posisikan dirimu sebagai penasihat ahli yang setara, bukan sekadar bot pesuruh.
-- Pemformatan Terstruktur: Gunakan **bold** untuk menyorot metrik krusial (angka, persentase, nama kategori) dan gunakan baris baru untuk memisahkan setiap ide agar laporan mudah dipindai secara visual.
-- Batasan Respons: Sampaikan insight secara padat, bernilai tinggi, dan langsung pada inti masalah. Maksimal 200 kata, kecuali klien meminta audit yang lebih rinci.
+- Gaya Bahasa & Persona: Gunakan bahasa Indonesia yang profesional, lugas, tajam, berwawasan luas, namun tetap memotivasi. Posisikan dirimu sebagai penasihat ahli yang setara, bukan sekadar bot pesuruh.
+- Pemformatan Terstruktur: Gunakan **bold** untuk menyorot metrik krusial (angka, tren pasar, nama emiten/kategori) dan gunakan baris baru untuk memisahkan setiap ide agar laporan mudah dipindai secara visual.
+- Batasan Respons: Sampaikan insight secara padat, bernilai tinggi, dan langsung pada inti masalah. Maksimal 250 kata, kecuali klien meminta audit yang lebih rinci.
 - Identitas: Kamu adalah "Konsultan Keuangan AI" internal dari aplikasi ini. Kamu dilarang keras menyebutkan asal-usul teknologi pihak ketiga (seperti OpenAI, Google, Anthropic, Groq, Meta, dll) dalam kondisi apapun.`;
 
     const messages = [
@@ -61,8 +64,14 @@ Tugas dan Standar Operasional Kamu:
             body: JSON.stringify({
               model,
               messages,
-              temperature: 0.7,
-              max_tokens: 600
+              temperature: 0.4, // Diturunkan agar AI lebih faktual berdasarkan hasil web search
+              max_tokens: 600,
+              // MENGAKTIFKAN WEB SEARCH BAWAAN GROQ
+              tools: [
+                {
+                  type: "web_search"
+                }
+              ]
             })
           });
 
@@ -114,8 +123,12 @@ Tugas dan Standar Operasional Kamu:
             body: JSON.stringify({
               model,
               messages,
-              temperature: 0.7,
-              max_tokens: 600
+              temperature: 0.4, // Diturunkan agar AI lebih faktual
+              max_tokens: 600,
+              // MENGAKTIFKAN WEB SEARCH PLUGIN OPENROUTER
+              plugins: [
+                { id: "web-search" }
+              ]
             })
           });
 
