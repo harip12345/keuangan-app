@@ -4891,10 +4891,18 @@
             var pct  = function(a,b){ return b?(a/b*100).toFixed(1)+'%':'0%'; };
             var prof = profiles.find(function(p){ return p.id === currentProfileId; });
 
-            // Parse semua transaksi
+            // Parse semua transaksi — KECUALIKAN transfer/mutasi antar rekening
             var allTrx = transactions.map(function(t){
                 return { t:t, d:parseTrxDate(t.date) };
-            }).filter(function(x){ return x.d !== null; });
+            }).filter(function(x){
+                if (x.d === null) return false;
+                // Exclude transaksi transfer/mutasi antar rekening
+                var t = x.t;
+                if (t.type === 'transfer') return false;
+                if (t.category === 'Transfer Mutasi') return false;
+                if (t.category === 'transfer') return false;
+                return true;
+            });
 
             // Group transaksi per bulan (key: "YYYY-MM")
             var trxPerBulan = {};
