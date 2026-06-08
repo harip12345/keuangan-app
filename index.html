@@ -728,6 +728,7 @@
         .riwayat-search:focus { border-color: var(--primary); }
         .riwayat-count {
             font-size: 0.7rem; color: var(--text-muted);
+            display: flex; justify-content: space-between; align-items: center;
             padding: 0.35rem 1rem 0.45rem; flex-shrink: 0;
         }
         /* Body scroll — mengisi sisa tinggi */
@@ -3325,7 +3326,22 @@
             
             const repIncEl = document.getElementById('reportTotalIncome'); if(repIncEl) repIncEl.innerText = formatRupiah(totalInc); 
             const repExpEl = document.getElementById('reportTotalExpense'); if(repExpEl) { let pctBeban = totalInc > 0 ? ((totalExp / totalInc) * 100).toFixed(1) : (totalExp > 0 ? 100 : 0); repExpEl.innerHTML = `${formatRupiah(totalExp)} <span style="font-size:0.8rem; font-weight:700; color:var(--expense); margin-left:4px;">(${pctBeban}%)</span>`; }
-            const netProfit = totalInc - totalExp; const repNetEl = document.getElementById('reportNetProfit'); if(repNetEl) { repNetEl.innerText = formatRupiah(netProfit); }
+            // Hitung alokasi periode yang sama: goal deposit + investasi baru
+            const allSavPeriod = getFiltered(savings);
+            const goalDepPeriod = allSavPeriod.filter(s => s.type === 'goal_deposit').reduce((a,b) => a+b.amount, 0);
+            const invPeriod     = allSavPeriod.filter(s => s.type === 'investment').reduce((a,b) => a+b.amount, 0);
+            const savPeriod     = allSavPeriod.filter(s => s.type === 'savings' || !s.type).reduce((a,b) => a+b.amount, 0);
+            const totalAlokasi  = goalDepPeriod + invPeriod + savPeriod;
+            const netProfit = totalInc - totalExp - totalAlokasi;
+            const repNetEl = document.getElementById('reportNetProfit');
+            if(repNetEl) {
+                repNetEl.innerHTML = formatRupiah(netProfit) +
+                    (totalAlokasi > 0
+                        ? `<span style="display:block;font-size:0.72rem;color:var(--text-muted);font-weight:500;margin-top:2px;">` +
+                          `Setelah alokasi tabungan+goal+investasi ${formatRupiah(totalAlokasi)}</span>`
+                        : '');
+                repNetEl.style.color = netProfit >= 0 ? 'var(--income)' : 'var(--expense)';
+            }
             const dateNeraca = document.getElementById('reportDateNeraca'); 
             if(dateNeraca) {
                 if(!globalStartDate && !globalEndDate) dateNeraca.innerText = "Periode: Keseluruhan";
@@ -3340,18 +3356,36 @@
             const totalAset = savAmt + invAmt + tanAmt + goalDepositAmtLap; 
             const pctSav = totalAset > 0 ? ((savAmt / totalAset) * 100).toFixed(1) : 0; const pctInv = totalAset > 0 ? ((invAmt / totalAset) * 100).toFixed(1) : 0; const pctTan = totalAset > 0 ? ((tanAmt / totalAset) * 100).toFixed(1) : 0; const pctGoal = totalAset > 0 ? ((goalDepositAmtLap / totalAset) * 100).toFixed(1) : 0;
 
-            const repTEl = document.getElementById('repTabungan'); if(repTEl) repTEl.innerHTML = `${formatRupiah(savAmt)} <span style="font-size:0.7rem; color:var(--text-muted); font-weight:600; margin-left:4px;">(${pctSav}%)</span>`; 
-            const repIEl = document.getElementById('repInvestasi'); if(repIEl) repIEl.innerHTML = `${formatRupiah(invAmt)} <span style="font-size:0.7rem; color:var(--text-muted); font-weight:600; margin-left:4px;">(${pctInv}%)</span>`; 
-            const repBEl = document.getElementById('repBerwujud'); if(repBEl) repBEl.innerHTML = `${formatRupiah(tanAmt)} <span style="font-size:0.7rem; color:var(--text-muted); font-weight:600; margin-left:4px;">(${pctTan}%)</span>`; 
-            // Tabungan Bersama Goals — tampilkan per nama goal jika ada
-            const repGEl = document.getElementById('repTabunganGoal');
-            if(repGEl) {
-                const goalNames = Object.entries(goalDepositByName);
-                const tooltip = goalNames.length > 0 ? goalNames.map(([n,v]) => `${n}: ${formatRupiah(v)}`).join(' · ') : '';
-                repGEl.innerHTML = `${formatRupiah(goalDepositAmtLap)} <span style="font-size:0.7rem; color:var(--text-muted); font-weight:600; margin-left:4px;">(${pctGoal}%)</span>${tooltip ? `<br><span style="font-size:0.65rem;color:var(--text-muted);">${tooltip}</span>` : ''}`;
+            // Sort neraca berdasarkan nominal terbesar
+            const neracaItems = [
+                { id:'repTabungan',     label:'Kas & Tabungan',    amt:savAmt,           pct:pctSav,  extra:'' },
+                { id:'repInvestasi',    label:'Investasi',         amt:invAmt,           pct:pctInv,  extra:'' },
+                { id:'repBerwujud',     label:'Aset Berwujud',     amt:tanAmt,           pct:pctTan,  extra:'' },
+                { id:'repTabunganGoal', label:'Tabungan Goal',     amt:goalDepositAmtLap,pct:pctGoal, extra:
+                    Object.entries(goalDepositByName).length > 0
+                    ? '<br><span style="font-size:.65rem;color:var(--text-muted);">' +
+                      Object.entries(goalDepositByName).sort((a,b)=>b[1]-a[1]).map(([n,v])=>`${n}: ${formatRupiah(v)}`).join(' · ') +
+                      '</span>' : ''
+                },
+            ].sort((a,b) => b.amt - a.amt);
+
+            neracaItems.forEach(item => {
+                const el = document.getElementById(item.id);
+                if(el) el.innerHTML = `${formatRupiah(item.amt)} <span style="font-size:.7rem;color:var(--text-muted);font-weight:600;margin-left:4px;">(${item.pct}%)</span>${item.extra}`;
+            });
+
+            // Render baris neraca dalam urutan terbesar
+            const neracaBody = document.getElementById('neracaAsetBody');
+            if(neracaBody) {
+                neracaBody.innerHTML = neracaItems.map(item =>
+                    `<tr><td style="padding-left:1.5rem">• ${item.label}</td>` +
+                    `<td class="text-right">${formatRupiah(item.amt)} ` +
+                    `<span style="font-size:.7rem;color:var(--text-muted);font-weight:600;">(${item.pct}%)</span>${item.extra}</td></tr>`
+                ).join('');
             }
-            const repTAEl = document.getElementById('repTotalAset'); if(repTAEl) repTAEl.innerText = formatRupiah(totalAset); 
-            const repEKEl = document.getElementById('repEkuitas'); if(repEKEl) repEKEl.innerText = formatRupiah(totalAset); 
+
+            const repTAEl = document.getElementById('repTotalAset'); if(repTAEl) repTAEl.innerText = formatRupiah(totalAset);
+            const repEKEl = document.getElementById('repEkuitas'); if(repEKEl) repEKEl.innerText = formatRupiah(totalAset);
             const repTPEl = document.getElementById('repTotalPasiva'); if(repTPEl) repTPEl.innerText = formatRupiah(totalAset); 
         };
 
@@ -4510,7 +4544,10 @@
             const catFilter   = document.getElementById('riwayatTrxKategori')?.value || '';
             const searchQuery = (document.getElementById('riwayatTrxSearch')?.value || '').toLowerCase().trim();
 
-            let filtered = [...transactions];
+            // Gunakan filter periode yang sama dengan aplikasi
+            const baseTrx = getFiltered(transactions);
+
+            let filtered = [...baseTrx];
             if(typeFilter)  filtered = filtered.filter(t => t.type === typeFilter);
             if(catFilter)   filtered = filtered.filter(t => t.category === catFilter);
             if(searchQuery) filtered = filtered.filter(t =>
@@ -4519,8 +4556,20 @@
                 (t.wallet||'').toLowerCase().includes(searchQuery)
             );
 
+            // Hitung total nominal filtered
+            const totalNominal = filtered.reduce((a,t) => {
+                if(t.type === 'income') return a + t.amount;
+                if(t.type === 'expense') return a - t.amount;
+                return a;
+            }, 0);
+            const nominalStr = totalNominal >= 0
+                ? `+${formatRupiah(totalNominal)}`
+                : `-${formatRupiah(Math.abs(totalNominal))}`;
+
             const countEl = document.getElementById('riwayatTrxCount');
-            if(countEl) countEl.innerText = `Menampilkan ${filtered.length} dari ${transactions.length} transaksi`;
+            if(countEl) countEl.innerHTML =
+                `<span>Menampilkan <strong>${filtered.length}</strong> dari ${baseTrx.length} transaksi</span>` +
+                (filtered.length > 0 ? `<span style="font-weight:700;color:${totalNominal>=0?'var(--income)':'var(--expense)'};">${nominalStr}</span>` : '');
 
             const listEl = document.getElementById('riwayatTrxList');
             if(!listEl) return;
@@ -4549,8 +4598,9 @@
             const typeFilter  = document.getElementById('riwayatAsetType')?.value || '';
             const searchQuery = (document.getElementById('riwayatAsetSearch')?.value || '').toLowerCase().trim();
 
-            // Hanya tampilkan aset milik sendiri (bukan goal_deposit)
-            let filtered = savings.filter(s => s.type !== 'goal_deposit');
+            // Hanya tampilkan aset milik sendiri (bukan goal_deposit), filter periode
+            const baseSav = getFiltered(savings).filter(s => s.type !== 'goal_deposit');
+            let filtered = [...baseSav];
             if(typeFilter)  filtered = filtered.filter(s => s.type === typeFilter || (!s.type && typeFilter === 'savings'));
             if(searchQuery) filtered = filtered.filter(s =>
                 (s.name||'').toLowerCase().includes(searchQuery) ||
@@ -4559,9 +4609,11 @@
 
             const typeLabel = { savings:'Kas & Tabungan', investment:'Investasi', tangible:'Aset Fisik' };
 
+            const totalNominalAset = filtered.reduce((a,s) => a + s.amount, 0);
             const countEl = document.getElementById('riwayatAsetCount');
-            const totalFiltered = savings.filter(s => s.type !== 'goal_deposit').length;
-            if(countEl) countEl.innerText = `Menampilkan ${filtered.length} dari ${totalFiltered} data aset`;
+            if(countEl) countEl.innerHTML =
+                `<span>Menampilkan <strong>${filtered.length}</strong> dari ${baseSav.length} data aset</span>` +
+                (filtered.length > 0 ? `<span style="font-weight:700;color:var(--income);">${formatRupiah(totalNominalAset)}</span>` : '');
 
             const listEl = document.getElementById('riwayatAsetList');
             if(!listEl) return;
