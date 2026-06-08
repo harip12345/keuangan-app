@@ -4865,218 +4865,156 @@
             return null;
         }
 
-        // ── Kumpulkan data lengkap untuk konteks AI ───────────────────────────
+        // ── Kumpulkan data lengkap untuk konteks AI ─────────────────────────────
         function buatRingkasanKeuangan() {
             var now  = new Date();
-            var rp   = function(n){ return 'Rp' + Math.abs(Math.round(n)).toLocaleString('id-ID'); };
-            var pct  = function(a, b){ return b ? (a/b*100).toFixed(1)+'%' : '0%'; };
+            var rp   = function(n){ return 'Rp'+Math.abs(Math.round(n)).toLocaleString('id-ID'); };
+            var pct  = function(a,b){ return b?(a/b*100).toFixed(1)+'%':'0%'; };
             var prof = profiles.find(function(p){ return p.id === currentProfileId; });
 
-            // ── Parse semua transaksi ─────────────────────────────────────────
+            // Parse semua transaksi
             var allTrx = transactions.map(function(t){
                 return { t:t, d:parseTrxDate(t.date) };
             }).filter(function(x){ return x.d !== null; });
 
-            function trxBulan(bln, thn) {
-                return allTrx.filter(function(x){
-                    return x.d.getMonth()===bln && x.d.getFullYear()===thn;
-                });
-            }
-
-            var bi = now.getMonth(), ti = now.getFullYear();
-            var trxBi = trxBulan(bi, ti);
-
-            // ── 1. RINGKASAN BULAN INI ───────────────────────────────────────
-            var inc=0, exp=0, katInc={}, katExp={};
-            trxBi.forEach(function(x){
-                var t = x.t;
-                if (t.type==='income'){
-                    inc += t.amount;
-                    katInc[t.category]=(katInc[t.category]||0)+t.amount;
-                } else if (t.type==='expense'){
-                    exp += t.amount;
-                    katExp[t.category]=(katExp[t.category]||0)+t.amount;
-                }
-            });
-            var surplus = inc - exp;
-            var rasioTabungan = inc > 0 ? (surplus/inc*100).toFixed(1) : 0;
-
-            // ── 2. DETAIL PER TANGGAL bulan ini ─────────────────────────────
-            var perTgl = {};
-            trxBi.forEach(function(x){
-                var key = x.d.getDate() + '/' + (x.d.getMonth()+1);
-                if (!perTgl[key]) perTgl[key] = [];
-                perTgl[key].push(
-                    (x.t.type==='expense'?'-':'+') + rp(x.t.amount) +
-                    ' ' + (x.t.category||'-') +
-                    (x.t.note ? ' "'+x.t.note+'"' : '')
-                );
-            });
-            var detailTgl = Object.entries(perTgl)
-                .sort(function(a,b){ return parseInt(a[0])-parseInt(b[0]); })
-                .map(function(e){ return e[0]+': '+e[1].join(', '); })
-                .join('\n  ');
-
-            // ── 3. SUMBER PEMASUKAN (semua waktu + bulan ini) ────────────────
-            var sumberInc = {};
+            // Group transaksi per bulan (key: "YYYY-MM")
+            var trxPerBulan = {};
             allTrx.forEach(function(x){
-                if (x.t.type==='income'){
-                    sumberInc[x.t.category]=(sumberInc[x.t.category]||0)+x.t.amount;
-                }
+                var key = x.d.getFullYear()+'-'+String(x.d.getMonth()+1).padStart(2,'0');
+                if (!trxPerBulan[key]) trxPerBulan[key] = [];
+                trxPerBulan[key].push(x);
             });
-            var sumberLines = Object.entries(sumberInc)
-                .sort(function(a,b){return b[1]-a[1];})
-                .map(function(e){ return e[0]+': '+rp(e[1]); })
-                .join(', ');
+            var sortedBulan = Object.keys(trxPerBulan).sort();
 
-            // ── 4. TREN 6 BULAN (inc vs exp + tabungan rate) ─────────────────
-            var tren = [];
-            for (var i=5; i>=0; i--) {
-                var d  = new Date(ti, bi-i, 1);
-                var tb = trxBulan(d.getMonth(), d.getFullYear());
-                var ti2=0, te2=0;
-                tb.forEach(function(x){
-                    if (x.t.type==='income') ti2+=x.t.amount;
-                    else if (x.t.type==='expense') te2+=x.t.amount;
-                });
-                var rate = ti2>0 ? ((ti2-te2)/ti2*100).toFixed(0) : 0;
-                var nm = d.toLocaleString('id-ID',{month:'short',year:'2-digit'});
-                tren.push(nm+': masuk '+rp(ti2)+', keluar '+rp(te2)+', saving rate '+rate+'%, '+tb.length+' trx');
-            }
+            // Bulan ini
+            var bi = now.getMonth(), ti = now.getFullYear();
+            var bulanIniKey = ti+'-'+String(bi+1).padStart(2,'0');
+            var trxBi = trxPerBulan[bulanIniKey] || [];
 
-            // ── 5. KATEGORI PENGELUARAN RINCI bulan ini ─────────────────────
-            var katExpSorted = Object.entries(katExp)
-                .sort(function(a,b){return b[1]-a[1];})
-                .map(function(e){
-                    return e[0]+': '+rp(e[1])+' ('+pct(e[1],exp)+' dari pengeluaran)';
-                });
-
-            // Bandingkan dengan bulan lalu
-            var trxBl = trxBulan(bi===0?11:bi-1, bi===0?ti-1:ti);
-            var expBl = 0, katExpBl = {};
-            trxBl.forEach(function(x){
-                if (x.t.type==='expense'){
-                    expBl += x.t.amount;
-                    katExpBl[x.t.category]=(katExpBl[x.t.category]||0)+x.t.amount;
-                }
+            // Ringkasan bulan ini
+            var incBi=0, expBi=0;
+            trxBi.forEach(function(x){
+                if (x.t.type==='income') incBi+=x.t.amount;
+                else if (x.t.type==='expense') expBi+=x.t.amount;
             });
-            var katTren = katExpSorted.map(function(line){
-                var cat = line.split(':')[0];
-                var prev = katExpBl[cat] || 0;
-                var curr = katExp[cat] || 0;
-                if (prev > 0) {
-                    var delta = ((curr-prev)/prev*100).toFixed(0);
-                    return line + (delta>0?' ↑'+delta+'% vs bln lalu':' ↓'+Math.abs(delta)+'% vs bln lalu');
-                }
-                return line + ' (baru)';
-            });
+            var surplus = incBi - expBi;
+            var savingRate = incBi>0?(surplus/incBi*100).toFixed(1):0;
 
-            // ── 6. SALDO PER REKENING (data real-time) ───────────────────────
+            // Saldo per rekening
             var rekLines = Object.entries(walletBalances)
-                .filter(function(e){ return e[1] !== 0; })
-                .sort(function(a,b){return b[1]-a[1];})
+                .filter(function(e){ return e[1]!==0; })
+                .sort(function(a,b){ return b[1]-a[1]; })
                 .map(function(e){
-                    var status = e[1] < 0 ? ' ⚠️ DEFISIT/HUTANG' : '';
-                    return e[0]+': '+rp(e[1])+(e[1]<0?' (minus)':'')+status;
+                    return e[0]+': '+rp(e[1])+(e[1]<0?' ⚠️MINUS':'');
                 });
-
-            // Rekening minus = indikator hutang/kredit
             var rekMinus = Object.entries(walletBalances)
-                .filter(function(e){ return e[1] < 0; })
+                .filter(function(e){ return e[1]<0; })
                 .map(function(e){ return e[0]+': '+rp(e[1]); });
 
-            // ── 7. ASET & TABUNGAN (savings array) ───────────────────────────
-            var asetSav = savings.filter(function(s){ return s.type !== 'goal_deposit'; });
-            var totalTabungan   = asetSav.filter(function(s){ return s.type==='savings'||!s.type; }).reduce(function(a,s){return a+s.amount;},0);
-            var totalInvestasi  = asetSav.filter(function(s){ return s.type==='investment'; }).reduce(function(a,s){return a+s.amount;},0);
-            var totalAsetFisik  = asetSav.filter(function(s){ return s.type==='tangible'; }).reduce(function(a,s){return a+s.amount;},0);
-            var totalKekayaan   = totalTabungan + totalInvestasi + totalAsetFisik;
-            var asetDetail = asetSav.slice(0,10).map(function(s){
-                return (s.name||'-')+' ('+( s.type==='investment'?'Investasi':s.type==='tangible'?'Aset Fisik':'Tabungan')+'): '+rp(s.amount);
-            });
-
-            // ── 8. GOALS / TARGET KEUANGAN ───────────────────────────────────
-            var goalLines = goals.map(function(g){
-                var saved  = g.saved  || 0;
-                var target = g.target || 1;
-                var persen = (saved/target*100).toFixed(0);
-                var sisa   = target - saved;
-                return g.name+': '+rp(saved)+'/'+rp(target)+' ('+persen+'%) — sisa '+rp(sisa);
-            });
-
-            // ── 9. RASIO KESEHATAN KEUANGAN ──────────────────────────────────
+            // Aset & tabungan
+            var asetSav = savings.filter(function(s){ return s.type!=='goal_deposit'; });
+            var totalTab = asetSav.filter(function(s){ return s.type==='savings'||!s.type; }).reduce(function(a,s){return a+s.amount;},0);
+            var totalInv = asetSav.filter(function(s){ return s.type==='investment'; }).reduce(function(a,s){return a+s.amount;},0);
+            var totalFis = asetSav.filter(function(s){ return s.type==='tangible'; }).reduce(function(a,s){return a+s.amount;},0);
             var totalKas = Object.values(walletBalances).reduce(function(a,b){return a+(b>0?b:0);},0);
-            var netWorth = totalKas + totalKekayaan;
-            var safeMonths = exp > 0 ? (totalKas/exp).toFixed(1) : '∞';
+            var netWorth = totalKas+totalTab+totalInv+totalFis;
+            var safeMonths = expBi>0?(totalKas/expBi).toFixed(1):'∞';
 
-            // ── 10. SEMUA BULAN YANG ADA DATA ────────────────────────────────
-            var bulanAda = {};
-            allTrx.forEach(function(x){
-                var key = x.d.getFullYear()+'-'+(x.d.getMonth()+1);
-                bulanAda[key] = (bulanAda[key]||0)+1;
+            // Goals
+            var goalLines = goals.map(function(g){
+                var saved=g.saved||0, target=g.target||1;
+                return g.name+': '+rp(saved)+'/'+rp(target)+' ('+(saved/target*100).toFixed(0)+'%) sisa '+rp(target-saved);
             });
-            var bulanList = Object.entries(bulanAda)
-                .sort(function(a,b){return a[0].localeCompare(b[0]);})
-                .map(function(e){
-                    var p=e[0].split('-');
-                    var d=new Date(parseInt(p[0]),parseInt(p[1])-1,1);
-                    return d.toLocaleString('id-ID',{month:'long',year:'numeric'})+'('+e[1]+' trx)';
-                }).join(', ');
+
+            // ── BREAKDOWN SEMUA BULAN (detail per tanggal, kategori, nominal) ──
+            var semuaBulanLines = [];
+            sortedBulan.forEach(function(key){
+                var trxList = trxPerBulan[key];
+                var p = key.split('-');
+                var d = new Date(parseInt(p[0]), parseInt(p[1])-1, 1);
+                var nmBulan = d.toLocaleString('id-ID',{month:'long',year:'numeric'});
+
+                var inc2=0, exp2=0, katInc2={}, katExp2={};
+                trxList.forEach(function(x){
+                    if (x.t.type==='income'){ inc2+=x.t.amount; katInc2[x.t.category]=(katInc2[x.t.category]||0)+x.t.amount; }
+                    else if (x.t.type==='expense'){ exp2+=x.t.amount; katExp2[x.t.category]=(katExp2[x.t.category]||0)+x.t.amount; }
+                });
+
+                // Header bulan
+                semuaBulanLines.push('');
+                semuaBulanLines.push('=== '+nmBulan.toUpperCase()+' ===');
+                semuaBulanLines.push('Pemasukan: '+rp(inc2)+'  Pengeluaran: '+rp(exp2)+'  Selisih: '+(inc2>=exp2?'+':'')+rp(inc2-exp2)+'  ('+trxList.length+' trx)');
+
+                // Breakdown kategori pemasukan bulan ini
+                var katIncList = Object.entries(katInc2).sort(function(a,b){return b[1]-a[1];});
+                if (katIncList.length) {
+                    semuaBulanLines.push('  [PEMASUKAN per kategori]');
+                    katIncList.forEach(function(e){
+                        semuaBulanLines.push('  + '+e[0]+': '+rp(e[1])+' ('+pct(e[1],inc2)+')');
+                    });
+                }
+
+                // Breakdown kategori pengeluaran bulan ini
+                var katExpList = Object.entries(katExp2).sort(function(a,b){return b[1]-a[1];});
+                if (katExpList.length) {
+                    semuaBulanLines.push('  [PENGELUARAN per kategori]');
+                    katExpList.forEach(function(e){
+                        semuaBulanLines.push('  - '+e[0]+': '+rp(e[1])+' ('+pct(e[1],exp2)+')');
+                    });
+                }
+
+                // Detail per tanggal (semua transaksi)
+                var perTgl2 = {};
+                trxList.forEach(function(x){
+                    var tglKey = String(x.d.getDate()).padStart(2,'0')+'/'+String(x.d.getMonth()+1).padStart(2,'0');
+                    if (!perTgl2[tglKey]) perTgl2[tglKey] = [];
+                    perTgl2[tglKey].push(
+                        (x.t.type==='income'?'  [+]':'  [-]')+
+                        ' '+rp(x.t.amount)+
+                        ' | '+(x.t.category||'-')+
+                        (x.t.wallet?' | '+x.t.wallet:'')+
+                        (x.t.note?' | "'+x.t.note+'"':'')
+                    );
+                });
+                semuaBulanLines.push('  [DETAIL PER TANGGAL]');
+                Object.keys(perTgl2).sort().forEach(function(tgl){
+                    semuaBulanLines.push('  '+tgl+':');
+                    perTgl2[tgl].forEach(function(l){ semuaBulanLines.push('    '+l); });
+                });
+            });
 
             var lines = [
                 '====== DATA KEUANGAN LENGKAP ======',
                 'Profil : '+(prof?prof.name:'User'),
-                'Diakses: '+now.toLocaleString('id-ID',{dateStyle:'full',timeStyle:'short'}),
+                'Waktu  : '+now.toLocaleString('id-ID',{dateStyle:'full',timeStyle:'short'}),
                 '',
-                '--- BULAN INI: '+now.toLocaleString('id-ID',{month:'long',year:'numeric'})+' ---',
-                'Pemasukan total : '+rp(inc),
-                'Pengeluaran total: '+rp(exp),
-                'Surplus/Defisit  : '+(surplus>=0?'+':'')+rp(surplus),
-                'Saving rate      : '+rasioTabungan+'%  '+(rasioTabungan>=20?'✓ Sehat':rasioTabungan>=10?'⚠ Cukup':'✗ Rendah'),
-                'Jumlah transaksi : '+trxBi.length,
+                '--- RINGKASAN BULAN INI ('+now.toLocaleString('id-ID',{month:'long',year:'numeric'})+') ---',
+                'Pemasukan : '+rp(incBi),
+                'Pengeluaran: '+rp(expBi),
+                'Surplus   : '+(surplus>=0?'+':'')+rp(surplus),
+                'Saving rate: '+savingRate+'% '+(savingRate>=20?'✓ Sehat':savingRate>=10?'⚠ Cukup':'✗ Rendah'),
                 '',
-                '--- SUMBER PEMASUKAN (semua waktu) ---',
-                sumberLines || '(tidak ada data)',
+                '--- SALDO PER REKENING ---',
+                rekLines.length?rekLines.join('\n  '):'(tidak ada)',
+                rekMinus.length?'⚠️ REKENING MINUS: '+rekMinus.join(', '):'✓ Tidak ada rekening minus',
                 '',
-                '--- PEMASUKAN BULAN INI PER KATEGORI ---',
-                Object.entries(katInc).length
-                    ? Object.entries(katInc).sort(function(a,b){return b[1]-a[1];}).map(function(e){return e[0]+': '+rp(e[1]);}).join('\n  ')
-                    : '(tidak ada pemasukan)',
-                '',
-                '--- PENGELUARAN BULAN INI PER KATEGORI (vs bulan lalu) ---',
-                katTren.length ? katTren.join('\n  ') : '(tidak ada pengeluaran)',
-                '',
-                '--- DETAIL TRANSAKSI PER TANGGAL BULAN INI ---',
-                detailTgl || '(tidak ada transaksi)',
-                '',
-                '--- SALDO PER REKENING (real-time) ---',
-                rekLines.length ? rekLines.join('\n  ') : '(tidak ada rekening)',
-                '',
-                rekMinus.length
-                    ? '⚠️ REKENING MINUS (indikator hutang/kredit kartu):\n  '+rekMinus.join('\n  ')
-                    : '✓ Tidak ada rekening minus/hutang terdeteksi',
-                '',
-                '--- ASET & TABUNGAN ---',
-                'Total Kas+Rekening: '+rp(totalKas),
-                'Total Tabungan    : '+rp(totalTabungan),
-                'Total Investasi   : '+rp(totalInvestasi),
-                'Total Aset Fisik  : '+rp(totalAsetFisik),
-                'NET WORTH estimasi: '+rp(netWorth),
-                'Dana darurat      : '+safeMonths+' bulan pengeluaran',
-                asetDetail.length ? 'Detail aset:\n  '+asetDetail.join('\n  ') : '',
+                '--- KEKAYAAN / NET WORTH ---',
+                'Total Kas       : '+rp(totalKas),
+                'Total Tabungan  : '+rp(totalTab),
+                'Total Investasi : '+rp(totalInv),
+                'Total Aset Fisik: '+rp(totalFis),
+                'NET WORTH       : '+rp(netWorth),
+                'Dana darurat    : '+safeMonths+' bulan pengeluaran',
                 '',
                 '--- TARGET / GOALS ---',
-                goalLines.length ? goalLines.join('\n  ') : '(tidak ada goals)',
+                goalLines.length?goalLines.join('\n  '):'(tidak ada goals)',
                 '',
-                '--- TREN 6 BULAN TERAKHIR ---',
-                tren.join('\n  '),
-                '',
-                '--- RIWAYAT BULAN YANG ADA DATA ---',
-                bulanList || '(tidak ada)',
-                '',
-                'TOTAL SEMUA TRANSAKSI: '+allTrx.length,
-                '====== AKHIR DATA ======'
-            ];
+                '--- BREAKDOWN LENGKAP SEMUA BULAN ---',
+                '(Mencakup '+sortedBulan.length+' bulan dengan data, total '+allTrx.length+' transaksi)',
+            ].concat(semuaBulanLines);
+
+            lines.push('');
+            lines.push('====== AKHIR DATA ======');
             return lines.join('\n');
         }
 
