@@ -1358,10 +1358,12 @@
                     </div>
                     <table class="report-table">
                         <tr><td colspan="2" style="font-size: 0.95rem;"><strong>ASET (HARTA)</strong></td></tr>
+                        <tbody id="neracaAsetBody">
                         <tr><td style="padding-left:1.5rem">• Kas & Tabungan Pribadi</td><td class="text-right" id="repTabungan">Rp 0</td></tr>
                         <tr><td style="padding-left:1.5rem">• Tabungan Bersama (Goals)</td><td class="text-right" id="repTabunganGoal">Rp 0</td></tr>
                         <tr><td style="padding-left:1.5rem">• Investasi</td><td class="text-right" id="repInvestasi">Rp 0</td></tr>
                         <tr><td style="padding-left:1.5rem">• Aset Fisik</td><td class="text-right" id="repBerwujud">Rp 0</td></tr>
+                        </tbody>
                         <tr class="report-row-main"><td>TOTAL ASET</td><td class="text-right" id="repTotalAset">Rp 0</td></tr>
                         
                         <tr><td colspan="2" style="border:none; padding:1.5rem 0;"></td></tr>
@@ -3335,11 +3337,7 @@
             const netProfit = totalInc - totalExp - totalAlokasi;
             const repNetEl = document.getElementById('reportNetProfit');
             if(repNetEl) {
-                repNetEl.innerHTML = formatRupiah(netProfit) +
-                    (totalAlokasi > 0
-                        ? `<span style="display:block;font-size:0.72rem;color:var(--text-muted);font-weight:500;margin-top:2px;">` +
-                          `Setelah alokasi tabungan+goal+investasi ${formatRupiah(totalAlokasi)}</span>`
-                        : '');
+                repNetEl.innerText = formatRupiah(netProfit);
                 repNetEl.style.color = netProfit >= 0 ? 'var(--income)' : 'var(--expense)';
             }
             const dateNeraca = document.getElementById('reportDateNeraca'); 
@@ -3358,10 +3356,10 @@
 
             // Sort neraca berdasarkan nominal terbesar
             const neracaItems = [
-                { id:'repTabungan',     label:'Kas & Tabungan',    amt:savAmt,           pct:pctSav,  extra:'' },
-                { id:'repInvestasi',    label:'Investasi',         amt:invAmt,           pct:pctInv,  extra:'' },
-                { id:'repBerwujud',     label:'Aset Berwujud',     amt:tanAmt,           pct:pctTan,  extra:'' },
-                { id:'repTabunganGoal', label:'Tabungan Goal',     amt:goalDepositAmtLap,pct:pctGoal, extra:
+                { id:'repTabungan',     label:'Kas & Tabungan Pribadi',   amt:savAmt,           pct:pctSav,  extra:'' },
+                { id:'repInvestasi',    label:'Investasi',                amt:invAmt,           pct:pctInv,  extra:'' },
+                { id:'repBerwujud',     label:'Aset Fisik',               amt:tanAmt,           pct:pctTan,  extra:'' },
+                { id:'repTabunganGoal', label:'Tabungan Bersama (Goals)', amt:goalDepositAmtLap,pct:pctGoal, extra:
                     Object.entries(goalDepositByName).length > 0
                     ? '<br><span style="font-size:.65rem;color:var(--text-muted);">' +
                       Object.entries(goalDepositByName).sort((a,b)=>b[1]-a[1]).map(([n,v])=>`${n}: ${formatRupiah(v)}`).join(' · ') +
@@ -3375,13 +3373,19 @@
             });
 
             // Render baris neraca dalam urutan terbesar
+            // Re-render baris aset dalam urutan terbesar (sort by amt)
             const neracaBody = document.getElementById('neracaAsetBody');
             if(neracaBody) {
                 neracaBody.innerHTML = neracaItems.map(item =>
                     `<tr><td style="padding-left:1.5rem">• ${item.label}</td>` +
                     `<td class="text-right">${formatRupiah(item.amt)} ` +
                     `<span style="font-size:.7rem;color:var(--text-muted);font-weight:600;">(${item.pct}%)</span>${item.extra}</td></tr>`
-                ).join('');
+                ).join('') +
+                // Tetap sediakan id elemen lama agar referensi lain tidak error
+                `<tr style="display:none">
+                    <td><span id="repTabungan"></span><span id="repInvestasi"></span>
+                    <span id="repBerwujud"></span><span id="repTabunganGoal"></span></td>
+                </tr>`;
             }
 
             const repTAEl = document.getElementById('repTotalAset'); if(repTAEl) repTAEl.innerText = formatRupiah(totalAset);
