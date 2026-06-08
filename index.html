@@ -501,8 +501,10 @@
         .nav-item.active { color: var(--primary); background: var(--primary-light); } 
         .nav-item svg { width: 24px; height: 24px; fill: currentColor; transition: transform 0.2s; }
 
-        .fab-btn { position: absolute; bottom: 90px; right: 20px; width: 56px; height: 56px; background: linear-gradient(135deg, var(--primary), #818CF8); color: white; border: none; border-radius: 50%; font-size: 2rem; font-weight: 300; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4); cursor: pointer; z-index: 20; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .fab-btn { position: absolute; bottom: 90px; right: 20px; width: 56px; height: 56px; background: linear-gradient(135deg, var(--primary), #818CF8); color: white; border: none; border-radius: 50%; font-size: 2rem; font-weight: 300; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4); cursor: pointer; z-index: 20; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s, opacity 0.25s; }
+        .fab-btn:hover { transform: scale(1.08); box-shadow: 0 8px 24px rgba(79,70,229,.5); }
         .fab-btn:active { transform: scale(0.9) rotate(45deg); }
+        .fab-hidden { opacity:0 !important; pointer-events:none !important; transform:scale(0.5) !important; }
 
         .modal-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 1000; display: flex; justify-content: center; align-items: flex-end; opacity: 0; visibility: hidden; transition: 0.3s ease; }
         .modal-overlay.show { opacity: 1; visibility: visible; }
@@ -797,7 +799,39 @@
         .ai-quick-btn { padding:5px 11px; border:1px solid var(--border); border-radius:20px; background:var(--card-bg); color:var(--text-secondary); font-size:0.72rem; cursor:pointer; white-space:nowrap; transition:all .2s; flex-shrink:0; }
         .ai-quick-btn:hover,.ai-quick-btn:active { background:var(--primary-light); color:var(--primary); border-color:var(--primary); }
         #quickPrompts::-webkit-scrollbar { display:none; }
-        #fabAiBtn:active { transform:scale(0.88); }
+        #fabAiBtn {
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s, opacity 0.25s;
+        }
+        #fabAiBtn:hover { transform: scale(1.08); box-shadow: 0 8px 24px rgba(99,102,241,.55) !important; }
+        #fabAiBtn:active { transform: scale(0.88) !important; }
+        /* Animasi masuk FAB */
+        @keyframes fabPop {
+            0%   { opacity:0; transform:scale(0.4); }
+            70%  { transform:scale(1.12); }
+            100% { opacity:1; transform:scale(1); }
+        }
+        .fab-btn      { animation: fabPop 0.4s cubic-bezier(0.175,0.885,0.32,1.275) both; }
+        #fabAiBtn     { animation: fabPop 0.4s cubic-bezier(0.175,0.885,0.32,1.275) 0.08s both; }
+        .fab-hidden   { opacity:0 !important; pointer-events:none !important; transform:scale(0.5) !important; animation:none !important; }
+        /* Label tooltip hover */
+        #fabAiBtn::before {
+            content: 'Asisten AI';
+            position: absolute;
+            right: 62px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,.7);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 4px 9px;
+            border-radius: 10px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity .18s;
+        }
+        #fabAiBtn:hover::before { opacity: 1; }
         /* Modal keyboard-aware: gunakan dvh agar keyboard tidak menutupi input */
         #aiModalDrawer { max-height:92dvh; max-height:92vh; }
         #aiChatMessages { overscroll-behavior:contain; }
@@ -1344,9 +1378,9 @@
 
         <!-- FAB Asisten AI -->
         <button id="fabAiBtn" title="Asisten AI Cerdas"
-            style="position:absolute;bottom:90px;left:20px;width:56px;height:56px;background:linear-gradient(135deg,#6366F1,#8B5CF6);color:white;border:none;border-radius:50%;display:flex;justify-content:center;align-items:center;box-shadow:0 4px 20px rgba(99,102,241,.5);cursor:pointer;z-index:20;transition:.3s cubic-bezier(.175,.885,.32,1.275);"
+            style="position:absolute;bottom:158px;right:20px;width:56px;height:56px;background:linear-gradient(135deg,#6366F1,#8B5CF6);color:white;border:none;border-radius:50%;display:flex;justify-content:center;align-items:center;box-shadow:0 4px 16px rgba(99,102,241,.45);cursor:pointer;z-index:20;"
             onclick="toggleAiModal()">
-            <svg viewBox="0 0 24 24" fill="white" width="26" height="26"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1v2h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2v-2h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2M7.5 13A2.5 2.5 0 0 0 5 15.5 2.5 2.5 0 0 0 7.5 18 2.5 2.5 0 0 0 10 15.5 2.5 2.5 0 0 0 7.5 13m9 0A2.5 2.5 0 0 0 14 15.5a2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5A2.5 2.5 0 0 0 16.5 13z"/></svg>
+            <svg viewBox="0 0 24 24" fill="white" width="22" height="22"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1v2h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2v-2h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2M7.5 13A2.5 2.5 0 0 0 5 15.5 2.5 2.5 0 0 0 7.5 18 2.5 2.5 0 0 0 10 15.5 2.5 2.5 0 0 0 7.5 13m9 0A2.5 2.5 0 0 0 14 15.5a2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5A2.5 2.5 0 0 0 16.5 13z"/></svg>
         </button>
 
         <div class="bottom-nav">
@@ -3118,9 +3152,9 @@
             if(viewName === 'laporan') renderLaporan();
             if(viewName === 'goals') renderGoals();
             // FAB tambah transaksi: tampil di semua halaman kecuali transaksi (ada form inline)
-            const fab = document.getElementById('fabAddBtn'); 
-            if(fab) fab.style.display = viewName === 'transaksi' ? 'none' : 'flex';
-            // FAB AI selalu tampil di semua halaman
+            // Kedua FAB tampil di semua halaman
+            const fab = document.getElementById('fabAddBtn');
+            if(fab) fab.style.display = 'flex';
             const fabAi = document.getElementById('fabAiBtn');
             if(fabAi) fabAi.style.display = 'flex';
         };
@@ -4862,27 +4896,72 @@
         }
 
         // ── Parse tanggal format app ke Date object ──────────────────────
+        // Format utama app: "D Mon YYYY" contoh: "5 Mei 2025", "25 Agt 2024"
+        // Sinkron persis dengan monthMap yang dipakai formatCustomDate & parseCustomDateToYMD
         function parseTrxDate(dateStr) {
             if (!dateStr) return null;
+            // Map bulan PERSIS sama dengan monthMap di app (indeks 0-based untuk Date)
             var bulanMap = {
-                'Jan':0,'Feb':1,'Mar':2,'Apr':3,'Mei':4,'Jun':5,
-                'Jul':6,'Agt':7,'Sep':8,'Okt':9,'Nov':10,'Des':11,
-                'May':4,'Aug':7,'Oct':9,'Dec':11,'Agu':7
+                // Bahasa Indonesia (dipakai app)
+                'Jan':0, 'Feb':1, 'Mar':2, 'Apr':3, 'Mei':4, 'Jun':5,
+                'Jul':6, 'Agt':7, 'Sep':8, 'Okt':9, 'Nov':10, 'Nop':10, 'Des':11,
+                // Fallback bahasa Inggris (jaga-jaga)
+                'May':4, 'Aug':7, 'Oct':9, 'Dec':11, 'Agu':7
             };
-            var parts = dateStr.trim().split(' ');
-            if (parts.length === 3 && bulanMap[parts[1]] !== undefined) {
-                return new Date(parseInt(parts[2]), bulanMap[parts[1]], parseInt(parts[0]));
+            var s = dateStr.trim();
+
+            // Format "D Mon YYYY" atau "DD Mon YYYY" — format utama app
+            var parts = s.split(' ');
+            if (parts.length === 3) {
+                var tgl = parseInt(parts[0], 10);
+                var bln = bulanMap[parts[1]];
+                var thn = parseInt(parts[2], 10);
+                if (!isNaN(tgl) && bln !== undefined && !isNaN(thn)) {
+                    var d = new Date(thn, bln, tgl);
+                    // Validasi: tanggal harus masuk akal
+                    if (d.getFullYear() === thn && d.getMonth() === bln && d.getDate() === tgl) {
+                        return d;
+                    }
+                }
             }
-            if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-                var p = dateStr.split('-');
-                return new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]));
+
+            // Format "YYYY-MM-DD" (ISO)
+            if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+                var p = s.split('-');
+                var d2 = new Date(parseInt(p[0],10), parseInt(p[1],10)-1, parseInt(p[2],10));
+                return isNaN(d2.getTime()) ? null : d2;
             }
-            if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateStr)) {
-                var p2 = dateStr.split('/');
-                return new Date(parseInt(p2[2]), parseInt(p2[1])-1, parseInt(p2[0]));
+
+            // Format "DD/MM/YYYY"
+            if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)) {
+                var p3 = s.split('/');
+                var d3 = new Date(parseInt(p3[2],10), parseInt(p3[1],10)-1, parseInt(p3[0],10));
+                return isNaN(d3.getTime()) ? null : d3;
             }
+
             return null;
         }
+
+        // ── Test parseTrxDate — pastikan hasilnya benar ───────────────────────
+        (function() {
+            var tests = [
+                { input:'5 Mei 2025',   expect:'2025-5-5' },
+                { input:'25 Agt 2024',  expect:'2024-8-25' },
+                { input:'1 Jan 2025',   expect:'2025-1-1' },
+                { input:'30 Nop 2024',  expect:'2024-11-30' },
+                { input:'31 Des 2024',  expect:'2024-12-31' },
+                { input:'2025-06-01',   expect:'2025-6-1' },
+            ];
+            var fail = [];
+            tests.forEach(function(tc) {
+                var d = parseTrxDate(tc.input);
+                if (!d) { fail.push(tc.input + ' → null'); return; }
+                var got = d.getFullYear()+'-'+( d.getMonth()+1)+'-'+d.getDate();
+                if (got !== tc.expect) fail.push(tc.input + ' → got '+got+' expected '+tc.expect);
+            });
+            if (fail.length) console.warn('parseTrxDate test FAIL:', fail);
+            else console.log('parseTrxDate: semua format tanggal OK ✅');
+        })();
 
         // ── Kumpulkan data lengkap untuk konteks AI ─────────────────────────────
         function buatRingkasanKeuangan() {
