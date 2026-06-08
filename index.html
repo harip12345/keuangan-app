@@ -6,11 +6,16 @@
     <title>Finance App by Haripam</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><defs><linearGradient id='grad' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%234F46E5' /><stop offset='100%' stop-color='%2310B981' /></linearGradient></defs><rect width='24' height='24' rx='5' fill='url(%23grad)'/><path d='M7 6v12h2.5v-4.5h5V18H17V6h-2.5v4.5h-5V6H7z' fill='white'/><path d='M10 14l3-3 3 3' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>" type="image/svg+xml">
     
+    <link rel="dns-prefetch" href="https://www.gstatic.com">
+    <link rel="dns-prefetch" href="https://firestore.googleapis.com">
+    <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Library Eksternal -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    </script>
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
@@ -18,8 +23,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" defer></script>
 
     <style>
         :root {
@@ -967,7 +972,7 @@
                 <div class="profile-section">
                     <div class="profile-left">
                         <div class="profile-pic-label" onclick="openPhotoActionModal()">
-                            <img id="profileImg" src="https://ui-avatars.com/api/?name=User&background=FFFFFF&color=4F46E5&bold=true" alt="Profil">
+                            <img loading="lazy" id="profileImg" src="https://ui-avatars.com/api/?name=User&background=FFFFFF&color=4F46E5&bold=true" alt="Profil">
                         </div>
                         <div class="profile-text-area" onclick="openSettingsModal()" title="Buka Pengaturan">
                             <div class="profile-greeting">Halo,</div>
@@ -1780,7 +1785,7 @@
             <div class="modal-card" style="height: 85vh; display: flex; flex-direction: column; padding: 1.5rem;">
                 <h3 class="modal-title" style="margin-bottom: 1.5rem; text-align: center;">Sesuaikan Foto</h3>
                 <div style="flex: 1; background: #000; border-radius: 16px; overflow: hidden; display: flex; align-items: center;">
-                    <img id="cropImage" src="" style="max-width: 100%; display: block;">
+                    <img loading="lazy" id="cropImage" src="" style="max-width: 100%; display: block;">
                 </div>
                 <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
                     <button class="btn-submit" style="background: var(--surface-color); color: var(--text-main); border: 1px solid var(--border); flex: 1;" onclick="closeCropModal()">Batal</button>
@@ -1941,6 +1946,9 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        db.enablePersistence({ synchronizeTabs: true }).catch(function(err) {
+            console.log('Firestore persistence:', err ? err.code : 'OK');
+        });
         const auth = firebase.auth();
         const googleProvider = new firebase.auth.GoogleAuthProvider();
 
@@ -3316,7 +3324,18 @@
         const downloadPDF = () => { 
             const prof = profiles.find(p => p.id === currentProfileId); const element = document.getElementById('printableReport'); if(!element) return;
             const opt = { margin: 15, filename: `Laporan_Keuangan_${(prof?.name||"Data").replace(/\s+/g, '_')}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }; 
-            html2pdf().set(opt).from(element).save(); 
+            // Lazy load html2pdf hanya saat dibutuhkan
+            function doExport() {
+                html2pdf().set(opt).from(element).save();
+            }
+            if (typeof html2pdf === 'undefined') {
+                var s = document.createElement('script');
+                s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+                s.onload = doExport;
+                document.head.appendChild(s);
+            } else {
+                doExport();
+            } 
         };
         
         const exportToCSV = () => {
@@ -4721,7 +4740,7 @@
             var name    = (profile && profile.name)  ? profile.name  : 'U';
             var initial = name.charAt(0).toUpperCase();
             if (photo) {
-                return '<img src="' + photo + '" class="ai-user-avatar" onerror="this.style.display=\'none\'">';
+                return '<img loading="lazy" src="' + photo + '" class="ai-user-avatar" onerror="this.style.display=\'none\'">';
             }
             var colors = ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#3B82F6','#EF4444'];
             var ci = name.charCodeAt(0) % colors.length;
