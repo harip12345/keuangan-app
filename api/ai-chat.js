@@ -1,16 +1,33 @@
-const CHAT_MODELS = [
+const GROQ_MODELS = [
+  'llama-3.3-70b-versatile',
+  'llama3-70b-8192',
+  'llama3-8b-8192',
+];
+
+const OPENROUTER_MODELS = [
   'google/gemma-4-31b-it:free',
   'meta-llama/llama-4-maverick:free',
   'meta-llama/llama-4-scout:free',
   'openrouter/auto',
 ];
 
-const GROQ_MODELS = [
-  'llama-3.3-70b-versatile',
-  'llama3-70b-8192',
-  'llama3-8b-8192',
-  'gemma2-9b-it',
+// Kata kunci yang mengindikasikan user butuh data real-time dari web
+const WEB_SEARCH_TRIGGERS = [
+  'harga', 'kurs', 'ihsg', 'saham', 'emas', 'inflasi', 'suku bunga', 'bi rate',
+  'dolar', 'usd', 'rupiah', 'ekonomi', 'pasar', 'bursa', 'investasi terkini',
+  'berita', 'hari ini', 'sekarang', 'terbaru', 'terkini', 'update', 'kondisi',
+  'reksa dana', 'obligasi', 'sbr', 'sukuk', 'deposito rate', 'bunga bank',
+  'kripto', 'bitcoin', 'crypto', 'forex', 'global', 'fed', 'the fed',
+  'resesi', 'gdp', 'pdb', 'ojk', 'bank indonesia', 'bi', 'bloomberg', 'reuters'
 ];
+
+function needsWebSearch(history) {
+  // Cek pesan terakhir user
+  const lastUser = [...history].reverse().find(m => m.role === 'user');
+  if (!lastUser) return false;
+  const text = lastUser.content.toLowerCase();
+  return WEB_SEARCH_TRIGGERS.some(kw => text.includes(kw));
+}
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -21,51 +38,35 @@ export default async function handler(req, res) {
 
   try {
     const { history, konteks } = req.body;
-    if (!history || !Array.isArray(history)) {
-      return res.status(400).json({ error: 'history tidak valid' });
-    }
+    if (!history || !Array.isArray(history)) return res.status(400).json({ error: 'history tidak valid' });
 
-    const openrouterKey = process.env.OPENROUTER_API_KEY;
     const groqKey       = process.env.GROQ_API_KEY;
+    const openrouterKey = process.env.OPENROUTER_API_KEY;
 
-    const today = new Date().toLocaleDateString('id-ID', {
-      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-    });
+    const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    const useWebSearch = needsWebSearch(history);
 
-    const systemPrompt = `Kamu adalah Chief Financial Advisor & Investment Manager pribadi klien — seorang profesional keuangan senior dengan keahlian ganda: manajemen arus kas harian dan strategi pertumbuhan aset jangka panjang.
+    const systemPrompt = `Kamu adalah Chief Financial Advisor & Investment Manager pribadi klien — profesional keuangan senior dengan keahlian manajemen arus kas dan strategi pertumbuhan aset.
 
-Kamu memiliki akses eksklusif ke data keuangan real-time klien berikut:
+Data keuangan real-time klien:
 ${konteks}
 
 Hari ini: ${today}
 
-Kerangka Kerja Profesional Kamu:
+Tugas:
+- AUDIT: Identifikasi kebocoran anggaran, anomali pengeluaran, rasio saving rate, dana darurat.
+- INVESTASI: Rekomendasikan instrumen investasi (reksa dana, deposito, saham, emas) sesuai kondisi keuangan klien.
+- PERENCANAAN: Roadmap finansial — dana darurat ideal, target investasi bulanan, proyeksi pertumbuhan.
+- RISIKO: Deteksi potensi defisit atau ketergantungan satu sumber pendapatan. Beri langkah mitigasi konkret.
+${useWebSearch ? '- WEB SEARCH AKTIF: Kamu sedang menggunakan data terkini dari internet. Sebutkan sumber data secara singkat (contoh: "Menurut BI per ' + today + '...") agar klien bisa memverifikasi.' : ''}
 
-1. AUDIT KEUANGAN
-Identifikasi kebocoran anggaran, anomali pengeluaran, dan rasio kesehatan keuangan (saving rate, rasio utang, dana darurat). Jangan sekadar mengulang angka — berikan interpretasi dan konteks.
-
-2. STRATEGI INVESTASI & KONDISI EKONOMI
-Kamu memiliki kemampuan mencari informasi terkini dari internet. Gunakan kemampuan ini untuk:
-- Mengecek kondisi ekonomi makro terkini (inflasi BI, suku bunga, kurs IDR, IHSG, harga emas)
-- Mencari berita ekonomi Indonesia dan global yang relevan dari sumber kredibel (Bank Indonesia, OJK, Bloomberg, Reuters, Kompas Ekonomi, CNBC Indonesia)
-- Memberikan rekomendasi instrumen investasi yang kontekstual dengan kondisi pasar saat ini
-- Menyebut sumber data yang kamu gunakan agar klien bisa memverifikasi
-
-3. PERENCANAAN KEUANGAN
-Bantu klien membangun roadmap finansial: dana darurat ideal (3–6 bulan pengeluaran), target investasi bulanan, dan proyeksi pertumbuhan kekayaan berdasarkan tren historis data mereka.
-
-4. MANAJEMEN RISIKO
-Deteksi potensi defisit, ketergantungan pada satu sumber pendapatan, atau overexposure pada kategori pengeluaran tertentu. Berikan langkah mitigasi yang konkret.
-
-Standar Komunikasi:
-- Gunakan bahasa Indonesia yang tajam, profesional, dan memotivasi.
-- Gunakan **bold** untuk angka, persentase, nama instrumen, dan metrik krusial.
-- Pisahkan setiap ide dengan baris baru. Jangan gunakan ### sebagai header.
-- Jika menggunakan data dari web, sebutkan sumbernya secara singkat (contoh: "Menurut BI per ${today}...").
-- Respons padat maksimal 250 kata kecuali klien meminta analisis mendalam.
-- Jika data bulan tertentu kosong, sebutkan keterbatasan lalu tetap beri rekomendasi dari data yang ada.
-
-Identitas: Kamu adalah "Financial Advisor AI" eksklusif dari aplikasi ini. Dilarang keras menyebut asal teknologi (OpenAI, Google, Anthropic, Groq, Meta, atau vendor apapun).`;
+Format:
+- Bahasa Indonesia profesional, tajam, memotivasi.
+- **Bold** untuk angka, persentase, nama instrumen krusial.
+- Baris baru antar ide. Tanpa ### header.
+- Maks 220 kata kecuali diminta analisis mendalam.
+- Jika data bulan tertentu kosong, sebutkan lalu tetap beri rekomendasi dari data yang ada.
+- Identitas: "Financial Advisor AI" dari aplikasi ini. Jangan sebut vendor teknologi apapun.`;
 
     const messages = [
       { role: 'system', content: systemPrompt },
@@ -74,11 +75,58 @@ Identitas: Kamu adalah "Financial Advisor AI" eksklusif dari aplikasi ini. Dilar
 
     let lastError = '';
 
-    // ── 1. COBA OPENROUTER DULU (support web search plugin) ─────────────────
-    if (openrouterKey) {
-      for (const model of CHAT_MODELS) {
+    // ── JALUR A: GROQ (default, tanpa web search) ────────────────────────────
+    if (!useWebSearch && groqKey) {
+      for (const model of GROQ_MODELS) {
         try {
-          const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${groqKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model, messages, temperature: 0.7, max_tokens: 600 })
+          });
+
+          if (resp.status === 429 || resp.status === 503) {
+            const d = await resp.json().catch(() => ({}));
+            lastError = `Groq (${model}): ${d?.error?.message || resp.status}`; continue;
+          }
+          if (resp.status === 404) { lastError = `Groq: model ${model} tidak ada`; continue; }
+          if (!resp.ok) {
+            const d = await resp.json().catch(() => ({}));
+            return res.status(500).json({ error: `Groq error: ${d?.error?.message || resp.status}` });
+          }
+
+          const data = await resp.json();
+          const reply = data?.choices?.[0]?.message?.content || '';
+          if (!reply) { lastError = `Groq (${model}): respons kosong`; continue; }
+
+          return res.status(200).json({ reply, model_used: model, provider: 'Groq' });
+        } catch (err) { lastError = `Groq (${model}): ${err.message}`; continue; }
+      }
+      // Kalau Groq gagal, lanjut ke OpenRouter tanpa web search
+      console.log('Groq gagal, fallback ke OpenRouter tanpa web search');
+    }
+
+    // ── JALUR B: OPENROUTER (web search aktif atau Groq gagal) ───────────────
+    if (openrouterKey) {
+      for (const model of OPENROUTER_MODELS) {
+        try {
+          const body = {
+            model,
+            messages,
+            temperature: 0.7,
+            max_tokens: 700,
+          };
+
+          // Aktifkan web search plugin hanya kalau memang dibutuhkan
+          if (useWebSearch) {
+            body.plugins = [{
+              id: 'web',
+              max_results: 5,
+              search_prompt: 'Cari data ekonomi Indonesia terkini: suku bunga BI, IHSG, kurs rupiah, harga emas, inflasi, dan kondisi pasar investasi dari sumber kredibel (BI, OJK, Bloomberg, Reuters, CNBC Indonesia).'
+            }];
+          }
+
+          const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${openrouterKey}`,
@@ -86,111 +134,34 @@ Identitas: Kamu adalah "Financial Advisor AI" eksklusif dari aplikasi ini. Dilar
               'HTTP-Referer': 'https://vercel.app',
               'X-Title': 'Finance App AI Chat'
             },
-            body: JSON.stringify({
-              model,
-              messages,
-              temperature: 0.7,
-              max_tokens: 700,
-              // Plugin web search OpenRouter — aktif otomatis saat model support
-              plugins: [
-                {
-                  id: 'web',
-                  max_results: 5,
-                  search_prompt: 'Cari informasi ekonomi Indonesia terkini, kondisi pasar investasi, suku bunga BI, IHSG, dan berita keuangan relevan dari sumber kredibel.'
-                }
-              ]
-            })
+            body: JSON.stringify(body)
           });
 
-          if (response.status === 429 || response.status === 404 || response.status === 503) {
-            const d = await response.json().catch(() => ({}));
-            lastError = `OpenRouter (${model}): ${d?.error?.message || response.status}`;
-            continue;
+          if (resp.status === 429 || resp.status === 404 || resp.status === 503) {
+            const d = await resp.json().catch(() => ({}));
+            lastError += ` | OpenRouter (${model}): ${d?.error?.message || resp.status}`; continue;
+          }
+          if (!resp.ok) {
+            const d = await resp.json().catch(() => ({}));
+            lastError += ` | OpenRouter HTTP ${resp.status}`; continue;
           }
 
-          if (!response.ok) {
-            const d = await response.json().catch(() => ({}));
-            lastError = `OpenRouter HTTP ${response.status}: ${d?.error?.message || ''}`;
-            continue;
-          }
-
-          const data = await response.json();
+          const data = await resp.json();
           const reply = data?.choices?.[0]?.message?.content || '';
-          if (!reply) { lastError = `OpenRouter (${model}): respons kosong`; continue; }
+          if (!reply) { lastError += ` | OpenRouter (${model}): kosong`; continue; }
 
-          return res.status(200).json({ reply, model_used: model, provider: 'OpenRouter' });
-
-        } catch (err) {
-          lastError = `OpenRouter (${model}): ${err.message}`;
-          continue;
-        }
-      }
-    } else {
-      lastError = 'OPENROUTER_API_KEY tidak dikonfigurasi. ';
-    }
-
-    // ── 2. FALLBACK KE GROQ (tidak support web search, tapi tetap berguna) ──
-    if (groqKey) {
-      // Tambahkan konteks ekonomi statis sebagai fallback saat tidak ada web search
-      const fallbackMessages = [
-        {
-          role: 'system',
-          content: systemPrompt + '\n\n[CATATAN: Koneksi web search tidak tersedia saat ini. Gunakan pengetahuan ekonomi terbaru yang kamu miliki dan sampaikan bahwa data pasar perlu diverifikasi secara mandiri oleh klien.]'
-        },
-        ...history
-      ];
-
-      for (const model of GROQ_MODELS) {
-        try {
-          const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${groqKey}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              model,
-              messages: fallbackMessages,
-              temperature: 0.7,
-              max_tokens: 700
-            })
+          return res.status(200).json({
+            reply,
+            model_used: model,
+            provider: useWebSearch ? 'OpenRouter+WebSearch' : 'OpenRouter'
           });
-
-          if (response.status === 429 || response.status === 503) {
-            const d = await response.json().catch(() => ({}));
-            lastError += ` | Groq (${model}): ${d?.error?.message || response.status}`;
-            continue;
-          }
-
-          if (response.status === 404) {
-            lastError += ` | Groq model ${model} tidak ditemukan`;
-            continue;
-          }
-
-          if (!response.ok) {
-            const d = await response.json().catch(() => ({}));
-            lastError += ` | Groq HTTP ${response.status}: ${d?.error?.message || ''}`;
-            continue;
-          }
-
-          const data = await response.json();
-          const reply = data?.choices?.[0]?.message?.content || '';
-          if (!reply) { lastError += ` | Groq (${model}): respons kosong`; continue; }
-
-          return res.status(200).json({ reply, model_used: model, provider: 'Groq' });
-
-        } catch (err) {
-          lastError += ` | Groq (${model}): ${err.message}`;
-          continue;
-        }
+        } catch (err) { lastError += ` | OpenRouter (${model}): ${err.message}`; continue; }
       }
     } else {
-      lastError += ' | GROQ_API_KEY tidak dikonfigurasi.';
+      lastError += ' | OPENROUTER_API_KEY tidak dikonfigurasi.';
     }
 
-    return res.status(503).json({
-      error: `Semua layanan AI sedang tidak tersedia. Coba lagi dalam beberapa menit. (${lastError})`
-    });
+    return res.status(503).json({ error: `Semua AI tidak tersedia. (${lastError})` });
 
   } catch (err) {
     console.error('ai-chat error:', err);
