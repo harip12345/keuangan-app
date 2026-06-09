@@ -840,6 +840,38 @@
         .ai-bubble-content { -webkit-user-select:none; user-select:none; }
         .ai-bubble-bot .ai-bubble-content { cursor:pointer; }
         /* Delete confirm popup */
+        /* === AI CHAT: seleksi massal & salin === */
+        .ai-bubble-selected .ai-bubble-content {
+            outline: 2px solid #6366F1;
+            outline-offset: 2px;
+            background: rgba(99,102,241,.08) !important;
+        }
+        .ai-select-tick {
+            width:20px; height:20px; border-radius:50%;
+            border:2px solid var(--border); background:var(--card-bg);
+            display:flex; align-items:center; justify-content:center;
+            flex-shrink:0; margin-top:6px; transition:all .15s; cursor:pointer;
+        }
+        .ai-bubble-selected .ai-select-tick {
+            background:#6366F1; border-color:#6366F1;
+        }
+        #aiSelectBar {
+            position:absolute; bottom:0; left:0; right:0;
+            background:var(--card-bg); border-top:1px solid var(--border);
+            padding:10px 14px; display:none; align-items:center; gap:10px;
+            z-index:150; box-shadow:0 -4px 16px rgba(0,0,0,.1);
+        }
+        #aiSelectBar.active { display:flex; }
+        .ai-select-count { font-size:13px; font-weight:600; color:var(--text-main); flex:1; }
+        .ai-select-action { padding:8px 16px; border-radius:20px; border:none; cursor:pointer; font-size:13px; font-weight:600; }
+        .ai-select-cancel { background:var(--bg-color); color:var(--text-secondary); border:1px solid var(--border); }
+        .ai-select-delete { background:#EF4444; color:white; }
+        /* copied flash */
+        .ai-copied-flash { position:fixed; bottom:120px; left:50%; transform:translateX(-50%);
+            background:rgba(0,0,0,.75); color:#fff; padding:7px 16px; border-radius:20px;
+            font-size:12px; font-weight:600; z-index:9999; pointer-events:none;
+            animation:flashFade .9s ease forwards; }
+        @keyframes flashFade{0%{opacity:1;transform:translateX(-50%) translateY(0)}80%{opacity:1}100%{opacity:0;transform:translateX(-50%) translateY(-8px)}}
         #aiDeletePopup { position:absolute; background:var(--card-bg); border:1px solid var(--border); border-radius:16px; padding:6px; box-shadow:0 12px 32px rgba(0,0,0,.22); z-index:200; min-width:160px; display:none; flex-direction:column; gap:2px; backdrop-filter:blur(8px); animation:popIn .18s cubic-bezier(.175,.885,.32,1.275); }
         @keyframes popIn{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
         .ai-del-opt { padding:10px 14px; font-size:.84rem; cursor:pointer; border-radius:12px; color:var(--text-main); border:none; background:transparent; text-align:left; width:100%; transition:background .12s; }
@@ -1841,18 +1873,52 @@
                 style="position:absolute;inset:0;background:rgba(0,0,0,.45);opacity:0;transition:opacity .25s;pointer-events:none;"></div>
             <!-- Delete popup -->
             <div id="aiDeletePopup" style="display:none;">
-                <button class="ai-del-opt" onclick="closeDeletePopup()">
+                <!-- Salin teks -->
+                <button class="ai-del-opt" onclick="aiCopyMsg()">
                     <span style="display:flex;align-items:center;gap:8px;">
-                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                        Batal
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                        Salin teks
                     </span>
                 </button>
+                <!-- Tandai untuk hapus massal -->
+                <button class="ai-del-opt" onclick="aiMarkForDelete()">
+                    <span style="display:flex;align-items:center;gap:8px;">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Tandai
+                    </span>
+                </button>
+                <div style="height:0.5px;background:var(--border);margin:4px 0;"></div>
+                <!-- Hapus langsung -->
                 <button class="ai-del-opt danger" onclick="confirmDeleteAiMsg()">
                     <span style="display:flex;align-items:center;gap:8px;">
                         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
                         </svg>
                         Hapus pesan ini
+                    </span>
+                </button>
+                <button class="ai-del-opt" onclick="closeDeletePopup()">
+                    <span style="display:flex;align-items:center;gap:8px;">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        Batal
+                    </span>
+                </button>
+            </div>
+
+            <!-- Toolbar seleksi massal -->
+            <div id="aiSelectBar">
+                <span class="ai-select-count" id="aiSelectCount">0 dipilih</span>
+                <button class="ai-select-action ai-select-cancel" onclick="aiCancelSelect()">Batal</button>
+                <button class="ai-select-action ai-select-delete" onclick="aiDeleteSelected()">
+                    <span style="display:flex;align-items:center;gap:6px;">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                        </svg>
+                        Hapus dipilih
                     </span>
                 </button>
             </div>
@@ -2030,24 +2096,40 @@
                     if(legacyId && APP_USERS[legacyId]) {
                         switchToMainApp(APP_USERS[legacyId].profileId, APP_USERS[legacyId].name, "");
                     } else {
-                        document.getElementById('loginScreen').style.display = 'flex';
-                        setTimeout(() => { document.getElementById('loginScreen').style.opacity = '1'; }, 50);
-                        document.getElementById('mainAppContainer').style.display = 'none';
+                        var loginEl = document.getElementById('loginScreen');
+                        var appEl   = document.getElementById('mainAppContainer');
+                        if (loginEl) { loginEl.style.display = 'flex'; loginEl.style.opacity = '1'; }
+                        if (appEl)   appEl.style.display = 'none';
                     }
                 }
             });
         }
 
         function switchToMainApp(uid, name, photoUrl) {
-            document.getElementById('loginScreen').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('mainAppContainer').style.display = 'flex';
-                currentProfileId = uid;
-                safeSetLocal('lastProfileId', uid);
-                
-                initApp({ uid: uid, displayName: name, photoURL: photoUrl });
-            }, 400);
+            // Langsung ganti display tanpa animasi opacity yang bisa macet
+            var loginEl = document.getElementById('loginScreen');
+            var appEl   = document.getElementById('mainAppContainer');
+            if (loginEl) loginEl.style.display = 'none';
+            if (appEl)   appEl.style.display = 'flex';
+
+            // Re-assign views & navItems setelah mainApp visible
+            try {
+                views['transaksi'] = document.getElementById('viewTransaksi');
+                views['tabungan']  = document.getElementById('viewTabungan');
+                views['analisis']  = document.getElementById('viewAnalisis');
+                views['laporan']   = document.getElementById('viewLaporan');
+                views['goals']     = document.getElementById('viewGoals');
+                navItems['transaksi'] = document.getElementById('navTransaksi');
+                navItems['tabungan']  = document.getElementById('navTabungan');
+                navItems['analisis']  = document.getElementById('navAnalisis');
+                navItems['laporan']   = document.getElementById('navLaporan');
+                navItems['goals']     = document.getElementById('navGoals');
+                switchView('transaksi');
+            } catch(e) { console.warn('switchToMainApp view init:', e); }
+
+            currentProfileId = uid;
+            safeSetLocal('lastProfileId', uid);
+            initApp({ uid: uid, displayName: name, photoURL: photoUrl });
         }
 
         function handleAppLogin(e) {
@@ -4929,21 +5011,32 @@
                         .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
                         .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
                         .replace(/\n/g,'<br>');
-                    div.innerHTML = '<div class="ai-avatar">🤖</div><div class="ai-bubble-content">' + html + '</div>';
+                    div.innerHTML = '<div class="ai-avatar">🤖</div>' +
+                        '<div class="ai-bubble-content" data-text="' + text.replace(/"/g,'&quot;') + '">' + html + '</div>' +
+                        (docId ? '<div class="ai-select-tick" style="display:none"></div>' : '');
                     if (docId) {
                         div.querySelector('.ai-bubble-content').addEventListener('click', function(e){
-                            e.stopPropagation(); showDeletePopup(e, docId);
+                            e.stopPropagation();
+                            if (aiSelectMode) { aiToggleSelect(div); }
+                            else { showDeletePopup(e, docId); }
                         });
+                        var tick = div.querySelector('.ai-select-tick');
+                        if (tick) tick.addEventListener('click', function(e){ e.stopPropagation(); aiToggleSelect(div); });
                     }
                 }
             } else {
                 var avatarHtml = getAiUserAvatar();
                 var safeText = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-                div.innerHTML = '<div class="ai-bubble-content">' + safeText + '</div>' + avatarHtml;
+                div.innerHTML = (docId ? '<div class="ai-select-tick" style="display:none"></div>' : '') +
+                    '<div class="ai-bubble-content" data-text="' + text.replace(/"/g,'&quot;') + '">' + safeText + '</div>' + avatarHtml;
                 if (docId) {
                     div.querySelector('.ai-bubble-content').addEventListener('click', function(e){
-                        e.stopPropagation(); showDeletePopup(e, docId);
+                        e.stopPropagation();
+                        if (aiSelectMode) { aiToggleSelect(div); }
+                        else { showDeletePopup(e, docId); }
                     });
+                    var tick = div.querySelector('.ai-select-tick');
+                    if (tick) tick.addEventListener('click', function(e){ e.stopPropagation(); aiToggleSelect(div); });
                 }
             }
             container.appendChild(div);
@@ -5237,6 +5330,118 @@
             sendAiChat();
         }
 
+        // ── Salin teks bubble ─────────────────────────────────────────────────
+        function aiCopyMsg() {
+            var popup = document.getElementById('aiDeletePopup');
+            var docId = aiDeletePopupTarget;
+            closeDeletePopup();
+            if (!docId) return;
+            var el = document.querySelector('[data-msgid="' + docId + '"] .ai-bubble-content');
+            var txt = el ? (el.getAttribute('data-text') || el.innerText) : '';
+            if (!txt) return;
+            navigator.clipboard.writeText(txt).then(function() {
+                var flash = document.createElement('div');
+                flash.className = 'ai-copied-flash';
+                flash.textContent = '✓ Teks disalin';
+                var drawer = document.getElementById('aiModalDrawer');
+                if (drawer) drawer.appendChild(flash);
+                setTimeout(function(){ if(flash.parentNode) flash.remove(); }, 1000);
+            }).catch(function() {
+                // Fallback untuk browser yang tidak support clipboard API
+                var ta = document.createElement('textarea');
+                ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+                document.body.appendChild(ta); ta.select();
+                document.execCommand('copy'); document.body.removeChild(ta);
+            });
+        }
+
+        // ── Mode seleksi massal ────────────────────────────────────────────────
+        var aiSelectMode = false;
+        var aiSelectedIds = new Set();
+
+        function aiMarkForDelete() {
+            var docId = aiDeletePopupTarget;
+            closeDeletePopup();
+            // Masuk ke mode seleksi dan langsung tandai bubble ini
+            aiEnterSelectMode();
+            if (docId) {
+                var el = document.querySelector('[data-msgid="' + docId + '"]');
+                if (el) aiToggleSelect(el);
+            }
+        }
+
+        function aiEnterSelectMode() {
+            aiSelectMode = true;
+            aiSelectedIds.clear();
+            // Tampilkan semua tick
+            document.querySelectorAll('#aiChatMessages .ai-select-tick').forEach(function(t){
+                t.style.display = 'flex';
+                t.innerHTML = '';
+            });
+            // Tampilkan toolbar
+            var bar = document.getElementById('aiSelectBar');
+            if (bar) bar.classList.add('active');
+            // Kurangi padding bawah chat agar tidak tertutup toolbar
+            var msgs = document.getElementById('aiChatMessages');
+            if (msgs) msgs.style.paddingBottom = '60px';
+            aiUpdateSelectCount();
+        }
+
+        function aiCancelSelect() {
+            aiSelectMode = false;
+            aiSelectedIds.clear();
+            // Sembunyikan semua tick & hapus state selected
+            document.querySelectorAll('#aiChatMessages .ai-bubble').forEach(function(b){
+                b.classList.remove('ai-bubble-selected');
+            });
+            document.querySelectorAll('#aiChatMessages .ai-select-tick').forEach(function(t){
+                t.style.display = 'none';
+                t.innerHTML = '';
+            });
+            var bar = document.getElementById('aiSelectBar');
+            if (bar) bar.classList.remove('active');
+            var msgs = document.getElementById('aiChatMessages');
+            if (msgs) msgs.style.paddingBottom = '';
+        }
+
+        function aiToggleSelect(bubbleEl) {
+            var docId = bubbleEl.getAttribute('data-msgid');
+            if (!docId) return;
+            var tick = bubbleEl.querySelector('.ai-select-tick');
+            if (aiSelectedIds.has(docId)) {
+                aiSelectedIds.delete(docId);
+                bubbleEl.classList.remove('ai-bubble-selected');
+                if (tick) tick.innerHTML = '';
+            } else {
+                aiSelectedIds.add(docId);
+                bubbleEl.classList.add('ai-bubble-selected');
+                if (tick) tick.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+            }
+            aiUpdateSelectCount();
+        }
+
+        function aiUpdateSelectCount() {
+            var countEl = document.getElementById('aiSelectCount');
+            var n = aiSelectedIds.size;
+            if (countEl) countEl.textContent = n + ' pesan dipilih';
+            // Nonaktifkan tombol hapus jika tidak ada yang dipilih
+            var delBtn = document.querySelector('.ai-select-delete');
+            if (delBtn) delBtn.style.opacity = n > 0 ? '1' : '0.4';
+        }
+
+        async function aiDeleteSelected() {
+            if (aiSelectedIds.size === 0) return;
+            var ids = Array.from(aiSelectedIds);
+            aiCancelSelect();
+            // Hapus satu per satu
+            for (var i = 0; i < ids.length; i++) {
+                await new Promise(function(resolve) {
+                    deleteAiMsg(ids[i]);
+                    setTimeout(resolve, 80); // Jeda kecil antar hapus
+                });
+            }
+        }
+
         // Tutup popup jika klik di luar
         document.addEventListener('click', function(e) {
             var popup = document.getElementById('aiDeletePopup');
@@ -5248,8 +5453,7 @@
 
         // Jalankan Pengecekan Login Saat Aplikasi Dibuka
         loadCategories();
-        checkLoginStatus(); 
-        // ================== LOGIKA SPLASH SCREEN ==================
-</script>
+        checkLoginStatus();
+    </script>
 </body>
 </html>
