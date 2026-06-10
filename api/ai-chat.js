@@ -83,7 +83,7 @@ export default async function handler(req, res) {
     const tavilyKey = process.env.TAVILY_API_KEY;
     if (!groqKey) return res.status(500).json({ error: 'GROQ_API_KEY belum di-set' });
 
-    const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
     const useWeb = needsWebSearch(history) && !!tavilyKey;
 
     // ── Tavily + Jina: ambil data real-time dari sumber terpercaya ────────────
