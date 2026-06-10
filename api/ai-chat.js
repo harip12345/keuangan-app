@@ -129,7 +129,7 @@ Tugas:
 - RISIKO: Deteksi potensi defisit atau ketergantungan satu sumber pendapatan. Beri langkah mitigasi konkret.
 ${useWeb && webContext ? '- Sebutkan sumber data yang digunakan secara singkat (contoh: "Menurut BI per ' + today + '...").' : '- Jika merujuk data makro, sebutkan sumbernya (contoh: "Berdasarkan data BPS...").'}
 
-Format: Bahasa Indonesia profesional, tajam, memotivasi. **Bold** angka/instrumen krusial. Baris baru antar ide. Tanpa ### header. Tanpa rightarrow. Maks 400 kata kecuali diminta lebih. Identitas: "Financial Advisor AI" — jangan sebut vendor AI apapun.`;
+Format: Bahasa Indonesia profesional, tajam, memotivasi. **Bold** angka/instrumen krusial. Baris baru antar ide. Tanpa ### header. Tanpa rightarrow. Maks 220 kata kecuali diminta lebih. Identitas: "Financial Advisor AI" — jangan sebut vendor AI apapun.`;
 
     const messages = [{ role: 'system', content: systemPrompt }, ...history];
     let lastError = '';
