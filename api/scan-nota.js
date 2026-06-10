@@ -1,9 +1,8 @@
-// Konfigurasi Model Berdasarkan Provider (Diperbarui)
+// Konfigurasi Model Berdasarkan Provider (Final)
 const VISION_MODELS = [
-  { provider: 'groq', id: 'llama-3.2-90b-vision-preview' }, // Coba Groq 90B dulu
-  { provider: 'groq', id: 'llama-3.2-11b-vision-preview' }, // Fallback ke Groq 11B
-  { provider: 'gemini', id: 'gemini-2.5-flash' },           // Fallback ke Gemini generasi TERBARU
-  { provider: 'gemini', id: 'gemini-2.0-flash' }            // Lapis perlindungan terakhir
+  { provider: 'groq', id: 'meta-llama/llama-4-scout-17b-16e-instruct' }, // Model Vision utama Groq yang aktif saat ini
+  { provider: 'gemini', id: 'gemini-2.5-flash' },                        // Cadangan 1
+  { provider: 'gemini', id: 'gemini-2.0-flash' }                         // Cadangan 2
 ];
 
 // Fungsi Request ke Groq Vision
