@@ -1819,7 +1819,9 @@
                     <div style="display:flex; gap:0.5rem; margin-bottom: 0.5rem;">
                         <input type="text" id="salaryInputModal" placeholder="Masukkan Gaji Anda (Rp)" class="form-control" style="border-color: var(--primary); background:var(--card-bg);" oninput="formatInputRupiah(event); updateBudgetStatus();">
                         <button class="btn-submit" style="width: auto; padding: 0 1rem;" onclick="generateRecommendations()">Otomatis</button>
+                        <button id="btnBudgetAI" onclick="generateBudgetAI()" style="width:auto;padding:0 1rem;background:linear-gradient(135deg,#6366F1,#8B5CF6);color:#fff;border:none;border-radius:12px;font-size:.85rem;font-weight:700;cursor:pointer;white-space:nowrap;">🤖 Saran AI</button>
                     </div>
+                    <div id="budgetAIStatus" style="display:none;margin:.4rem 0;padding:.6rem .9rem;border-radius:10px;font-size:.79rem;text-align:center;font-weight:500;"></div>
                     <div id="budgetStatusText" style="font-size: 0.75rem; font-weight: 600; color: var(--expense);"></div>
                 </div>
                 <div id="budgetInputsContainer" style="margin-bottom: 1rem; max-height: 45vh; overflow-y: auto; padding-right:0.5rem;"></div>
@@ -3298,7 +3300,95 @@
             return dynamicGroups;
         }
 
-        function generateRecommendations() {
+        async function generateBudgetAI() {
+            var statusEl = document.getElementById('budgetAIStatus');
+            var btn = document.getElementById('btnBudgetAI');
+            if (!statusEl || !btn) return;
+
+            var salModal = document.getElementById('salaryInputModal');
+            var salaryRaw = salModal ? salModal.value.replace(/\./g, '') : '';
+            var salary = parseInt(salaryRaw) || 0;
+
+            statusEl.style.display = 'block';
+            statusEl.style.background = 'var(--primary-light)';
+            statusEl.style.color = 'var(--primary)';
+            statusEl.textContent = '🤖 AI sedang menganalisis pola keuangan Anda...';
+            btn.disabled = true;
+
+            try {
+                var now = new Date();
+                var rp = function(n){ return 'Rp' + Math.round(n).toLocaleString('id-ID'); };
+                var summaryLines = [];
+                for (var i = 2; i >= 0; i--) {
+                    var d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+                    var mm = d.getMonth(), y = d.getFullYear();
+                    var trxBulan = transactions.filter(function(t) {
+                        var td = parseTrxDate(t.date);
+                        return td && td.getMonth()===mm && td.getFullYear()===y &&
+                               t.type==='expense' && t.category!=='Transfer Mutasi';
+                    });
+                    var perKat = {};
+                    trxBulan.forEach(function(t){ perKat[t.category]=(perKat[t.category]||0)+t.amount; });
+                    var topKat = Object.entries(perKat).sort(function(a,b){return b[1]-a[1];}).slice(0,8)
+                        .map(function(e){return e[0]+':'+rp(e[1]);}).join(', ');
+                    var total = Object.values(perKat).reduce(function(a,b){return a+b;}, 0);
+                    var nm = d.toLocaleString('id-ID', {month:'short', year:'2-digit'});
+                    summaryLines.push(nm + ' total ' + rp(total) + ' | ' + topKat);
+                }
+
+                var allCats = Object.values(getDynamicCategoryGroups()).flat().join(', ');
+                var salaryLine = salary > 0 ? 'Pemasukan/bulan: ' + rp(salary) : 'Pemasukan tidak diinput.';
+
+                var prompt = 'Kamu adalah Financial Advisor AI. Analisis pengeluaran 3 bulan dan rekomendasikan budget bulan depan.\n\n' +
+                    'Data 3 bulan:\n' + summaryLines.join('\n') + '\n\n' +
+                    salaryLine + '\n\n' +
+                    'Kategori tersedia: ' + allCats + '\n\n' +
+                    'Balas HANYA JSON murni (tanpa markdown):\n' +
+                    '{"analisis":"1-2 kalimat insight","budget":{"Makan dan Minum":500000}}\n\n' +
+                    'Aturan: isi budget kategori relevan maks 12, nominal angka bulat, total tidak melebihi pemasukan, prinsip 50/30/20 sesuai pola aktual';
+
+                var resp = await fetch('/api/ai-chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ history: [{ role: 'user', content: prompt }], konteks: '' })
+                });
+
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                var data = await resp.json();
+                var rawText = data.reply || '';
+                var cleaned = rawText.replace(/```json|```/g, '').trim();
+                var jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+                if (!jsonMatch) throw new Error('Format tidak valid');
+                var hasil = JSON.parse(jsonMatch[0]);
+                if (!hasil.budget || typeof hasil.budget !== 'object') throw new Error('Data budget tidak valid');
+
+                var filled = 0;
+                Object.keys(hasil.budget).forEach(function(cat) {
+                    var amount = hasil.budget[cat];
+                    var input = document.querySelector('.budget-input[data-category="' + cat + '"]');
+                    if (input && amount > 0) {
+                        input.value = formatRupiahStr(Math.round(amount));
+                        categoryBudgets[cat] = Math.round(amount);
+                        filled++;
+                    }
+                });
+
+                updateBudgetStatus();
+                statusEl.style.background = '#D1FAE5';
+                statusEl.style.color = '#065F46';
+                statusEl.textContent = (hasil.analisis || 'Budget direkomendasikan berdasarkan histori 3 bulan.') + ' (' + filled + ' kategori diisi)';
+
+            } catch(err) {
+                console.error('generateBudgetAI:', err);
+                statusEl.style.background = 'var(--warning-bg)';
+                statusEl.style.color = 'var(--warning-text)';
+                statusEl.textContent = 'Gagal: ' + (err.message || 'Coba lagi');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+                function generateRecommendations() {
             const salModal = document.getElementById('salaryInputModal'); const salaryRaw = salModal ? salModal.value.replace(/\./g, '') : '';
             const salary = parseInt(salaryRaw); if(!salary || salary < 1000) return showToast("Masukkan nominal gaji yang valid."); 
 
