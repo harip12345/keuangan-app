@@ -1,14 +1,79 @@
-// Model vision free OpenRouter Juni 2026
+// Konfigurasi Model Berdasarkan Provider
 const VISION_MODELS = [
-  'google/gemma-4-31b-it:free',
-  'openai/gpt-oss-120b:free',
-  'nvidia/nemotron-3-nano-omni:free',
-  'openrouter/auto',
+  { provider: 'groq', id: 'llama-3.2-90b-vision-preview' }, // Utama 1
+  { provider: 'groq', id: 'llama-3.2-11b-vision-preview' }, // Utama 2
+  { provider: 'gemini', id: 'gemini-1.5-flash' }            // Cadangan Otomatis (Gemini)
 ];
 
-async function callOpenRouter(apiKey, model, imageBase64, mimeType) {
-  const today = new Date().toISOString().split('T')[0];
-  const prompt = `Kamu adalah asisten pencatatan keuangan pribadi. Baca gambar nota/struk/receipt/kwitansi ini dengan teliti.
+// Fungsi Request ke Groq Vision
+async function callGroqVision(apiKey, model, imageBase64, mimeType, prompt) {
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'text', text: prompt },
+          { type: 'image_url', image_url: { url: `data:${mimeType};base64,${imageBase64}` } }
+        ]
+      }],
+      temperature: 0.1,
+      max_tokens: 400
+    })
+  });
+  return { status: response.status, data: await response.json() };
+}
+
+// Fungsi Request ke Gemini Vision (Native Fetch Tanpa SDK tambahan)
+async function callGeminiVision(apiKey, model, imageBase64, mimeType, prompt) {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      contents: [{
+        parts: [
+          { text: prompt },
+          { inlineData: { mimeType: mimeType, data: imageBase64 } }
+        ]
+      }],
+      generationConfig: {
+        temperature: 0.1,
+        maxOutputTokens: 400,
+        responseMimeType: "application/json" // Memaksa Gemini merespons dalam format JSON bersih
+      }
+    })
+  });
+  return { status: response.status, data: await response.json() };
+}
+
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  try {
+    const { imageBase64, mimeType } = req.body;
+    if (!imageBase64) return res.status(400).json({ error: 'imageBase64 tidak ada di request' });
+
+    // Membaca kedua API Key dari Environment Variables Vercel
+    const groqKey = process.env.GROQ_API_KEY;
+    const geminiKey = process.env.GEMINI_API_KEY;
+
+    if (!groqKey && !geminiKey) {
+      return res.status(500).json({ error: 'API Key (GROQ atau GEMINI) belum di-set di Vercel' });
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const prompt = `Kamu adalah asisten pencatatan keuangan pribadi. Baca gambar nota/struk/receipt/kwitansi ini dengan teliti.
 
 Tentukan informasi berikut lalu balas HANYA dengan JSON murni (tanpa markdown, tanpa backtick, tanpa penjelasan):
 {
@@ -42,73 +107,55 @@ CASH/Tunai → Tunai | QRIS/GoPay/OVO/Dana → e-Wallet | Tidak ada petunjuk →
 - kategori_custom: isi HANYA jika kategori="Lainnya", tulis jenis pengeluaran 2-4 kata (contoh: "Perawatan Gigi"). Selain itu isi "".
 - Balas HANYA JSON, tidak ada teks lain`;
 
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': 'https://vercel.app',
-      'X-Title': 'Finance App Scan Nota'
-    },
-    body: JSON.stringify({
-      model,
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'text', text: prompt },
-          { type: 'image_url', image_url: { url: `data:${mimeType};base64,${imageBase64}` } }
-        ]
-      }],
-      temperature: 0.1,
-      max_tokens: 400
-    })
-  });
-
-  return { status: response.status, data: await response.json() };
-}
-
-export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-
-  try {
-    const { imageBase64, mimeType } = req.body;
-    if (!imageBase64) return res.status(400).json({ error: 'imageBase64 tidak ada di request' });
-
-    const apiKey = process.env.OPENROUTER_API_KEY;
-    if (!apiKey) return res.status(500).json({ error: 'OPENROUTER_API_KEY belum di-set di Vercel' });
-
     let lastError = '';
 
-    for (const model of VISION_MODELS) {
-      console.log(`Mencoba model: ${model}`);
+    // Loop Evaluasi Lintas Provider
+    for (const item of VISION_MODELS) {
+      console.log(`Mencoba akses [${item.provider.toUpperCase()}] dengan model: ${item.id}`);
+      
       try {
-        const { status, data } = await callOpenRouter(apiKey, model, imageBase64, mimeType);
+        let status, data;
 
-        // 402 = model tidak gratis lagi, skip
-        if (status === 429 || status === 404 || status === 503 || status === 402) {
-          const reason = data?.error?.message || `HTTP ${status}`;
-          console.warn(`Model ${model} gagal (${reason}), coba berikutnya...`);
-          lastError = `${model}: ${reason}`; continue;
+        // Eksekusi Berdasarkan Jenis Provider
+        if (item.provider === 'groq') {
+          if (!groqKey) { console.warn('Groq Key tidak tersedia, skip ke model berikutnya...'); continue; }
+          const resGroq = await callGroqVision(groqKey, item.id, imageBase64, mimeType, prompt);
+          status = resGroq.status;
+          data = resGroq.data;
+        } else if (item.provider === 'gemini') {
+          if (!geminiKey) { console.warn('Gemini Key tidak tersedia, skip ke model berikutnya...'); continue; }
+          const resGemini = await callGeminiVision(geminiKey, item.id, imageBase64, mimeType, prompt);
+          status = resGemini.status;
+          data = resGemini.data;
         }
+
+        // Jika HTTP Status bermasalah (429, 400, 503, dll), lempar ke model fallback berikutnya
         if (status !== 200) {
           const reason = data?.error?.message || `HTTP ${status}`;
-          return res.status(500).json({ error: `API error: ${reason}` });
+          console.warn(`Model ${item.id} gagal dieksekusi (${reason})`);
+          lastError = `${item.id} (${item.provider}): ${reason}`;
+          continue;
         }
 
-        const rawText = data?.choices?.[0]?.message?.content || '';
-        if (!rawText) { lastError = `${model}: respons kosong`; continue; }
+        // Ekstraksi Teks Hasil Berdasarkan Struktur Struktur Respons Masing-masing Provider
+        let rawText = '';
+        if (item.provider === 'groq') {
+          rawText = data?.choices?.[0]?.message?.content || '';
+        } else if (item.provider === 'gemini') {
+          rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        }
 
+        if (!rawText) { lastError = `${item.id}: Respons teks kosong`; continue; }
+
+        // Proses Pembersihan Struktur JSON
         const cleaned = rawText.replace(/```json|```/g, '').trim();
         const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) { lastError = `${model}: format tidak valid`; continue; }
+        if (!jsonMatch) { lastError = `${item.id}: Pola regex JSON tidak ditemukan`; continue; }
 
         const hasil = JSON.parse(jsonMatch[0]);
-        if (!hasil.nominal && !hasil.keterangan) { lastError = `${model}: data tidak terbaca`; continue; }
+        if (!hasil.nominal && !hasil.keterangan) { lastError = `${item.id}: Atribut esensial gagal diekstrak`; continue; }
 
+        // Validasi Aturan Isian Data Finansial
         const validTypes   = ['expense', 'income'];
         const validWallets = ['Tunai', 'Muamalat', 'BSI', 'Bank Jago', 'SeaBank', 'Blu', 'e-Wallet'];
         const validExpCats = ['Bensin','Body care','Dating','Ganti Oli','Infak','Jajan','Jalan-jalan','Makan dan Minum','Make up','Ngasih Ortu','Ngopi','Ojek','Parkir','Kuota/Wifi','Sabun Muka','Shopping','Skincare','Staycation','Sunscreen','Tabungan','Lainnya'];
@@ -119,21 +166,22 @@ export default async function handler(req, res) {
         const validCats = hasil.type === 'income' ? validIncCats : validExpCats;
         if (!validCats.includes(hasil.kategori))  hasil.kategori = 'Lainnya';
 
-        console.log(`Berhasil dengan model: ${model}`);
-        return res.status(200).json({ hasil, model_used: model });
+        console.log(`Berhasil memproses dokumen dengan model: ${item.id} [${item.provider.toUpperCase()}]`);
+        return res.status(200).json({ hasil, model_used: item.id, provider: item.provider });
 
       } catch (err) {
-        lastError = `${model}: ${err.message}`;
-        console.error(`Error pada model ${model}:`, err.message); continue;
+        lastError = `${item.id} (${item.provider}): ${err.message}`;
+        console.error(`Sistem Error pada model ${item.id}:`, err.message);
+        continue;
       }
     }
 
     return res.status(503).json({
-      error: `Semua model tidak tersedia. Detail: ${lastError}`
+      error: `Seluruh model pemroses Vision tidak tersedia saat ini. Log terakhir: ${lastError}`
     });
 
   } catch (err) {
-    console.error('Handler error:', err);
+    console.error('Fatal Handler error:', err);
     return res.status(500).json({ error: err.message || 'Internal server error' });
   }
 }
