@@ -1,7 +1,7 @@
 const GROQ_MODELS = [
-  'llama-3.3-70b-versatile', // Model utama: Paling cerdas dan direkomendasikan
-  'llama-3.1-70b-versatile', // Fallback 1: Cadangan jika model 3.3 sedang limit
-  'llama-3.1-8b-instant',    // Fallback 2: Versi ringan, sangat cepat, dan limitnya lebih besar
+  'llama-3.3-70b-versatile',                   // Model Utama
+  'meta-llama/llama-4-scout-17b-16e-instruct', // Fallback 1: Llama 4 generasi terbaru (sangat canggih)
+  'llama-3.1-8b-instant'                       // Fallback 2: Versi ringan, cepat, dan stabil
 ];
 
 const WEB_TRIGGERS = [
@@ -142,7 +142,8 @@ Format: Bahasa Indonesia profesional, tajam, memotivasi. **Bold** angka/instrume
           body: JSON.stringify({ model, messages, temperature: 0.7, max_tokens: 650 })
         });
 
-        if (resp.status === 429 || resp.status === 503) {
+        // ── PERBAIKAN DI SINI: Menambahkan resp.status === 400 ────────────
+        if (resp.status === 429 || resp.status === 503 || resp.status === 400) {
           const d = await resp.json().catch(() => ({}));
           lastError = `Groq (${model}): ${d?.error?.message || resp.status}`; continue;
         }
