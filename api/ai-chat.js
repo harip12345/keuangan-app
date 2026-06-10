@@ -4,25 +4,25 @@ const GROQ_MODELS = [
   'llama3-8b-8192',
 ];
 
+// Model free OpenRouter Juni 2026 yang masih aktif
 const OPENROUTER_MODELS = [
   'google/gemma-4-31b-it:free',
-  'meta-llama/llama-4-maverick:free',
-  'meta-llama/llama-4-scout:free',
+  'openai/gpt-oss-120b:free',
+  'nvidia/nemotron-3-super-120b-a12b:free',
+  'google/gemma-4-26b-a4b-it:free',
   'openrouter/auto',
 ];
 
-// Kata kunci yang mengindikasikan user butuh data real-time dari web
 const WEB_SEARCH_TRIGGERS = [
   'harga', 'kurs', 'ihsg', 'saham', 'emas', 'inflasi', 'suku bunga', 'bi rate',
   'dolar', 'usd', 'rupiah', 'ekonomi', 'pasar', 'bursa', 'investasi terkini',
   'berita', 'hari ini', 'sekarang', 'terbaru', 'terkini', 'update', 'kondisi',
   'reksa dana', 'obligasi', 'sbr', 'sukuk', 'deposito rate', 'bunga bank',
   'kripto', 'bitcoin', 'crypto', 'forex', 'global', 'fed', 'the fed',
-  'resesi', 'gdp', 'pdb', 'ojk', 'bank indonesia', 'bi', 'bloomberg', 'reuters'
+  'resesi', 'gdp', 'pdb', 'ojk', 'bank indonesia', 'bloomberg', 'reuters'
 ];
 
 function needsWebSearch(history) {
-  // Cek pesan terakhir user
   const lastUser = [...history].reverse().find(m => m.role === 'user');
   if (!lastUser) return false;
   const text = lastUser.content.toLowerCase();
@@ -42,7 +42,6 @@ export default async function handler(req, res) {
 
     const groqKey       = process.env.GROQ_API_KEY;
     const openrouterKey = process.env.OPENROUTER_API_KEY;
-
     const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
     const useWebSearch = needsWebSearch(history);
 
@@ -54,28 +53,24 @@ ${konteks}
 Hari ini: ${today}
 
 Tugas:
-- AUDIT: Identifikasi kebocoran anggaran, anomali pengeluaran, dan rasio kesehatan keuangan (saving rate, rasio utang, dana darurat). Jangan sekadar mengulang angka — berikan interpretasi dan konteks.
-- INVESTASI: Rekomendasikan instrumen investasi (reksa dana, deposito, saham, emas) sesuai kondisi keuangan klien, dan kondisi pasar.
-- PERENCANAAN: Roadmap finansial — dana darurat ideal, target investasi bulanan, proyeksi pertumbuhan proyeksi pertumbuhan kekayaan berdasarkan tren historis data mereka.
+- AUDIT: Identifikasi kebocoran anggaran, anomali pengeluaran, rasio saving rate, dana darurat.
+- INVESTASI: Rekomendasikan instrumen investasi (reksa dana, deposito, saham, emas) sesuai kondisi keuangan klien.
+- PERENCANAAN: Roadmap finansial — dana darurat ideal, target investasi bulanan, proyeksi pertumbuhan.
 - RISIKO: Deteksi potensi defisit atau ketergantungan satu sumber pendapatan. Beri langkah mitigasi konkret.
-${useWebSearch ? '- WEB SEARCH AKTIF: Kamu sedang menggunakan data terkini dari internet. Sebutkan sumber data secara singkat (contoh: "Menurut BI per ' + today + '...") agar klien bisa memverifikasi. Sumber datanya ambil dari (World Bank Open Data, International Monetary Fund Data, Organization for Economic Co-operation and Development, Asian Development Bank Data Library, World Economic Forum, Bloomberg, Reuters Business & Finance, Financial Times, The Wall Street Journal, The Economist, Bank Indonesia, Otoritas Jasa Keuangan, Badan Pusat Statistik, Kementerian Keuangan RI, Bursa Efek Indonesia, Katadata, Bisnis Indonesia, Kontan, CNBC Indonesia, Investor Daily, Komite Nasional Ekonomi dan Keuangan Syariah, Islamic Development Bank, Pusat Kajian Strategis (Puskas) BAZNAS, Pusat Ekonomi dan Bisnis Syariah FEB UI, National Bureau of Economic Research, Social Science Research Network, Jurnal Ekonomi dan Pembangunan Indonesia' : ''}
+${useWebSearch ? `- WEB SEARCH AKTIF: Gunakan data terkini dari internet. Sebutkan sumber singkat (contoh: "Menurut BI per ${today}...").` : ''}
 
 Format:
 - Bahasa Indonesia profesional, tajam, memotivasi.
 - **Bold** untuk angka, persentase, nama instrumen krusial.
 - Baris baru antar ide. Tanpa ### header.
 - Maks 220 kata kecuali diminta analisis mendalam.
-- Jika data bulan tertentu kosong, sebutkan lalu tetap beri rekomendasi dari data yang ada.
+- Jika data bulan tertentu kosong, sebutkan lalu tetap beri rekomendasi.
 - Identitas: "Financial Advisor AI" dari aplikasi ini. Jangan sebut vendor teknologi apapun.`;
 
-    const messages = [
-      { role: 'system', content: systemPrompt },
-      ...history
-    ];
-
+    const messages = [{ role: 'system', content: systemPrompt }, ...history];
     let lastError = '';
 
-    // ── JALUR A: GROQ (default, tanpa web search) ────────────────────────────
+    // ── JALUR A: GROQ (default, cepat, tanpa web search) ────────────────────
     if (!useWebSearch && groqKey) {
       for (const model of GROQ_MODELS) {
         try {
@@ -84,7 +79,6 @@ Format:
             headers: { 'Authorization': `Bearer ${groqKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ model, messages, temperature: 0.7, max_tokens: 600 })
           });
-
           if (resp.status === 429 || resp.status === 503) {
             const d = await resp.json().catch(() => ({}));
             lastError = `Groq (${model}): ${d?.error?.message || resp.status}`; continue;
@@ -94,38 +88,27 @@ Format:
             const d = await resp.json().catch(() => ({}));
             return res.status(500).json({ error: `Groq error: ${d?.error?.message || resp.status}` });
           }
-
           const data = await resp.json();
           const reply = data?.choices?.[0]?.message?.content || '';
           if (!reply) { lastError = `Groq (${model}): respons kosong`; continue; }
-
           return res.status(200).json({ reply, model_used: model, provider: 'Groq' });
         } catch (err) { lastError = `Groq (${model}): ${err.message}`; continue; }
       }
-      // Kalau Groq gagal, lanjut ke OpenRouter tanpa web search
-      console.log('Groq gagal, fallback ke OpenRouter tanpa web search');
+      console.log('Groq gagal, fallback ke OpenRouter');
     }
 
     // ── JALUR B: OPENROUTER (web search aktif atau Groq gagal) ───────────────
     if (openrouterKey) {
       for (const model of OPENROUTER_MODELS) {
         try {
-          const body = {
-            model,
-            messages,
-            temperature: 0.7,
-            max_tokens: 700,
-          };
-
-          // Aktifkan web search plugin hanya kalau memang dibutuhkan
+          const body = { model, messages, temperature: 0.7, max_tokens: 700 };
           if (useWebSearch) {
             body.plugins = [{
               id: 'web',
               max_results: 5,
-              search_prompt: 'Cari data ekonomi Indonesia terkini: suku bunga BI, IHSG, kurs rupiah, harga emas, inflasi, dan kondisi pasar investasi dari sumber kredibel (BI, OJK, Bloomberg, Reuters, CNBC Indonesia).'
+              search_prompt: 'Cari data ekonomi Indonesia terkini: suku bunga BI, IHSG, kurs rupiah, harga emas, inflasi, kondisi pasar investasi dari sumber kredibel (BI, OJK, Bloomberg, Reuters, CNBC Indonesia).'
             }];
           }
-
           const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -136,23 +119,18 @@ Format:
             },
             body: JSON.stringify(body)
           });
-
-          if (resp.status === 429 || resp.status === 404 || resp.status === 503) {
+          if (resp.status === 429 || resp.status === 402 || resp.status === 404 || resp.status === 503) {
             const d = await resp.json().catch(() => ({}));
             lastError += ` | OpenRouter (${model}): ${d?.error?.message || resp.status}`; continue;
           }
           if (!resp.ok) {
-            const d = await resp.json().catch(() => ({}));
             lastError += ` | OpenRouter HTTP ${resp.status}`; continue;
           }
-
           const data = await resp.json();
           const reply = data?.choices?.[0]?.message?.content || '';
           if (!reply) { lastError += ` | OpenRouter (${model}): kosong`; continue; }
-
           return res.status(200).json({
-            reply,
-            model_used: model,
+            reply, model_used: model,
             provider: useWebSearch ? 'OpenRouter+WebSearch' : 'OpenRouter'
           });
         } catch (err) { lastError += ` | OpenRouter (${model}): ${err.message}`; continue; }
