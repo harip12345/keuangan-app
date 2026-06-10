@@ -1,7 +1,7 @@
 const GROQ_MODELS = [
-  'llama-3.3-70b-versatile',
-  'llama3-70b-8192',
-  'llama3-8b-8192',
+  'llama-3.3-70b-versatile', // Model utama: Paling cerdas dan direkomendasikan
+  'llama-3.1-70b-versatile', // Fallback 1: Cadangan jika model 3.3 sedang limit
+  'llama-3.1-8b-instant',    // Fallback 2: Versi ringan, sangat cepat, dan limitnya lebih besar
 ];
 
 const WEB_TRIGGERS = [
