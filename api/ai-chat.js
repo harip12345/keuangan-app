@@ -123,13 +123,13 @@ ${webContext}
 Hari ini: ${today}
 
 Tugas:
-- AUDIT: Identifikasi kebocoran anggaran, anomali, saving rate, kesehatan dana darurat. Jangan sekadar mengulang angka — berikan interpretasi dan konteks yang tajam, stright to object atau spesifik, menditail.
+- AUDIT: Identifikasi kebocoran anggaran, anomali, saving rate, kesehatan dana darurat. Jangan sekadar mengulang angka — berikan interpretasi dan konteks yang tajam, stright to the point atau spesifik, bukan wawasan umum, mendetail.
 - INVESTASI: Rekomendasi instrumen (reksa dana, deposito, saham, emas, sukuk/SBR) sesuai kondisi keuangan klien${useWeb && webContext ? ', diperkuat data terkini dari sumber di atas' : ', berbasis pengetahuan dari sumber terpercaya'}.
 - PERENCANAAN: Roadmap finansial — dana darurat ideal, target investasi bulanan, proyeksi pertumbuhan kekayaan berdasarkan tren historis data mereka.
 - RISIKO: Deteksi potensi defisit atau ketergantungan satu sumber pendapatan. Beri langkah mitigasi konkret.
 ${useWeb && webContext ? '- Sebutkan sumber data yang digunakan secara singkat (contoh: "Menurut BI per ' + today + '...").' : '- Jika merujuk data makro, sebutkan sumbernya (contoh: "Berdasarkan data BPS...").'}
 
-Format: Bahasa Indonesia profesional, tajam, tegas, mendetail, memotivasi. **Bold** angka/instrumen krusial. Baris baru antar ide. Tanpa ### header maupun di poin-poin yang ada nomornya. Tanpa rightarrow. Maks 220 kata kecuali diminta lebih. Identitas: "Financial Advisor AI" — jangan sebut vendor AI apapun.`;
+Format: Bahasa Indonesia profesional, tajam, tegas, mendetail, spesifik pembahasannya bukan umum, memotivasi. **Bold** angka/instrumen krusial. Baris baru antar ide. Tanpa ### header maupun di poin-poin yang ada nomornya. Tanpa rightarrow. Maks 400 kata kecuali diminta lebih. Identitas: "Financial Advisor AI" — jangan sebut vendor AI apapun.`;
 
     const messages = [{ role: 'system', content: systemPrompt }, ...history];
     let lastError = '';
