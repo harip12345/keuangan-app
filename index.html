@@ -15,7 +15,6 @@
     
     <!-- Library Eksternal -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
-    </script>
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
@@ -93,22 +92,10 @@
         body.dark-mode { background-color: #020617; }
        
         /* ================= SPLASH SCREEN STYLES ================= */
-        body.dark-mode
-
-        /* Ornamen Blob Background */
-        body.dark-mode
-        body.dark-mode
-        body.dark-mode
-
         @keyframes pulseLogo {
             0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.5); }
             50% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(255, 255, 255, 0); }
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
-        }
-        body.dark-mode pulseLogo {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(30, 41, 59, 0.5); }
-            50% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(30, 41, 59, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(30, 41, 59, 0); }
         }
         
         @keyframes fadeInUp { 
@@ -887,6 +874,24 @@
         #aiModalDrawer { will-change:transform,height; }
         #aiChatInput:focus { outline:none; border-color:var(--primary) !important; box-shadow:0 0 0 3px rgba(99,102,241,.15); transition:border-color .15s, box-shadow .15s; }
         #aiChatMessages { scroll-behavior:smooth; }
+        /* ===== PROYEKSI KATEGORI ===== */
+        .proj-summary { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:0.75rem; }
+        .proj-stat { flex:1; min-width:90px; background:var(--surface-color); border:1px solid var(--border); border-radius:12px; padding:0.6rem 0.7rem; display:flex; flex-direction:column; gap:2px; }
+        .proj-stat-label { font-size:0.68rem; color:var(--text-muted); }
+        .proj-stat-val { font-size:0.9rem; font-weight:700; color:var(--text-main); }
+        .proj-risk { background:var(--warning-bg); color:var(--warning-text); border:1px solid #FECACA; padding:0.6rem 0.7rem; border-radius:10px; font-size:0.78rem; margin-bottom:0.6rem; }
+        .proj-table { display:flex; flex-direction:column; gap:0.4rem; }
+        .proj-row { background:var(--surface-color); border:1px solid var(--border); border-radius:10px; padding:0.55rem 0.7rem; }
+        .proj-row-main { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+        .proj-cat { font-size:0.84rem; font-weight:600; color:var(--text-main); }
+        .proj-row-detail { font-size:0.7rem; color:var(--text-muted); margin-top:3px; }
+        .proj-badge { font-size:0.66rem; font-weight:700; padding:2px 8px; border-radius:999px; white-space:nowrap; }
+        .proj-aman { background:#D1FAE5; color:#065F46; }
+        .proj-ketat { background:#FEF3C7; color:#92400E; }
+        .proj-minus { background:#FEE2E2; color:#991B1B; }
+        .proj-ai-btn { width:100%; margin-top:0.8rem; padding:0.65rem; border:none; border-radius:12px; background:linear-gradient(135deg,#0EA5E9,#22D3EE); color:#fff; font-weight:700; font-size:0.82rem; cursor:pointer; }
+        .proj-ai-btn:disabled { opacity:0.6; cursor:not-allowed; }
+        .proj-ai-out { margin-top:0.7rem; background:var(--surface-color); border:1px solid var(--border); border-radius:12px; padding:0.75rem; }
     </style>
 </head>
 <body>
@@ -1242,6 +1247,18 @@
 
                 <h3 class="section-title">Kesehatan Keuangan</h3>
                 <div class="health-card" id="recommendationBox"></div>
+
+                <!-- ===== PROYEKSI BIAYA PER KATEGORI ===== -->
+                <div class="analysis-panel" id="proyeksiKategoriPanel">
+                    <div class="analysis-panel-header">
+                        <div class="analysis-panel-icon" style="background:linear-gradient(135deg,#0EA5E9,#22D3EE);">🎯</div>
+                        <div>
+                            <div class="analysis-panel-title">Proyeksi Biaya per Kategori</div>
+                            <div class="analysis-panel-subtitle">Apakah uang cukup sampai gajian (tgl 26)?</div>
+                        </div>
+                    </div>
+                    <div id="proyeksiKategoriContent"><div style="text-align:center;padding:1rem;color:var(--text-muted);font-size:0.82rem;"><i>Membuka tab Analisis akan menghitung proyeksi…</i></div></div>
+                </div>
 
                 <!-- ===== PANEL ANALISIS DETAIL ===== -->
                 <h3 class="section-title">Analisis Mendalam</h3>
@@ -3979,7 +3996,160 @@
             }
 
             populateTrendYearFilter(); renderTrendChart();
+            try { renderCategoryProjection(); } catch(e){ console.error('renderCategoryProjection:', e); }
         };
+
+        // ============ PROYEKSI BIAYA PER KATEGORI (cutoff gajian tgl 26) ============
+        function computeCategoryProjection(){
+            var allIncome = 0, allExpense = 0, allAssetDed = 0;
+            transactions.forEach(function(t){
+                if(t.type==='income') allIncome += t.amount;
+                else if(t.type==='expense' && t.category!=='Transfer Mutasi') allExpense += t.amount;
+            });
+            (savings||[]).forEach(function(s){ if(s.sourceWallet && s.sourceWallet!=='None') allAssetDed += s.amount; });
+            var saldo = allIncome - allExpense - allAssetDed;
+
+            var today = new Date(); today.setHours(0,0,0,0);
+            var pStart = new Date(today.getFullYear(), today.getMonth(), 26);
+            if(today.getDate() < 26) pStart = new Date(today.getFullYear(), today.getMonth()-1, 26);
+            var pEnd = new Date(pStart.getFullYear(), pStart.getMonth()+1, 26);
+            var DAY = 86400000;
+            var periodLen = Math.max(1, Math.round((pEnd - pStart)/DAY));
+            var daysElapsed = Math.min(periodLen, Math.max(1, Math.round((today - pStart)/DAY) + 1));
+            var daysRemaining = Math.max(0, Math.round((pEnd - today)/DAY));
+            var fracRemaining = periodLen ? (daysRemaining/periodLen) : 0;
+            var curKey = pStart.getFullYear()*100 + (pStart.getMonth()+1);
+
+            var byPeriod = {};
+            transactions.forEach(function(t){
+                if(t.type!=='expense' || t.category==='Transfer Mutasi') return;
+                var pd = getPeriodData(t.date); if(!pd) return;
+                var k = pd.sortVal;
+                if(!byPeriod[k]) byPeriod[k] = {};
+                byPeriod[k][t.category] = (byPeriod[k][t.category]||0) + t.amount;
+            });
+
+            var pastKeys = Object.keys(byPeriod).map(Number).filter(function(k){ return k < curKey; }).sort(function(a,b){ return b-a; }).slice(0,3);
+            var nPast = pastKeys.length || 1;
+            var baseline = {};
+            pastKeys.forEach(function(k){
+                var m = byPeriod[k];
+                Object.keys(m).forEach(function(cat){ baseline[cat] = (baseline[cat]||0) + m[cat]; });
+            });
+            Object.keys(baseline).forEach(function(cat){ baseline[cat] = baseline[cat]/nPast; });
+
+            var spent = byPeriod[curKey] || {};
+            var groups = getDynamicCategoryGroups();
+            function groupOf(cat){ for(var g in groups){ if(groups[g].indexOf(cat)!==-1) return g; } return 'Keinginan (30%)'; }
+
+            var cats = {};
+            Object.keys(baseline).forEach(function(c){ cats[c]=1; });
+            Object.keys(spent).forEach(function(c){ cats[c]=1; });
+            Object.keys(categoryBudgets||{}).forEach(function(c){ if(categoryBudgets[c]>0) cats[c]=1; });
+
+            var rows = [], totalProjRemaining = 0;
+            Object.keys(cats).forEach(function(cat){
+                var base = baseline[cat] || 0;
+                var sp = spent[cat] || 0;
+                var pace = daysElapsed>0 ? (sp/daysElapsed)*daysRemaining : 0;
+                var hist = base * fracRemaining;
+                var projRemaining = Math.max(pace, hist);
+                totalProjRemaining += projRemaining;
+                rows.push({ cat:cat, group:groupOf(cat), baseline:base, spent:sp, projRemaining:projRemaining, projTotal:sp+projRemaining, budget:(categoryBudgets&&categoryBudgets[cat])?categoryBudgets[cat]:0 });
+            });
+
+            var order = { 'Kebutuhan (50%)':0, 'Tabungan (20%)':1, 'Keinginan (30%)':2 };
+            rows.sort(function(a,b){ return (order[a.group]||3)-(order[b.group]||3) || b.projRemaining-a.projRemaining; });
+            var remainingFund = saldo;
+            rows.forEach(function(r){
+                var need = r.projRemaining;
+                if(remainingFund >= need){ r.funded = need; r.shortfall = 0; remainingFund -= need; }
+                else { r.funded = Math.max(0, remainingFund); r.shortfall = need - r.funded; remainingFund = 0; }
+                if(r.shortfall <= 0) r.status = 'aman';
+                else if(r.funded > 0) r.status = 'ketat';
+                else r.status = 'minus';
+            });
+
+            return { saldo:saldo, daysRemaining:daysRemaining, periodLen:periodLen, daysElapsed:daysElapsed, nPast:nPast, totalProjRemaining:totalProjRemaining, surplus:(saldo-totalProjRemaining), rows:rows };
+        }
+
+        function renderCategoryProjection(){
+            var card = document.getElementById('proyeksiKategoriContent');
+            if(!card) return;
+            var data = computeCategoryProjection();
+            var rp = function(n){ return formatRupiah(Math.round(n)); };
+            var badge = function(s){
+                if(s==='aman') return '<span class="proj-badge proj-aman">\u2705 Aman</span>';
+                if(s==='ketat') return '<span class="proj-badge proj-ketat">\u26A0\uFE0F Ketat</span>';
+                return '<span class="proj-badge proj-minus">\u274C Minus</span>';
+            };
+            var sumColor = data.surplus>=0 ? 'var(--income)' : 'var(--expense)';
+            var html = '';
+            html += '<div class="proj-summary">';
+            html += '<div class="proj-stat"><span class="proj-stat-label">Sisa uang</span><span class="proj-stat-val">'+rp(data.saldo)+'</span></div>';
+            html += '<div class="proj-stat"><span class="proj-stat-label">Menuju gajian (26)</span><span class="proj-stat-val">'+data.daysRemaining+' hari</span></div>';
+            html += '<div class="proj-stat"><span class="proj-stat-label">Proyeksi '+(data.surplus>=0?'surplus':'defisit')+'</span><span class="proj-stat-val" style="color:'+sumColor+'">'+rp(Math.abs(data.surplus))+'</span></div>';
+            html += '</div>';
+            if(!data.rows.length){
+                html += '<div style="text-align:center;padding:1rem;color:var(--text-muted);font-size:0.82rem;"><i>Belum ada cukup data historis untuk proyeksi.</i></div>';
+            } else {
+                var risk = data.rows.filter(function(r){ return r.shortfall>0; });
+                if(risk.length){
+                    html += '<div class="proj-risk"><strong>\u26A0\uFE0F Berisiko tidak terealisasi:</strong> '+risk.map(function(r){ return r.cat; }).join(', ')+'</div>';
+                }
+                html += '<div class="proj-table">';
+                data.rows.forEach(function(r){
+                    html += '<div class="proj-row"><div class="proj-row-main"><span class="proj-cat">'+r.cat+'</span>'+badge(r.status)+'</div>'+
+                        '<div class="proj-row-detail">rata\u00B2: '+rp(r.baseline)+' \u00B7 terpakai: '+rp(r.spent)+' \u00B7 proyeksi sisa: '+rp(r.projRemaining)+(r.shortfall>0?(' \u00B7 <span style="color:var(--expense)">kurang '+rp(r.shortfall)+'</span>'):'')+'</div></div>';
+                });
+                html += '</div>';
+            }
+            html += '<button id="btnProyeksiAI" class="proj-ai-btn" onclick="runProjectionAI()">\uD83D\uDCA1 Saran Hemat AI</button>';
+            html += '<div id="proyeksiAIOutput" class="proj-ai-out" style="display:none;"></div>';
+            card.innerHTML = html;
+        }
+
+        async function runProjectionAI(){
+            var btn = document.getElementById('btnProyeksiAI');
+            var out = document.getElementById('proyeksiAIOutput');
+            if(!btn || !out) return;
+            var data = computeCategoryProjection();
+            var oldLabel = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = '\uD83E\uDD16 Menganalisis...';
+            out.style.display = 'block';
+            out.innerHTML = '<div style="color:var(--text-muted);font-size:0.82rem;">AI sedang menyusun saran hemat...</div>';
+            try {
+                var NL = String.fromCharCode(10);
+                var rp = function(n){ return 'Rp' + Math.round(n).toLocaleString('id-ID'); };
+                var lines = data.rows.map(function(r){
+                    return '- '+r.cat+' ['+r.group.replace(/ \(.*\)/,'')+']: rata2 '+rp(r.baseline)+', terpakai '+rp(r.spent)+', proyeksi sisa '+rp(r.projRemaining)+(r.shortfall>0?(', KURANG '+rp(r.shortfall)):' (aman)');
+                }).join(NL);
+                var prompt = [
+                    'Kamu adalah Financial Advisor AI berbahasa Indonesia. Analisis proyeksi keuangan sampai gajian berikutnya (tanggal 26).',
+                    '',
+                    'Sisa uang sekarang: '+rp(data.saldo),
+                    'Hari menuju gajian: '+data.daysRemaining+' hari (dari '+data.periodLen+' hari periode)',
+                    'Total proyeksi pengeluaran tersisa: '+rp(data.totalProjRemaining),
+                    'Status: '+(data.surplus>=0?('SURPLUS '+rp(data.surplus)):('DEFISIT '+rp(-data.surplus))),
+                    '',
+                    'Rincian per kategori (baseline rata-rata '+data.nPast+' periode lalu):',
+                    lines,
+                    '',
+                    'Tugas: (1) Sebutkan beban/kategori mana yang KEMUNGKINAN TIDAK AKAN TEREALISASI jika pola ini berlanjut. (2) Beri saran hemat konkret dan realistis untuk kategori berisiko. (3) Tutup dengan 1 kalimat motivasi singkat. Jawab ringkas dalam poin-poin, teks biasa tanpa markdown, maksimal 180 kata.'
+                ].join(NL);
+                var resp = await fetch('/api/ai-chat', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ history:[{ role:'user', content:prompt }], konteks:'' }) });
+                if(!resp.ok) throw new Error('HTTP '+resp.status);
+                var d = await resp.json();
+                var text = (d.reply||'').trim();
+                if(!text) throw new Error('Balasan kosong');
+                out.innerHTML = '<div style="white-space:pre-wrap;font-size:0.85rem;line-height:1.55;color:var(--text-main);">'+text.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</div>';
+            } catch(err){
+                console.error('runProjectionAI:', err);
+                out.innerHTML = '<div style="color:var(--expense);font-size:0.82rem;">Gagal memuat saran AI: '+((err&&err.message)||'coba lagi')+'</div>';
+            } finally {
+                btn.disabled = false; btn.innerHTML = oldLabel;
+            }
+        }
 
         // ================== FITUR LUPA PASSWORD ==================
         function handleForgotPassword(e) {
