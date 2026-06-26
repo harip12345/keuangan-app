@@ -3,8 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#F3F4F6" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#0F172A" media="(prefers-color-scheme: dark)">
     <title>Finance App by Haripam</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><defs><linearGradient id='grad' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%234F46E5' /><stop offset='100%' stop-color='%2310B981' /></linearGradient></defs><rect width='24' height='24' rx='5' fill='url(%23grad)'/><path d='M7 6v12h2.5v-4.5h5V18H17V6h-2.5v4.5h-5V6H7z' fill='white'/><path d='M10 14l3-3 3 3' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>" type="image/svg+xml">
     
@@ -876,12 +874,6 @@
         #aiModalDrawer { will-change:transform,height; }
         #aiChatInput:focus { outline:none; border-color:var(--primary) !important; box-shadow:0 0 0 3px rgba(99,102,241,.15); transition:border-color .15s, box-shadow .15s; }
         #aiChatMessages { scroll-behavior:smooth; }
-        /* ===== UI/UX POLISH (ditambahkan) ===== */
-        html { scroll-behavior: smooth; }
-        :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 6px; }
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
-        }
     </style>
 </head>
 <body>
@@ -2665,16 +2657,31 @@
         let globalEndDate = safeGetLocal('globalEndDate');
 
         // Setup periode otomatis bulan ini untuk pengguna pertama kali (jika belum ada cache lokal)
-        if (globalStartDate === null && globalEndDate === null) {
-            const today = new Date();
-            const y = today.getFullYear();
-            const m = String(today.getMonth() + 1).padStart(2, '0');
-            const lastDay = new Date(y, today.getMonth() + 1, 0).getDate();
-            globalStartDate = `${y}-${m}-01`;
-            globalEndDate = `${y}-${m}-${lastDay}`;
-        } else {
-            globalStartDate = globalStartDate || '';
-            globalEndDate = globalEndDate || '';
+        {
+            const _tnow = new Date();
+            const _ty = _tnow.getFullYear();
+            const _tm = String(_tnow.getMonth() + 1).padStart(2, '0');
+            const _tlast = new Date(_ty, _tnow.getMonth() + 1, 0).getDate();
+            const _curStart = `${_ty}-${_tm}-01`;
+            const _curEnd = `${_ty}-${_tm}-${String(_tlast).padStart(2, '0')}`;
+            const _todayYmd = `${_ty}-${_tm}-${String(_tnow.getDate()).padStart(2, '0')}`;
+
+            if (globalStartDate === null && globalEndDate === null) {
+                globalStartDate = _curStart;
+                globalEndDate = _curEnd;
+            } else {
+                globalStartDate = globalStartDate || '';
+                globalEndDate = globalEndDate || '';
+                // PERBAIKAN: jika filter periode tersimpan sudah basi (berakhir sebelum hari ini,
+                // mis. nyangkut di bulan/periode sebelumnya setelah ganti bulan), majukan ke bulan
+                // berjalan agar transaksi terbaru (termasuk hari ini) tetap tampil di Riwayat,
+                // daftar transaksi, dan kotak Saldo Bulan Ini.
+                if (globalEndDate && globalEndDate < _todayYmd) {
+                    globalStartDate = _curStart;
+                    globalEndDate = _curEnd;
+                    try { safeSetLocal('globalStartDate', globalStartDate); safeSetLocal('globalEndDate', globalEndDate); } catch(e) {}
+                }
+            }
         }
         
         const defaultWallets = ['Tunai', 'Muamalat', 'BSI', 'Bank Jago', 'SeaBank', 'Blu', 'e-Wallet'];
@@ -3231,11 +3238,20 @@
             if(fab) fab.style.display = 'flex';
             const fabAi = document.getElementById('fabAiBtn');
             if(fabAi) fabAi.style.display = 'flex';
-            try { var _h = '#' + viewName; if(location.hash !== _h) history.replaceState(null, '', _h); } catch(e){}
+            try { history.replaceState(null, '', '#' + viewName); } catch(e){}
         };
-        function _getHashView(){ try{ var v=(location.hash||'').replace(/^#\/?/,''); return ['transaksi','tabungan','goals','analisis','laporan'].indexOf(v)!==-1?v:null; }catch(e){ return null; } }
+        function _getHashView(){
+            var valid = ['transaksi','tabungan','goals','analisis','laporan'];
+            var h = (location.hash || '').replace(/^#\/?/, '');
+            return valid.indexOf(h) !== -1 ? h : '';
+        }
+        window.addEventListener('hashchange', function(){
+            var app = document.getElementById('mainAppContainer');
+            if(!app || app.style.display === 'none') return;
+            var v = _getHashView();
+            if(v) switchView(v);
+        });
         switchView(_getHashView() || 'transaksi');
-        window.addEventListener('hashchange', function(){ var app=document.getElementById('mainAppContainer'); if(!app || app.style.display==='none') return; var v=_getHashView(); if(v) switchView(v); });
 
         const trxForm = document.getElementById('transactionForm');
         if(trxForm) {
