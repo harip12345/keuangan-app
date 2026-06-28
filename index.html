@@ -255,6 +255,11 @@
         #toastMsg.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
         .btn-undo-toast { background: var(--primary); color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: 0.2s; }
         .btn-undo-toast:active { transform: scale(0.9); }
+        .btn-undo-perm { display:inline-flex; align-items:center; gap:5px; background:var(--primary); color:#fff; border:none; height:32px; padding:0 0.7rem; border-radius:20px; font-size:0.78rem; font-weight:700; cursor:pointer; transition:0.2s; box-shadow:0 2px 5px rgba(0,0,0,0.15); }
+        .btn-undo-perm:active { transform: scale(0.92); }
+        .btn-undo-perm:disabled { opacity:0.4; cursor:not-allowed; box-shadow:none; }
+        .btn-undo-perm .undo-count { min-width:16px; height:16px; line-height:16px; padding:0 4px; border-radius:8px; background:rgba(255,255,255,0.3); font-size:0.66rem; font-weight:800; text-align:center; }
+        .btn-undo-perm .undo-count:empty { display:none; }
 
         .main-view { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; scroll-behavior: smooth; }
         .main-view::after { content: ''; display: block; min-height: 8rem; flex-shrink: 0; }
@@ -1667,7 +1672,10 @@
                 <div class="riwayat-modal-handle"></div>
                 <div class="riwayat-modal-header">
                     <div class="riwayat-modal-title">📋 Riwayat Transaksi</div>
-                    <button class="btn-close" onclick="closeRiwayatModal('trx')">&times;</button>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <button id="riwayatTrxUndoBtn" class="btn-undo-perm" onclick="undoLastDelete()" disabled title="Tidak ada yang bisa dikembalikan">↩️ Undo<span class="undo-count"></span></button>
+                        <button class="btn-close" onclick="closeRiwayatModal('trx')">&times;</button>
+                    </div>
                 </div>
                 <div class="riwayat-sticky-top">
                     <div class="riwayat-filter-bar">
@@ -1704,7 +1712,10 @@
                 <div class="riwayat-modal-handle"></div>
                 <div class="riwayat-modal-header">
                     <div class="riwayat-modal-title">📋 Riwayat Aset / Tabungan</div>
-                    <button class="btn-close" onclick="closeRiwayatModal('aset')">&times;</button>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <button id="riwayatAsetUndoBtn" class="btn-undo-perm" onclick="undoLastDelete()" disabled title="Tidak ada yang bisa dikembalikan">↩️ Undo<span class="undo-count"></span></button>
+                        <button class="btn-close" onclick="closeRiwayatModal('aset')">&times;</button>
+                    </div>
                 </div>
                 <div class="riwayat-sticky-top">
                     <div class="riwayat-filter-bar">
@@ -2695,6 +2706,8 @@
         let lastDeletedId = null;
         let lastDeletedCollection = null;
         let undoTimeout = null;
+        let undoStack = []; // antrean undo hapus jangka pendek (sesi berjalan)
+        const UNDO_STACK_MAX = 30;
 
         // ================== SISTEM TOAST & UNDO ==================
         const showToast = (msg) => { 
@@ -2719,14 +2732,40 @@
             }, 6000); 
         };
 
-        function undoDelete() {
-            if(!lastDeletedId || !lastDeletedBackup || !lastDeletedCollection) return;
-            db.collection(DB_COLLECTION).doc(currentProfileId).collection(lastDeletedCollection).doc(lastDeletedId).set(lastDeletedBackup)
-            .then(() => {
-                showToast("Data dikembalikan ✅");
-                lastDeletedId = null; lastDeletedBackup = null; lastDeletedCollection = null;
-            }).catch(() => showToast("Gagal mengembalikan data"));
+        function pushUndo(entry) {
+            undoStack.push({ ...entry, ts: Date.now() });
+            if (undoStack.length > UNDO_STACK_MAX) undoStack.shift();
+            updateUndoButtons();
         }
+
+        function updateUndoButtons() {
+            const n = undoStack.length;
+            ['riwayatTrxUndoBtn', 'riwayatAsetUndoBtn'].forEach(function(id) {
+                const btn = document.getElementById(id);
+                if(!btn) return;
+                btn.disabled = (n === 0);
+                btn.title = (n === 0) ? 'Tidak ada yang bisa dikembalikan' : ('Kembalikan ' + n + ' data terakhir yang terhapus');
+                const badge = btn.querySelector('.undo-count');
+                if(badge) badge.textContent = (n > 0) ? String(n) : '';
+            });
+        }
+
+        function undoLastDelete() {
+            if (undoStack.length === 0) { showToast('Tidak ada data untuk dikembalikan'); return; }
+            const entry = undoStack.pop();
+            updateUndoButtons();
+            db.collection(DB_COLLECTION).doc(currentProfileId).collection(entry.collection).doc(entry.id).set(entry.data)
+            .then(() => {
+                showToast('Data dikembalikan ✅' + (undoStack.length ? ' (' + undoStack.length + ' lagi)' : ''));
+            }).catch(() => {
+                undoStack.push(entry);
+                updateUndoButtons();
+                showToast('Gagal mengembalikan data');
+            });
+        }
+
+        // Kompatibilitas: tombol Undo pada toast memakai antrean yang sama
+        function undoDelete() { undoLastDelete(); }
 
         function openAddTransaction() {
             switchView('transaksi');
@@ -2792,7 +2831,10 @@
             }
             closeRiwayatActionSheet(modalType);
             db.collection(DB_COLLECTION).doc(currentProfileId).collection(colName).doc(itemId).delete()
-                .then(() => showToastUndo('Data terhapus 🗑️'))
+                .then(() => {
+                    if(lastDeletedId && lastDeletedBackup) pushUndo({ id: lastDeletedId, collection: lastDeletedCollection, data: { ...lastDeletedBackup } });
+                    showToastUndo('Data terhapus 🗑️');
+                })
                 .catch(() => showToast('Gagal menghapus'));
         }
 
@@ -2830,6 +2872,7 @@
             db.collection(DB_COLLECTION).doc(currentProfileId).collection(collectionName).doc(selectedItemId).delete()
             .then(() => { 
                 closeItemActionModal(); 
+                if(lastDeletedId && lastDeletedBackup) pushUndo({ id: lastDeletedId, collection: lastDeletedCollection, data: { ...lastDeletedBackup } });
                 showToastUndo("Data terhapus 🗑️");
                 // Kembali ke modal riwayat setelah hapus
                 setTimeout(() => openRiwayatModal(src === 'trx' ? 'transaksi' : 'aset'), 350);
@@ -4682,6 +4725,7 @@
         let _riwayatAsetScrollPos = 0;
 
         function openRiwayatModal(type) {
+            updateUndoButtons();
             if(type === 'transaksi') {
                 // Isi dropdown kategori dari data transaksi yang ada
                 const cats = [...new Set(transactions.map(t => t.category).filter(Boolean))].sort();
