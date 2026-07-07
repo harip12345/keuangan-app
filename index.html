@@ -903,6 +903,24 @@
         .ai-user-avatar-fallback { width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:#fff;flex-shrink:0;margin-top:2px; }
         /* ===== SCAN NOTA ===== */
         #btnScanNota:disabled { opacity:.65; cursor:not-allowed; }
+        #btnQuickAdd:disabled { opacity:.65; cursor:not-allowed; }
+        .quick-add-panel { margin:.5rem 0 .2rem; padding:.85rem; border:1px solid var(--border); border-radius:14px; background:var(--surface-color,#F8FAFC); box-shadow:0 4px 14px rgba(139,92,246,.08); animation:qaSlide .25s ease; }
+        body.dark-mode .quick-add-panel { background:#0f172a; }
+        @keyframes qaSlide { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }
+        .quick-add-head { display:flex; justify-content:space-between; align-items:center; font-weight:700; font-size:.85rem; color:var(--text-main); margin-bottom:.5rem; }
+        .quick-add-close { background:transparent; border:none; color:var(--text-muted); font-size:1rem; cursor:pointer; line-height:1; padding:2px 6px; border-radius:8px; }
+        .quick-add-close:hover { background:var(--primary-light); color:var(--primary); }
+        .quick-add-input { width:100%; box-sizing:border-box; border:1.5px solid var(--border); border-radius:10px; padding:.6rem .7rem; font-size:.9rem; font-family:inherit; resize:vertical; background:var(--card-bg); color:var(--text-main); }
+        .quick-add-input:focus { outline:none; border-color:#8B5CF6; box-shadow:0 0 0 3px rgba(139,92,246,.15); }
+        .quick-add-preview { margin-top:.55rem; font-size:.78rem; line-height:1.6; color:var(--text-muted); min-height:1.2em; }
+        .quick-add-preview .qa-chip { display:inline-block; padding:2px 8px; margin:2px 4px 2px 0; border-radius:999px; font-weight:600; font-size:.72rem; }
+        .quick-add-preview.qa-error { color:#EF4444; font-weight:600; }
+        .quick-add-actions { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:.6rem; flex-wrap:wrap; }
+        .quick-add-hint { font-size:.68rem; color:var(--text-muted); }
+        .quick-add-save { background:linear-gradient(135deg,#8B5CF6,#6D28D9); color:#fff; border:none; border-radius:10px; padding:.5rem 1.1rem; font-size:.82rem; font-weight:700; cursor:pointer; box-shadow:0 2px 8px rgba(139,92,246,.3); }
+        .quick-add-save:disabled { opacity:.6; cursor:not-allowed; }
+        .quick-add-shake { animation:qaShake .35s; }
+        @keyframes qaShake { 0%,100% { transform:none; } 20%,60% { transform:translateX(-5px); } 40%,80% { transform:translateX(5px); } }
         /* ===== KEYBOARD SMOOTH ===== */
         #aiModalDrawer { will-change:transform,height; }
         #aiChatInput:focus { outline:none; border-color:var(--primary) !important; box-shadow:0 0 0 3px rgba(99,102,241,.15); transition:border-color .15s, box-shadow .15s; }
@@ -1095,14 +1113,14 @@
                         </div>
                     </div>
                     <div class="header-actions">
-                        <button class="icon-btn" onclick="openSettingsModal()" title="Pengaturan Akun">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+                        <button class="icon-btn" onclick="toggleDarkMode()" title="Ganti Tema">
+                            <svg id="themeIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
                         </button>
                         <button class="icon-btn" onclick="refreshApp()" title="Refresh Aplikasi">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
                         </button>
-                        <button class="icon-btn" onclick="toggleDarkMode()" title="Ganti Tema">
-                            <svg id="themeIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
+                        <button class="icon-btn" onclick="openSettingsModal()" title="Pengaturan Akun">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
                         </button>
                     </div>
                 </div>
@@ -1137,6 +1155,14 @@
                 <div class="section-title">
                     <span>Catat Transaksi</span>
                     <div style="display:flex;gap:6px;align-items:center;">
+                        <!-- Tombol Catat Cepat (input teks natural) -->
+                        <button type="button" id="btnQuickAdd" title="Catat Cepat (ketik teks)" onclick="toggleQuickAdd()"
+                            style="display:flex;align-items:center;gap:5px;padding:0 10px;height:32px;background:linear-gradient(135deg,#8B5CF6,#6D28D9);color:#fff;border:none;border-radius:20px;font-size:.75rem;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(139,92,246,.35);white-space:nowrap;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+                                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                            </svg>
+                            Catat Cepat
+                        </button>
                         <!-- Tombol scan nota kecil -->
                         <input type="file" id="inputScanNota" accept="image/*,application/pdf" style="display:none">
                         <button type="button" id="btnScanNota" title="Scan / Upload Nota"
@@ -1148,13 +1174,23 @@
                             </svg>
                             Scan Nota
                         </button>
-                        <button class="btn-riwayat" onclick="openRiwayatModal('transaksi')">
-                            📋 Riwayat
-                        </button>
                     </div>
                 </div>
                 <!-- Status scan nota -->
                 <div id="scanNotaStatus" style="display:none;margin:.4rem 0 .2rem;padding:.6rem .9rem;border-radius:10px;font-size:.8rem;font-weight:500;line-height:1.4;"></div>
+                <!-- Panel Catat Cepat (input teks natural) -->
+                <div id="quickAddPanel" class="quick-add-panel" style="display:none;">
+                    <div class="quick-add-head">
+                        <span>⚡ Catat Cepat</span>
+                        <button type="button" class="quick-add-close" onclick="toggleQuickAdd(false)" title="Tutup">✕</button>
+                    </div>
+                    <textarea id="quickAddInput" class="quick-add-input" rows="2" placeholder="Ketik transaksi, mis: beli makan 15rb, gaji 5jt, ngopi 25.000 pakai gopay kemarin"></textarea>
+                    <div id="quickAddPreview" class="quick-add-preview">Mulai ketik untuk melihat hasil deteksi…</div>
+                    <div class="quick-add-actions">
+                        <span class="quick-add-hint">Enter = simpan • Shift+Enter = baris baru</span>
+                        <button type="button" id="quickAddSaveBtn" class="quick-add-save" onclick="quickAddSave()">Simpan</button>
+                    </div>
+                </div>
                 <form id="transactionForm">
                     <div class="form-group">
                         <label class="form-label">Tanggal Transaksi</label>
@@ -1194,6 +1230,7 @@
 
                     <button type="submit" class="btn-submit" id="btnSubmitTrx">Simpan Transaksi</button>
                     <button type="button" class="btn-submit hidden" id="btnCancelEdit" onclick="cancelEdit()" style="background: var(--surface-color); color: var(--text-main); margin-top: 0.5rem; box-shadow:none; border: 1px solid var(--border);">Batal Edit</button>
+                    <button type="button" class="btn-submit" id="btnRiwayatTrx" onclick="openRiwayatModal('transaksi')" style="margin-top:0.6rem;">Riwayat Transaksi</button>
                 </form>
             </div>
         </div>
@@ -1230,9 +1267,6 @@
             <div class="content-section" style="padding-top: 1rem;">
                 <h3 class="section-title">
                     <span>Catat Data Aset / Tabungan</span>
-                    <button class="btn-riwayat" onclick="openRiwayatModal('aset')">
-                        📋 Riwayat
-                    </button>
                 </h3>
                 <form id="savingsForm">
                     <div class="form-group">
@@ -1266,6 +1300,7 @@
 
                     <button type="submit" class="btn-submit savings-btn" id="btnSubmitAsset">Simpan Data Aset</button>
                     <button type="button" class="btn-submit hidden" id="btnCancelAssetEdit" onclick="cancelAssetEdit()" style="background: var(--surface-color); color: var(--text-main); margin-top: 0.5rem; box-shadow:none; border: 1px solid var(--border);">Batal Edit</button>
+                    <button type="button" class="btn-submit savings-btn" id="btnRiwayatAset" onclick="openRiwayatModal('aset')" style="margin-top:0.6rem;">Riwayat Aset</button>
                 </form>
             </div>
         </div>
@@ -3379,6 +3414,176 @@
             });
         }
 
+        /* ================= CATAT CEPAT (input transaksi berbasis teks) ================= */
+        function _qaIsWord(c){ return (c>='a'&&c<='z')||(c>='0'&&c<='9'); }
+        function _qaHas(t,w){ w=(w||'').trim(); if(!w) return false; var i=t.indexOf(w); while(i>=0){ var b=(i===0)?' ':t.charAt(i-1); var a=t.charAt(i+w.length)||' '; if(!_qaIsWord(b)&&!_qaIsWord(a)) return true; i=t.indexOf(w,i+1); } return false; }
+        function _qaYMD(d){ var off=d.getTimezoneOffset()*60000; return new Date(d-off).toISOString().split('T')[0]; }
+
+        function _qaParseAmount(text){
+            var t=' '+text.toLowerCase().replace(/rp\.?/g,' ')+' '; var m;
+            var se=[[/\bseratus\s*(?:ribu|rb)\b/,100000],[/\bsetengah\s*juta\b/,500000],[/\b(?:se|satu)\s*juta\b/,1000000],[/\bseribu\b/,1000]];
+            for(var i=0;i<se.length;i++){ if(se[i][0].test(t)){ return { amount:se[i][1], matched:(t.match(se[i][0])||[''])[0].trim() }; } }
+            m=t.match(/(\d+(?:[.,]\d+)?)\s*ratus\s*(?:ribu|rb)/); if(m){ return { amount:Math.round(parseFloat(m[1].replace(',','.'))*100000), matched:m[0].trim() }; }
+            m=t.match(/(\d+(?:[.,]\d+)?)\s*puluh\s*(?:ribu|rb)/); if(m){ return { amount:Math.round(parseFloat(m[1].replace(',','.'))*10000), matched:m[0].trim() }; }
+            m=t.match(/(\d+(?:[.,]\d+)?)\s*(jt|juta|jeti|rb|ribu|k|miliar|milyar)\b/);
+            if(m){ var n=parseFloat(m[1].replace(',','.')); var s=m[2]; var mult=1; if(s==='rb'||s==='ribu'||s==='k')mult=1000; else if(s==='jt'||s==='juta'||s==='jeti')mult=1000000; else mult=1000000000; return { amount:Math.round(n*mult), matched:m[0].trim() }; }
+            var nums=t.match(/\d[\d.,]*\d|\d/g)||[]; var best=0,bestStr='';
+            for(var j=0;j<nums.length;j++){ var raw=nums[j]; var v=parseInt(raw.replace(/[.,]/g,''),10); if(!isNaN(v)&&v>best){ best=v; bestStr=raw; } }
+            if(best>0) return { amount:best, matched:bestStr };
+            return { amount:0, matched:'' };
+        }
+
+        function _qaParseDate(text){
+            var t=' '+text.toLowerCase()+' '; var now=new Date();
+            function mk(dd,mm,yy){ return yy+'-'+String(mm).padStart(2,'0')+'-'+String(dd).padStart(2,'0'); }
+            var bmap={januari:1,jan:1,februari:2,feb:2,pebruari:2,maret:3,mar:3,mrt:3,april:4,apr:4,mei:5,juni:6,jun:6,juli:7,jul:7,agustus:8,agt:8,agu:8,agst:8,ags:8,september:9,sep:9,sept:9,oktober:10,okt:10,november:11,nov:11,nop:11,desember:12,des:12};
+            if(/\b(kemarin|kemaren)\s+lusa\b/.test(t)){ var da=new Date(now); da.setDate(da.getDate()-2); return _qaYMD(da); }
+            if(/\b(kemarin|kemaren|kmrn|kmren)\b/.test(t)){ var db_=new Date(now); db_.setDate(db_.getDate()-1); return _qaYMD(db_); }
+            if(/\b(besok|bsk|esok)\b/.test(t)){ var dc=new Date(now); dc.setDate(dc.getDate()+1); return _qaYMD(dc); }
+            if(/\blusa\b/.test(t)){ var dd2=new Date(now); dd2.setDate(dd2.getDate()+2); return _qaYMD(dd2); }
+            var m=t.match(/(\d+)\s*hari\s*(?:yang\s*)?lalu/); if(m){ var de=new Date(now); de.setDate(de.getDate()-parseInt(m[1],10)); return _qaYMD(de); }
+            m=t.match(/\b(\d{1,2})\s+([a-z]+)\b/); if(m&&bmap[m[2]]){ var d1=parseInt(m[1],10); if(d1>=1&&d1<=31) return mk(d1,bmap[m[2]],now.getFullYear()); }
+            m=t.match(/\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/); if(m){ var dA=parseInt(m[1],10),mA=parseInt(m[2],10),yA=m[3]?parseInt(m[3],10):now.getFullYear(); if(yA<100)yA+=2000; if(dA>=1&&dA<=31&&mA>=1&&mA<=12) return mk(dA,mA,yA); }
+            m=t.match(/\bt(?:gl|anggal)\.?\s*(\d{1,2})\b/); if(m){ var dB=parseInt(m[1],10); if(dB>=1&&dB<=31) return mk(dB,now.getMonth()+1,now.getFullYear()); }
+            return _qaYMD(now);
+        }
+
+        function _qaDetectType(text){
+            var t=' '+text.toLowerCase()+' ';
+            if(/\b(transfer|tf|mutasi|pindah|pindahin|pindahkan)\b/.test(t)) return 'transfer';
+            var inc=[['gaji',4],['gajian',4],['upah',4],['thr',4],['bonus',4],['dividen',4],['omzet',3],['omset',3],['cashback',3],['refund',3],['honor',3],['komisi',3],['insentif',3],['pencairan',3],['warisan',3],['reward',2],['terima',2],['diterima',2],['dapat',2],['dapet',2],['dikasih',2],['dikasi',2],['hadiah',2],['jual',2],['jualan',2],['penjualan',2],['untung',2],['laba',2],['bunga',2],['saku',2],['pemberian',2],['bayaran',2],['angpao',2],['angpau',2]];
+            var exp=[['beli',4],['bayar',4],['jajan',3],['belanja',3],['makan',2],['minum',2],['ngopi',3],['topup',2],['bensin',3],['ojek',3],['grab',2],['gojek',2],['parkir',3],['kuota',3],['wifi',2],['pulsa',3],['langganan',3],['sewa',3],['cicilan',3],['nyicil',3],['tagihan',3],['nonton',2],['tiket',2],['servis',2],['service',2],['laundry',2],['infak',3],['sedekah',3],['zakat',3],['kado',2],['traktir',3],['nabung',2]];
+            var si=0,so=0,k;
+            for(k=0;k<inc.length;k++){ if(_qaHas(t,inc[k][0])) si+=inc[k][1]; }
+            for(k=0;k<exp.length;k++){ if(_qaHas(t,exp[k][0])) so+=exp[k][1]; }
+            return si>so ? 'income' : 'expense';
+        }
+
+        function _qaCategory(text,kind){
+            var t=' '+text.toLowerCase()+' ';
+            var expMap=[
+                [['ngopi','kopi','coffee','starbucks','kafe','cafe'],'Ngopi'],
+                [['makan','minum','sarapan','nasi','ayam','bakso','mie','warteg','resto','restoran','gofood','grabfood','sate','soto','martabak','seblak','dinner','lunch','makanan','minuman'],'Makan dan Minum'],
+                [['jajan','snack','cemilan','camilan','permen','coklat'],'Jajan'],
+                [['bensin','pertalite','pertamax','solar','bbm','dexlite'],'Bensin'],
+                [['oli','ganti oli'],'Ganti Oli'],
+                [['ojek','ojol','gojek','grab','gocar','grabbike','grabcar','angkot','busway','transjakarta','mrt','krl','kereta','taksi','taxi','maxim','indriver'],'Ojek'],
+                [['parkir'],'Parkir'],
+                [['kuota','wifi','internet','pulsa','indihome','paket data'],'Kuota/Wifi'],
+                [['sunscreen','sunblock'],'Sunscreen'],
+                [['skincare','serum','toner','moisturizer','pelembab','retinol','niacinamide'],'Skincare'],
+                [['sabun muka','facial wash','facial'],'Sabun Muka'],
+                [['body care','bodycare','lotion','sabun mandi','deodoran','parfum'],'Body care'],
+                [['make up','makeup','lipstik','lipstick','bedak','foundation','maskara','eyeliner'],'Make up'],
+                [['shopping','belanja','baju','celana','sepatu','tas','fashion','kaos','jaket','dress','hijab','sandal'],'Shopping'],
+                [['dating','ngedate','pacar'],'Dating'],
+                [['jalan-jalan','jalan jalan','liburan','wisata','travel','staycation','healing','piknik'],'Jalan-jalan'],
+                [['infak','sedekah','zakat','donasi','sumbangan','amal'],'Infak'],
+                [['ngasih ortu','orang tua','ke ortu','buat ortu','ortu'],'Ngasih Ortu'],
+                [['nabung','menabung','tabungan'],'Tabungan']
+            ];
+            var incMap=[
+                [['gaji','gajian','upah'],'Gaji / Upah'],
+                [['thr','bonus','insentif','reward'],'Bonus / THR'],
+                [['usaha','bisnis','jualan','jual','dagang','omzet','omset','untung','laba','penjualan','order'],'Hasil Usaha / Bisnis'],
+                [['pencairan','dividen','bunga','reksadana','saham','investasi','obligasi'],'Pencairan Investasi'],
+                [['uang saku','saku','dikasih','dikasi','pemberian','hadiah','kado','angpao','angpau','warisan'],'Pemberian / Uang Saku']
+            ];
+            var map=(kind==='income')?incMap:expMap;
+            for(var i=0;i<map.length;i++){ var arr=map[i][0]; for(var j=0;j<arr.length;j++){ if(_qaHas(t,arr[j])) return map[i][1]; } }
+            return 'Lainnya';
+        }
+
+        function _qaDetectWallet(text,orNull){
+            var t=' '+text.toLowerCase()+' ';
+            try { for(var i=0;i<(wallets||[]).length;i++){ if(_qaHas(t,String(wallets[i]).toLowerCase())) return wallets[i]; } } catch(e){}
+            var syn=[
+                [['gopay','ovo','dana','shopeepay','shopee pay','linkaja','link aja','ewallet','e-wallet','e wallet','dompet digital'],'e-Wallet'],
+                [['seabank','sea bank'],'SeaBank'],
+                [['bank jago','jago'],'Bank Jago'],
+                [['blu','blu bca'],'Blu'],
+                [['bsi','bank syariah'],'BSI'],
+                [['muamalat'],'Muamalat'],
+                [['tunai','cash','kontan'],'Tunai']
+            ];
+            for(var a=0;a<syn.length;a++){ for(var b=0;b<syn[a][0].length;b++){ if(_qaHas(t,syn[a][0][b])) return syn[a][1]; } }
+            return orNull ? null : 'Tunai';
+        }
+
+        function _qaNote(text,matched){
+            var n=text||''; if(matched){ n=n.replace(matched,' '); } n=n.replace(/\s+/g,' ').trim();
+            if(n.length<2) return '';
+            return n.charAt(0).toUpperCase()+n.slice(1);
+        }
+
+        function parseQuickText(raw){
+            var text=(raw||'').trim();
+            if(!text) return { ok:false, error:'Ketik dulu transaksinya, mis: beli makan 15rb.' };
+            var amt=_qaParseAmount(text);
+            if(!amt.amount||amt.amount<=0) return { ok:false, error:'Nominal belum terbaca. Tambahkan angka, mis: 15rb, 50.000, atau 5jt.' };
+            var type=_qaDetectType(text); var dateYMD=_qaParseDate(text);
+            if(type==='transfer'){
+                var tl=' '+text.toLowerCase()+' '; var idx=tl.search(/\bke\b/); var from='Tunai', to=null;
+                if(idx>=0){ to=_qaDetectWallet(tl.slice(idx),true); from=_qaDetectWallet(tl.slice(0,idx),true)||'Tunai'; } else { from=_qaDetectWallet(text)||'Tunai'; }
+                if(!to) return { ok:false, error:'Untuk transfer, sebutkan tujuan. Contoh: transfer 100rb ke SeaBank.' };
+                if(to===from) return { ok:false, error:'Rekening asal & tujuan sama. Contoh: transfer 100rb dari Tunai ke SeaBank.' };
+                return { ok:true, type:'transfer', amount:amt.amount, category:'Transfer Mutasi', wallet:from, walletTo:to, dateYMD:dateYMD, note:_qaNote(text,amt.matched) };
+            }
+            return { ok:true, type:type, amount:amt.amount, category:_qaCategory(text,type), wallet:(_qaDetectWallet(text)||'Tunai'), dateYMD:dateYMD, note:_qaNote(text,amt.matched) };
+        }
+
+        function _qaChip(parent,label,bg,fg){ var el=document.createElement('span'); el.className='qa-chip'; el.style.background=bg; el.style.color=fg; el.textContent=label; parent.appendChild(el); }
+
+        function quickAddPreviewUpdate(){
+            var inp=document.getElementById('quickAddInput'); var prev=document.getElementById('quickAddPreview'); if(!inp||!prev) return;
+            var raw=inp.value.trim();
+            if(!raw){ prev.classList.remove('qa-error'); prev.textContent='Mulai ketik untuk melihat hasil deteksi\u2026'; return; }
+            var p=parseQuickText(raw);
+            if(!p.ok){ prev.classList.add('qa-error'); prev.textContent=p.error; return; }
+            prev.classList.remove('qa-error'); prev.innerHTML='';
+            var typeLabel=p.type==='income'?'Pemasukan':(p.type==='transfer'?'Transfer':'Pengeluaran');
+            var typeColor=p.type==='income'?'#10B981':(p.type==='transfer'?'#6366F1':'#EF4444');
+            _qaChip(prev,typeLabel,typeColor+'22',typeColor);
+            _qaChip(prev,'Rp '+formatRupiahStr(p.amount),'#F59E0B22','#B45309');
+            if(p.type==='transfer'){ _qaChip(prev,p.wallet+' \u2192 '+p.walletTo,'#6366F122','#4338CA'); }
+            else { _qaChip(prev,p.category,'#0EA5E922','#0369A1'); _qaChip(prev,p.wallet,'#10B98122','#047857'); }
+            _qaChip(prev,formatCustomDate(p.dateYMD),'#64748B22','#334155');
+            if(p.note){ var nd=document.createElement('div'); nd.style.marginTop='4px'; nd.textContent='\ud83d\udcdd '+p.note; prev.appendChild(nd); }
+        }
+
+        function toggleQuickAdd(force){
+            var panel=document.getElementById('quickAddPanel'); if(!panel) return;
+            var show=(typeof force==='boolean')?force:(panel.style.display==='none'||!panel.style.display);
+            panel.style.display=show?'block':'none';
+            if(show){ var inp=document.getElementById('quickAddInput'); quickAddPreviewUpdate(); if(inp) setTimeout(function(){ inp.focus(); },50); }
+        }
+
+        async function quickAddSave(){
+            var inp=document.getElementById('quickAddInput'); if(!inp) return;
+            var p=parseQuickText(inp.value.trim()); var prev=document.getElementById('quickAddPreview'); var panel=document.getElementById('quickAddPanel');
+            if(!p.ok){ if(prev){ prev.classList.add('qa-error'); prev.textContent=p.error||'Tidak bisa membaca teks.'; } if(panel){ panel.classList.remove('quick-add-shake'); void panel.offsetWidth; panel.classList.add('quick-add-shake'); } return; }
+            var btn=document.getElementById('quickAddSaveBtn'); if(btn) btn.disabled=true; showToast('Menyimpan...');
+            try {
+                var data={ type:p.type, category:p.category, amount:p.amount, wallet:p.wallet, note:p.note, date:formatCustomDate(p.dateYMD), timestamp:firebase.firestore.FieldValue.serverTimestamp() };
+                if(p.type==='transfer') data.walletTo=p.walletTo;
+                await db.collection(DB_COLLECTION).doc(currentProfileId).collection('transactions').add(data);
+                inp.value=''; quickAddPreviewUpdate();
+                var lbl=p.type==='income'?'Pemasukan':(p.type==='transfer'?'Transfer':'Pengeluaran');
+                showToast('Tersimpan \u2705 '+lbl+' Rp '+formatRupiahStr(p.amount));
+                if(typeof triggerConfetti==='function') triggerConfetti();
+                if(inp) inp.focus();
+            } catch(err){ console.error('quickAdd', err); showToast('Gagal menyimpan \u274c'); }
+            finally { if(btn) btn.disabled=false; }
+        }
+
+        (function(){
+            var inp=document.getElementById('quickAddInput');
+            if(inp){
+                inp.addEventListener('input', quickAddPreviewUpdate);
+                inp.addEventListener('keydown', function(e){ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); quickAddSave(); } });
+            }
+        })();
+
         const savForm = document.getElementById('savingsForm');
         if(savForm) {
             savForm.addEventListener('submit', async (e) => { 
@@ -5029,7 +5234,16 @@
 
                     var modelInfo = data.model_used ? ' <span style="opacity:.6;font-size:.75rem">(' + data.model_used + ')</span>' : '';
                     statusEl.style.background = '#D1FAE5'; statusEl.style.color = '#065F46';
-                    statusEl.innerHTML = '✅ Berhasil! <strong>' + filled.join(', ') + '</strong> terisi otomatis.' + modelInfo;
+                    // Auto-simpan transaksi hasil scan
+                    var _trxForm = document.getElementById('transactionForm');
+                    var _canAutoSave = _trxForm && hasil.nominal && hasil.type && (typeof editingTrxId === 'undefined' || !editingTrxId);
+                    if (_canAutoSave) {
+                        statusEl.innerHTML = '✅ Nota terbaca & <strong>langsung disimpan</strong> (' + filled.join(', ') + ').' + modelInfo;
+                        if (typeof _trxForm.requestSubmit === 'function') _trxForm.requestSubmit();
+                        else _trxForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                    } else {
+                        statusEl.innerHTML = '✅ Berhasil! <strong>' + filled.join(', ') + '</strong> terisi otomatis.' + modelInfo;
+                    }
                 } catch(err) {
                     console.error('Scan nota:', err);
                     statusEl.style.background = 'var(--warning-bg)'; statusEl.style.color = 'var(--warning-text)';
