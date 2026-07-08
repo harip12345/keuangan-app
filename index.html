@@ -1184,12 +1184,18 @@
                         <span>⚡ Catat Cepat</span>
                         <button type="button" class="quick-add-close" onclick="toggleQuickAdd(false)" title="Tutup">✕</button>
                     </div>
-                    <textarea id="quickAddInput" class="quick-add-input" rows="2" placeholder=""></textarea>
+                    <textarea id="quickAddInput" class="quick-add-input" rows="2" placeholder="Ketik transaksi, mis: beli makan 15rb, gaji 5jt, ngopi 25.000 pakai gopay kemarin"></textarea>
                     <div id="quickAddPreview" class="quick-add-preview">Mulai ketik untuk melihat hasil deteksi…</div>
                     <div class="quick-add-actions">
-                        <span class="quick-add-hint">contoh: jajan 10k </span>
+                        <span class="quick-add-hint">Enter = simpan • Shift+Enter = baris baru</span>
                         <button type="button" id="quickAddSaveBtn" class="quick-add-save" onclick="quickAddSave()">Simpan</button>
                     </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; margin:.2rem 0 .5rem;">
+                    <button type="button" class="btn-riwayat" id="btnRiwayatTrx" onclick="openRiwayatModal('transaksi')" style="color:var(--primary); border-color:var(--primary); background:var(--primary-light);">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6a7 7 0 1 1 7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+                        Riwayat
+                    </button>
                 </div>
                 <form id="transactionForm">
                     <div class="form-group">
@@ -1230,7 +1236,6 @@
 
                     <button type="submit" class="btn-submit" id="btnSubmitTrx">Simpan Transaksi</button>
                     <button type="button" class="btn-submit hidden" id="btnCancelEdit" onclick="cancelEdit()" style="background: var(--surface-color); color: var(--text-main); margin-top: 0.5rem; box-shadow:none; border: 1px solid var(--border);">Batal Edit</button>
-                    <button type="button" class="btn-submit" id="btnRiwayatTrx" onclick="openRiwayatModal('transaksi')" style="margin-top:0.6rem;">Riwayat Transaksi</button>
                 </form>
             </div>
         </div>
@@ -1267,6 +1272,10 @@
             <div class="content-section" style="padding-top: 1rem;">
                 <h3 class="section-title">
                     <span>Catat Data Aset / Tabungan</span>
+                    <button type="button" class="btn-riwayat" id="btnRiwayatAset" onclick="openRiwayatModal('aset')" style="color:var(--primary); border-color:var(--primary); background:var(--primary-light);">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6a7 7 0 1 1 7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+                        Riwayat
+                    </button>
                 </h3>
                 <form id="savingsForm">
                     <div class="form-group">
@@ -1300,7 +1309,6 @@
 
                     <button type="submit" class="btn-submit savings-btn" id="btnSubmitAsset">Simpan Data Aset</button>
                     <button type="button" class="btn-submit hidden" id="btnCancelAssetEdit" onclick="cancelAssetEdit()" style="background: var(--surface-color); color: var(--text-main); margin-top: 0.5rem; box-shadow:none; border: 1px solid var(--border);">Batal Edit</button>
-                    <button type="button" class="btn-submit savings-btn" id="btnRiwayatAset" onclick="openRiwayatModal('aset')" style="margin-top:0.6rem;">Riwayat Aset</button>
                 </form>
             </div>
         </div>
