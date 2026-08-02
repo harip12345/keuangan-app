@@ -28,7 +28,14 @@ async function callGroqVision(apiKey, model, imageBase64, mimeType, prompt) {
       temperature: 0.1,
       max_completion_tokens: 400,
       // qwen/qwen3.6-27b mendukung JSON mode dengan gambar, ini bikin output lebih stabil
-      response_format: { type: 'json_object' }
+      response_format: { type: 'json_object' },
+      // WAJIB untuk Qwen: matikan thinking mode ("none") supaya model tidak mengeluarkan
+      // token <think>...</think> sebelum JSON-nya. Kalau reasoning bocor ke output,
+      // Groq gagal validasi JSON-nya (error: json_validate_failed).
+      reasoning_effort: 'none',
+      // Saat pakai JSON mode/tool calls, Groq mewajibkan reasoning_format 'parsed' atau 'hidden'
+      // (tidak boleh 'raw'), supaya konten reasoning tidak ikut tercampur ke field JSON utama.
+      reasoning_format: 'hidden'
     })
   });
   return { status: response.status, data: await response.json() };
