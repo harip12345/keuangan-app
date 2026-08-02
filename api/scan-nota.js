@@ -1,8 +1,11 @@
-// Konfigurasi Model Berdasarkan Provider (Final)
+// Konfigurasi Model Berdasarkan Provider (Final - Updated Agustus 2026)
+// CATATAN: meta-llama/llama-4-scout-17b-16e-instruct SUDAH DI-DEPRECATE oleh Groq
+// (bersama llama-4-maverick). Model penggantinya (openai/gpt-oss-120b) TIDAK support vision/gambar.
+// Satu-satunya model vision resmi Groq saat ini adalah qwen/qwen3.6-27b.
 const VISION_MODELS = [
-  { provider: 'groq', id: 'meta-llama/llama-4-scout-17b-16e-instruct' }, // Model Vision utama Groq yang aktif saat ini
-  { provider: 'gemini', id: 'gemini-2.5-flash' },                        // Cadangan 1
-  { provider: 'gemini', id: 'gemini-2.0-flash' }                         // Cadangan 2
+  { provider: 'groq', id: 'qwen/qwen3.6-27b' },   // Model Vision utama Groq yang aktif saat ini (pengganti llama-4-scout)
+  { provider: 'gemini', id: 'gemini-2.5-flash' },  // Cadangan 1
+  { provider: 'gemini', id: 'gemini-2.0-flash' }   // Cadangan 2
 ];
 
 // Fungsi Request ke Groq Vision
@@ -23,7 +26,9 @@ async function callGroqVision(apiKey, model, imageBase64, mimeType, prompt) {
         ]
       }],
       temperature: 0.1,
-      max_tokens: 400
+      max_completion_tokens: 400,
+      // qwen/qwen3.6-27b mendukung JSON mode dengan gambar, ini bikin output lebih stabil
+      response_format: { type: 'json_object' }
     })
   });
   return { status: response.status, data: await response.json() };
@@ -112,7 +117,7 @@ CASH/Tunai → Tunai | QRIS/GoPay/OVO/Dana → e-Wallet | Tidak ada petunjuk →
     // Loop Evaluasi Lintas Provider
     for (const item of VISION_MODELS) {
       console.log(`Mencoba akses [${item.provider.toUpperCase()}] dengan model: ${item.id}`);
-      
+
       try {
         let status, data;
 
