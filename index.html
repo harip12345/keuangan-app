@@ -1857,6 +1857,19 @@
                     <button id="btnToggleBio" class="btn-submit" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--border); box-shadow:none; text-align:left; padding:0.75rem 1rem;" onclick="toggleBiometric()">🛡️ Aktifkan Face ID / Sidik Jari</button>
                 </div>
 
+                <div style="font-size:0.85rem; font-weight:700; color:var(--primary); margin-bottom:0.5rem; text-transform:uppercase;">Bot & Otomasi</div>
+                <div style="background:var(--surface-color); border:1px solid var(--border); border-radius:12px; padding:1rem; margin-bottom:1.5rem;">
+                    <div id="botStatusLine" style="font-size:0.8rem; font-weight:600; margin-bottom:0.75rem;">Status: memeriksa...</div>
+                    <button id="btnGenBotLink" class="btn-submit" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--border); box-shadow:none; text-align:left; padding:0.75rem 1rem; margin-bottom:0.5rem; width:100%;" onclick="genBotLink()">🤖 Hubungkan Bot Telegram</button>
+                    <div id="botLinkBox" style="display:none; text-align:center; background:var(--primary-light); border:1px dashed var(--primary); border-radius:12px; padding:0.9rem; margin-bottom:0.5rem;">
+                        <div style="font-size:0.72rem; color:var(--text-muted);">Kirim kode ini ke bot (atau tap tombol kirim di bawah — otomatis ke bot):</div>
+                        <div id="botLinkCode" style="font-size:1.9rem; font-weight:800; color:var(--primary); letter-spacing:0.45rem; margin:0.45rem 0; font-family:'Poppins',sans-serif;"></div>
+                        <div id="botLinkCountdown" style="font-size:0.7rem; color:var(--expense); font-weight:600;"></div>
+                        <a id="botLinkDeep" href="#" target="_blank" rel="noopener" style="display:inline-block; margin-top:0.65rem; background:var(--primary); color:#fff; padding:0.6rem 1.2rem; border-radius:12px; font-size:0.82rem; font-weight:700; text-decoration:none;">Buka Telegram & Kirim Kode</a>
+                    </div>
+                    <button id="btnBotUnlink" class="btn-submit" style="display:none; background:var(--card-bg); color:var(--warning-text); border:1px solid #FECACA; box-shadow:none; text-align:left; padding:0.75rem 1rem; width:100%;" onclick="unlinkBot()">🔌 Putuskan Koneksi Bot</button>
+                </div>
+
                 <div style="font-size:0.85rem; font-weight:700; color:var(--primary); margin-bottom:0.5rem; text-transform:uppercase;">Umum & Aplikasi</div>
                 <div style="background:var(--surface-color); border:1px solid var(--border); border-radius:12px; padding:1rem; margin-bottom:1.5rem;">
                     <button class="btn-submit" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--border); box-shadow:none; text-align:left; padding:0.75rem 1rem; margin-bottom:0.5rem;" onclick="toggleNotif()">🔔 Notifikasi & Pengingat</button>
@@ -2414,8 +2427,123 @@
 
         function openSettingsModal() {
             updateSettingsUI(); 
+            updateBotStatusUI();
             const m = document.getElementById('settingsModal');
             if(m) m.classList.add('show');
+        }
+
+        // ================== HUBUNGAN BOT TELEGRAM ==================
+        let botLinkTimer = null;
+        function _escHtmlBot(s) {
+            return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+        async function updateBotStatusUI() {
+            const line = document.getElementById('botStatusLine');
+            const unlinkBtn = document.getElementById('btnBotUnlink');
+            if (!line || !currentProfileId) return;
+            line.innerHTML = 'Status: memeriksa...';
+            try {
+                const resp = await fetch('/api/gen-link', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'status', profileId: currentProfileId })
+                });
+                const data = await resp.json();
+                if (data.bound) {
+                    line.innerHTML = `Status: <span style="color:var(--income);">Terhubung ke profil <b>${_escHtmlBot(data.name)}</b></span>`;
+                    if (unlinkBtn) unlinkBtn.style.display = 'block';
+                } else {
+                    line.innerHTML = 'Status: <span style="color:var(--text-muted);">Belum terhubung</span>';
+                    if (unlinkBtn) unlinkBtn.style.display = 'none';
+                }
+            } catch (e) {
+                line.innerHTML = 'Status: <span style="color:var(--expense);">tidak bisa dihubungi server</span>';
+            }
+        }
+        async function genBotLink() {
+            const user = auth.currentUser;
+            if (!user) {
+                showToast("Login dengan Email/Google dulu untuk menghubungkan bot");
+                return;
+            }
+            const btn = document.getElementById('btnGenBotLink');
+            const oldLabel = btn.innerHTML;
+            btn.innerHTML = '⏳ Membuat kode...';
+            btn.disabled = true;
+            try {
+                const idToken = await user.getIdToken(true);
+                const resp = await fetch('/api/gen-link', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'link',
+                        idToken: idToken,
+                        profileId: currentProfileId,
+                        name: (document.getElementById('displayProfileName') || {}).innerText || user.displayName || 'User'
+                    })
+                });
+                const data = await resp.json();
+                if (!resp.ok) throw new Error(data.error || resp.status);
+                if (data.alreadyBound) {
+                    showToast("Profil ini sudah terhubung ke bot ✅");
+                    updateBotStatusUI();
+                    return;
+                }
+                const codeEl = document.getElementById('botLinkCode');
+                const box = document.getElementById('botLinkBox');
+                const deep = document.getElementById('botLinkDeep');
+                const cd = document.getElementById('botLinkCountdown');
+                codeEl.textContent = data.code;
+                if (data.username) {
+                    deep.href = `https://t.me/${data.username}?start=${data.code}`;
+                    deep.textContent = 'Buka Telegram & Kirim Kode';
+                    deep.style.display = 'inline-block';
+                } else {
+                    deep.style.display = 'none';
+                }
+                box.style.display = 'block';
+                if (botLinkTimer) clearInterval(botLinkTimer);
+                const end = Number(data.expiresAt);
+                function tick() {
+                    const remain = Math.max(0, Math.round((end - Date.now()) / 1000));
+                    if (remain <= 0) {
+                        cd.textContent = 'Kode kedaluwarsa — buat lagi.';
+                        clearInterval(botLinkTimer);
+                        return;
+                    }
+                    const mm = String(Math.floor(remain / 60)).padStart(2, '0');
+                    const ss = String(remain % 60).padStart(2, '0');
+                    cd.textContent = `⏱ Berlaku ${mm}:${ss} lagi · 1 kode saja, jangan dibagikan`;
+                }
+                tick();
+                botLinkTimer = setInterval(tick, 1000);
+                showToast("Kode dibuat! Kirim ke bot Telegram kamu ✅");
+            } catch (e) {
+                showToast("Gagal: " + (e.message || 'coba lagi'));
+            } finally {
+                btn.innerHTML = oldLabel;
+                btn.disabled = false;
+            }
+        }
+        function unlinkBot() {
+            requireConfirm("Yakin memutuskan koneksi bot? Transaksi tetap aman di app.", async () => {
+                const user = auth.currentUser;
+                if (!user) { showToast("Login dengan Email/Google dulu"); return; }
+                try {
+                    const idToken = await user.getIdToken(true);
+                    const resp = await fetch('/api/gen-link', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'unbind', idToken: idToken, profileId: currentProfileId })
+                    });
+                    const data = await resp.json();
+                    if (!resp.ok) throw new Error(data.error || resp.status);
+                    showToast("Koneksi bot diputuskan 🔌");
+                    updateBotStatusUI();
+                } catch (e) {
+                    showToast("Gagal: " + (e.message || 'coba lagi'));
+                }
+            });
         }
 
         function closeSettingsModal() {
